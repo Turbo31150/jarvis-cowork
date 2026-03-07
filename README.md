@@ -221,11 +221,11 @@ python -m whisperflow.jarvis
 openclaw gateway --port 18789
 ```
 
-### Benchmark
+### Benchmark (100 cycles)
 
 ```
-37 cycles: 100% success, 90.7/100 score, 1.81s latency moyenne
-Commander: 22/37 (instant) | OL1: 14/37 (~2s) | M1: 1/37 (~5s)
+100 cycles: 98% success, 91.2/100 score, 1.59s latency moyenne
+Commander: 59/100 (instant) | OL1: 36/100 (~3s) | M1: 3/100 (~6s)
 ```
 
 ---
