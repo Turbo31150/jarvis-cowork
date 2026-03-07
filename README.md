@@ -185,4 +185,49 @@ Le systeme fonctionne en boucle fermee auto-alimentee :
 
 ---
 
-*JARVIS Etoile v12.1 — Systeme d'IA distribue autonome multi-GPU*
+## Integration WhisperFlow (Voix)
+
+Ce workspace s'integre avec [jarvis-whisper-flow](https://github.com/Turbo31150/jarvis-whisper-flow) pour le controle vocal :
+
+```
+Micro → Whisper STT → Wake Word "Jarvis" → Commander (140 commandes)
+                                              |
+                                         Si inconnu → cluster_bridge.py
+                                              |
+                                    cluster_race(M1 vs OL1) → TTS reponse
+```
+
+### Fichiers de liaison
+
+| Fichier | Repo | Role |
+|---------|------|------|
+| `cluster_bridge.py` | whisper-flow | Race M1/OL1, dispatch cowork |
+| `cowork_mcp_bridge.py` | cowork | Expose 395 scripts via MCP tools |
+| `cowork_dispatcher.py` | cowork | Routage query → scripts par keywords |
+| `cowork_engine.py` | cowork | Test-all, gaps, anticipate, improve |
+
+### Lancer le systeme complet
+
+```bash
+# Terminal 1: LM Studio (M1 qwen3-8b deja charge)
+# Terminal 2: Ollama (OL1 qwen3:1.7b)
+ollama serve
+
+# Terminal 3: WhisperFlow (ecoute micro)
+cd F:\BUREAU\jarvis-whisper-flow
+python -m whisperflow.jarvis
+
+# Terminal 4: OpenClaw Gateway (Telegram)
+openclaw gateway --port 18789
+```
+
+### Benchmark
+
+```
+37 cycles: 100% success, 90.7/100 score, 1.81s latency moyenne
+Commander: 22/37 (instant) | OL1: 14/37 (~2s) | M1: 1/37 (~5s)
+```
+
+---
+
+*JARVIS Etoile v12.4 -- Systeme d'IA distribue autonome multi-GPU*
