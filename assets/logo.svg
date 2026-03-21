@@ -1,0 +1,36 @@
+<svg viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono',monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#080E0A"/><stop offset="100%" stop-color="#0D1612"/></linearGradient>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#34D399"/><stop offset="100%" stop-color="#10B981"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="520" height="160" rx="14" fill="url(#bg)"/>
+  <rect width="520" height="160" rx="14" fill="none" stroke="#34D399" stroke-width="1" stroke-opacity="0.25"/>
+  <!-- Collaboration icon: two nodes linked -->
+  <g transform="translate(24,22)" filter="url(#glow)">
+    <circle cx="38" cy="58" r="28" fill="none" stroke="#34D399" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="80" cy="58" r="28" fill="none" stroke="#10B981" stroke-width="1.5" stroke-opacity="0.4"/>
+    <circle cx="38" cy="58" r="14" fill="#080E0A" stroke="url(#g1)" stroke-width="2"/>
+    <circle cx="80" cy="58" r="14" fill="#080E0A" stroke="url(#g1)" stroke-width="2"/>
+    <line x1="52" y1="58" x2="66" y2="58" stroke="url(#g1)" stroke-width="2" filter="url(#glow)"/>
+    <text x="38" y="63" text-anchor="middle" fill="#34D399" font-size="12" font-weight="800" filter="url(#glow)">J</text>
+    <text x="80" y="63" text-anchor="middle" fill="#10B981" font-size="12" font-weight="800" filter="url(#glow)">C</text>
+    <!-- orbit dots -->
+    <circle cx="38" cy="30" r="3" fill="#34D399" filter="url(#glow)"/>
+    <circle cx="38" cy="86" r="3" fill="#34D399" filter="url(#glow)"/>
+    <circle cx="80" cy="30" r="3" fill="#10B981" filter="url(#glow)"/>
+    <circle cx="80" cy="86" r="3" fill="#10B981" filter="url(#glow)"/>
+  </g>
+  <text x="156" y="57" fill="url(#g1)" font-size="32" font-weight="800" letter-spacing="-0.5" filter="url(#glow)">JARVIS·COWORK</text>
+  <text x="157" y="80" fill="#2A5040" font-size="12.5" letter-spacing="0.5">Autonomous AI Co-Development Workspace</text>
+  <rect x="156" y="90" width="330" height="1.5" rx="1" fill="url(#g1)" opacity="0.3"/>
+  <g transform="translate(156,104)">
+    <rect x="0"   y="0" width="62" height="22" rx="5" fill="#34D399" fill-opacity="0.1" stroke="#34D399" stroke-width="0.7" stroke-opacity="0.5"/>
+    <text x="31"  y="15" text-anchor="middle" fill="#34D399" font-size="10">Python</text>
+    <rect x="68"  y="0" width="80" height="22" rx="5" fill="#10B981" fill-opacity="0.1" stroke="#10B981" stroke-width="0.7" stroke-opacity="0.5"/>
+    <text x="108" y="15" text-anchor="middle" fill="#10B981" font-size="10">249 scripts</text>
+    <rect x="154" y="0" width="68" height="22" rx="5" fill="#34D399" fill-opacity="0.1" stroke="#34D399" stroke-width="0.7" stroke-opacity="0.5"/>
+    <text x="188" y="15" text-anchor="middle" fill="#34D399" font-size="10">JARVIS</text>
+  </g>
+  <text x="156" y="149" fill="#2A5040" font-size="10">Turbo31150  ·  MIT  ·  249 autonomous scripts  ·  Windows + Linux  ·  Claude Code</text>
+</svg>
