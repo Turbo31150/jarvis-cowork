@@ -1,126 +1,248 @@
 <div align="center">
-  <img src="assets/logo.svg" alt="JARVIS·COWORK" width="520"/>
+  <img src="assets/logo.svg" alt="JARVIS COWORK" width="520"/>
   <br/><br/>
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-34D399?style=flat-square)](LICENSE)
   [![Python](https://img.shields.io/badge/Python-3.11+-34D399?style=flat-square&logo=python&logoColor=black)](#)
-  [![Scripts](https://img.shields.io/badge/249_scripts-autonomous-10B981?style=flat-square)](#scripts)
+  [![Agents](https://img.shields.io/badge/249_agents-autonomous-10B981?style=flat-square)](#agent-categories)
   [![Platform](https://img.shields.io/badge/Windows_%2B_Linux-cross--platform-34D399?style=flat-square)](#)
-  [![JARVIS](https://img.shields.io/badge/JARVIS-integrated-10B981?style=flat-square)](#intégration)
+  [![MCP](https://img.shields.io/badge/MCP-Claude_SDK-10B981?style=flat-square)](#mcp-integration)
+  [![JARVIS](https://img.shields.io/badge/JARVIS-integrated-34D399?style=flat-square)](#jarvis-integration)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-10B981?style=flat-square)](#contributing)
 
   <br/>
-  <p><strong>249 scripts de co-développement autonome · Windows + Linux · Claude Code · JARVIS intégré</strong></p>
-  <p><em>Espace de travail IA collaboratif — sessions de développement continu orchestrées par JARVIS</em></p>
+  <h3>Collaborative AI Workspace &mdash; 249 Autonomous Agents for Co-Development</h3>
+  <p><em>Orchestrate continuous AI-driven development sessions across code generation, testing, deployment, documentation, and monitoring &mdash; all powered by the JARVIS ecosystem.</em></p>
+
+  <br/>
+
+  [Architecture](#architecture) &bull; [Agent Categories](#agent-categories) &bull; [Quick Start](#quick-start) &bull; [MCP Integration](#mcp-integration) &bull; [API Reference](#api-reference) &bull; [Contributing](#contributing)
 </div>
 
 ---
 
-## Présentation
+## Why JARVIS COWORK?
 
-**JARVIS·COWORK** est l'espace de travail de co-développement autonome de l'écosystème JARVIS. Il regroupe **249 scripts** couvrant l'intégralité du cycle de développement : génération de code, tests, déploiement, documentation, monitoring — exécutés de manière autonome ou semi-autonome par les agents JARVIS.
+Modern software development involves repetitive cycles of scaffolding, testing, deploying, and documenting. **JARVIS COWORK** automates these cycles through **249 specialized agents** that work autonomously or semi-autonomously, orchestrated by a central dispatcher connected to Claude Code via the Model Context Protocol (MCP).
 
----
-
-## Structure du projet
-
-```
-jarvis-cowork/
-├── README.md               ← Ce fichier
-├── AGENTS.md               ← Définition des agents Cowork
-├── IDENTITY.md             ← Identité et rôle du système
-├── INSTRUCTIONS.md         ← Instructions d'utilisation
-├── SOUL.md                 ← Philosophie et valeurs
-├── TOOLS.md                ← Outils disponibles
-├── USER.md                 ← Profil utilisateur (Franc)
-├── WINDOWS.md              ← Spécificités Windows
-├── WORKFLOW_AUTO.md        ← Workflows automatisés
-├── COWORK_QUEUE.md         ← File d'attente des tâches
-├── COWORK_TASKS.md         ← Tâches en cours / terminées
-├── HEARTBEAT.md            ← État du système en temps réel
-├── cowork_dispatcher.py    ← Dispatche les tâches aux agents
-├── cowork_engine.py        ← Moteur d'exécution principale
-├── cowork_mcp_bridge.py    ← Bridge MCP pour Claude Code
-├── deploy_cowork_agents.py ← Déploiement des agents
-└── dev/                    ← Scripts de développement
-    └── [249 scripts]
-```
+**Key differentiators:**
+- **Full lifecycle coverage** &mdash; from code generation to production monitoring
+- **Real-time heartbeat** &mdash; live system state tracked in `HEARTBEAT.md`
+- **MCP-native** &mdash; first-class Claude Code integration via WebSocket bridge
+- **Cross-platform** &mdash; identical behavior on Windows and Linux
 
 ---
 
-## Scripts — catégories
-
-| Catégorie | Nombre | Exemples |
-|-----------|--------|---------|
-| **Génération code** | 48 | scaffolding, templates, boilerplate |
-| **Tests & QA** | 42 | pytest auto, coverage, lint |
-| **Déploiement** | 38 | Docker build, push, systemd deploy |
-| **Documentation** | 35 | README gen, changelog, docstrings |
-| **Monitoring** | 32 | health checks, alertes, logs |
-| **Git / CI** | 28 | commits auto, PR, branches |
-| **Refactoring** | 26 | code cleanup, migration, format |
-
----
-
-## Workflow d'une session Cowork
+## Architecture
 
 ```
-Franc → Claude Code (COWORK mode)
-         │
-         ▼
-  Task Dispatcher       ← COWORK_QUEUE.md
-         │
-    ┌────┴────┐
-    │  Agent  │         ← cowork_engine.py
-    │  Pool   │         ← 249 scripts disponibles
-    └────┬────┘
-         │
-    ┌────▼────┐
-    │  MCP    │         ← cowork_mcp_bridge.py
-    │  Bridge │         ← Claude SDK + JARVIS WS:9742
-    └────┬────┘
-         │
-    Résultat → HEARTBEAT.md
-              → COWORK_TASKS.md
-              → Telegram notification
+                          +------------------------+
+                          |    Franc (Developer)    |
+                          +------------+-----------+
+                                       |
+                                       v
+                          +------------------------+
+                          | Claude Code (COWORK)   |
+                          +------------+-----------+
+                                       |
+                      +----------------+----------------+
+                      |                                 |
+                      v                                 v
+            +-----------------+               +-----------------+
+            | Task Dispatcher |               | COWORK_QUEUE.md |
+            | dispatcher.py   |<------------->| (task backlog)  |
+            +--------+--------+               +-----------------+
+                     |
+        +------------+------------+
+        |            |            |
+        v            v            v
+   +---------+  +---------+  +---------+
+   | Agent   |  | Agent   |  | Agent   |     249 specialized
+   | Pool A  |  | Pool B  |  | Pool C  |     scripts available
+   | (Gen)   |  | (Test)  |  | (Deploy)|
+   +---------+  +---------+  +---------+
+        |            |            |
+        +------------+------------+
+                     |
+                     v
+            +-----------------+
+            |   MCP Bridge    |       WebSocket :9742
+            | mcp_bridge.py   |-----> JARVIS Core
+            +--------+--------+
+                     |
+          +----------+----------+
+          |          |          |
+          v          v          v
+    HEARTBEAT   COWORK_TASKS  Telegram
+      .md          .md        Alerts
 ```
 
 ---
 
-## Utilisation
+## Agent Categories
+
+| Category | Count | Description | Key Capabilities |
+|:---------|:-----:|:------------|:-----------------|
+| **Code Generation** | 48 | Scaffolding, templates, boilerplate | Project init, API stubs, model generation |
+| **Testing & QA** | 42 | Automated test suites and coverage | pytest orchestration, coverage reports, linting |
+| **Deployment** | 38 | Build, ship, and run | Docker builds, systemd services, CI/CD triggers |
+| **Documentation** | 35 | Auto-generated docs | README generation, changelogs, docstring injection |
+| **Monitoring** | 32 | Health and observability | Health checks, log aggregation, alert routing |
+| **Git & CI/CD** | 28 | Source control automation | Auto-commits, PR creation, branch management |
+| **Refactoring** | 26 | Code quality improvements | Dead code removal, migration scripts, formatting |
+| **Total** | **249** | | |
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Access to JARVIS WebSocket broker (`:9742`)
+- Claude Code with MCP support (optional, for interactive sessions)
+
+### Installation
 
 ```bash
-# Lancer une session Cowork
+git clone https://github.com/Turbo31150/jarvis-cowork.git
+cd jarvis-cowork
+pip install -r requirements.txt
+```
+
+### Run a Session
+
+```bash
+# Start the Cowork engine
 python cowork_engine.py
 
-# Dispatcher une tâche spécifique
+# Dispatch a specific task
 python cowork_dispatcher.py --task "generate_tests" --target "src/trading/"
 
-# Déployer les agents
+# Deploy all agents
 python deploy_cowork_agents.py --all
 
-# Voir l'état en temps réel
-cat HEARTBEAT.md
+# Monitor real-time state
+watch -n2 cat HEARTBEAT.md
 ```
 
 ---
 
-## Intégration
+## MCP Integration
+
+JARVIS COWORK exposes a full MCP bridge for Claude Code and other MCP-compatible clients.
 
 ```python
-# Via MCP Bridge
 from cowork_mcp_bridge import CoworkBridge
 
 bridge = CoworkBridge(jarvis_ws="ws://127.0.0.1:9742")
+
+# Dispatch tasks programmatically
 await bridge.dispatch("refactor_module", path="core/agent_manager.py")
 await bridge.dispatch("generate_docs", path="modules/trading/")
+await bridge.dispatch("run_tests", path="tests/", coverage=True)
 ```
+
+### Available MCP Tools
+
+| Tool | Description |
+|:-----|:------------|
+| `dispatch_task` | Send a task to the agent pool |
+| `list_agents` | List all available agents and their status |
+| `get_heartbeat` | Retrieve current system state |
+| `cancel_task` | Cancel a running or queued task |
+| `get_results` | Fetch results from completed tasks |
+
+---
+
+## API Reference
+
+### Cowork Engine
+
+```python
+from cowork_engine import CoworkEngine
+
+engine = CoworkEngine(config="config.yaml")
+engine.start()                          # Start processing queue
+engine.enqueue("generate_tests", target="src/")
+engine.status()                         # Returns current heartbeat
+```
+
+### Task Dispatcher
+
+```python
+from cowork_dispatcher import Dispatcher
+
+dispatcher = Dispatcher()
+result = dispatcher.run(
+    task="scaffold_module",
+    target="modules/new_feature/",
+    template="fastapi"
+)
+```
+
+---
+
+## Project Structure
+
+```
+jarvis-cowork/
+├── cowork_engine.py         # Core engine — processes task queue
+├── cowork_dispatcher.py     # Task routing to agent pools
+├── cowork_mcp_bridge.py     # MCP bridge for Claude Code
+├── deploy_cowork_agents.py  # Agent deployment orchestrator
+├── AGENTS.md                # Agent definitions and capabilities
+├── IDENTITY.md              # System identity and role
+├── INSTRUCTIONS.md          # Usage instructions
+├── SOUL.md                  # Philosophy and values
+├── TOOLS.md                 # Available tool catalog
+├── WORKFLOW_AUTO.md         # Automated workflow definitions
+├── COWORK_QUEUE.md          # Live task backlog
+├── COWORK_TASKS.md          # Task history and results
+├── HEARTBEAT.md             # Real-time system state
+└── dev/                     # 249 agent scripts
+    ├── gen/                 # Code generation agents
+    ├── test/                # Testing agents
+    ├── deploy/              # Deployment agents
+    ├── docs/                # Documentation agents
+    ├── monitor/             # Monitoring agents
+    ├── git/                 # Git & CI agents
+    └── refactor/            # Refactoring agents
+```
+
+---
+
+## JARVIS Integration
+
+JARVIS COWORK is a core component of the [JARVIS ecosystem](https://github.com/Turbo31150). It communicates with the JARVIS supervisor via WebSocket on port `9742` and can be triggered by:
+
+- **Voice commands** via [jarvis-whisper-flow](https://github.com/Turbo31150/jarvis-whisper-flow)
+- **Trading events** via [TradeOracle](https://github.com/Turbo31150/TradeOracle)
+- **Cluster scheduling** via [JARVIS-CLUSTER](https://github.com/Turbo31150/JARVIS-CLUSTER)
+- **Manual dispatch** via Claude Code MCP
+
+---
+
+## Contributing
+
+Contributions are welcome. Please open an issue first to discuss what you would like to change.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-agent`)
+3. Add your agent script in the appropriate `dev/` subdirectory
+4. Submit a Pull Request
+
+---
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
-
-**Franc Delmas (Turbo31150)** · [github.com/Turbo31150](https://github.com/Turbo31150) · Toulouse
-
-*JARVIS·COWORK — Autonomous AI Co-Development Workspace — MIT License*
-
+  <br/>
+  <strong>Franc Delmas (Turbo31150)</strong> &bull; <a href="https://github.com/Turbo31150">github.com/Turbo31150</a> &bull; Toulouse, France
+  <br/><br/>
+  <em>JARVIS COWORK &mdash; Autonomous AI Co-Development Workspace</em>
 </div>
