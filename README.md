@@ -5,29 +5,32 @@
   [![License: MIT](https://img.shields.io/badge/License-MIT-34D399?style=flat-square)](LICENSE)
   [![Python](https://img.shields.io/badge/Python-3.11+-34D399?style=flat-square&logo=python&logoColor=black)](#)
   [![Agents](https://img.shields.io/badge/249_agents-autonomous-10B981?style=flat-square)](#agent-categories)
+  [![QA Scripts](https://img.shields.io/badge/570+_QA-self--repair-34D399?style=flat-square)](#qa--self-repair)
   [![Platform](https://img.shields.io/badge/Windows_%2B_Linux-cross--platform-34D399?style=flat-square)](#)
   [![MCP](https://img.shields.io/badge/MCP-Claude_SDK-10B981?style=flat-square)](#mcp-integration)
   [![JARVIS](https://img.shields.io/badge/JARVIS-integrated-34D399?style=flat-square)](#jarvis-integration)
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-10B981?style=flat-square)](#contributing)
 
   <br/>
-  <h3>Collaborative AI Workspace &mdash; 249 Autonomous Agents for Co-Development</h3>
+  <h3>AI collaborative workspace &mdash; 570+ QA scripts with self-repair</h3>
   <p><em>Orchestrate continuous AI-driven development sessions across code generation, testing, deployment, documentation, and monitoring &mdash; all powered by the JARVIS ecosystem.</em></p>
 
   <br/>
 
-  [Architecture](#architecture) &bull; [Agent Categories](#agent-categories) &bull; [Quick Start](#quick-start) &bull; [MCP Integration](#mcp-integration) &bull; [API Reference](#api-reference) &bull; [Contributing](#contributing)
+  [Architecture](#architecture) &bull; [Agent Categories](#agent-categories) &bull; [QA & Self-Repair](#qa--self-repair) &bull; [Quick Start](#quick-start) &bull; [MCP Integration](#mcp-integration) &bull; [Contributing](#contributing)
 </div>
 
 ---
 
 ## Why JARVIS COWORK?
 
-Modern software development involves repetitive cycles of scaffolding, testing, deploying, and documenting. **JARVIS COWORK** automates these cycles through **249 specialized agents** that work autonomously or semi-autonomously, orchestrated by a central dispatcher connected to Claude Code via the Model Context Protocol (MCP).
+Modern software development involves repetitive cycles of scaffolding, testing, deploying, and documenting. **JARVIS COWORK** automates these cycles through **249 specialized agents** and **570+ QA scripts** that work autonomously or semi-autonomously, orchestrated by a central dispatcher connected to Claude Code via the Model Context Protocol (MCP).
 
 **Key differentiators:**
 - **Full lifecycle coverage** &mdash; from code generation to production monitoring
-- **Real-time heartbeat** &mdash; live system state tracked in `HEARTBEAT.md`
+- **Self-repair pipeline** &mdash; 570+ QA scripts detect and auto-fix regressions
+- **Persistent context** &mdash; live system state tracked in `HEARTBEAT.md` across sessions
+- **Multi-model orchestration** &mdash; routes tasks to the best model in the JARVIS cluster
 - **MCP-native** &mdash; first-class Claude Code integration via WebSocket bridge
 - **Cross-platform** &mdash; identical behavior on Windows and Linux
 
@@ -35,47 +38,35 @@ Modern software development involves repetitive cycles of scaffolding, testing, 
 
 ## Architecture
 
+```mermaid
+flowchart TD
+    Human["👤 Human Developer"] <-->|Collaborate| Claude["🤖 Claude Code\nCOWORK MCP"]
+    Claude --> Dispatcher["📋 Task Dispatcher\ndispatcher.py"]
+    Dispatcher <--> Queue["📝 COWORK_QUEUE.md\nTask backlog"]
+
+    Dispatcher --> GenPool["⚡ Code Generation\n48 agents"]
+    Dispatcher --> TestPool["🧪 Testing & QA\n42 agents"]
+    Dispatcher --> DeployPool["🚀 Deployment\n38 agents"]
+    Dispatcher --> DocsPool["📖 Documentation\n35 agents"]
+    Dispatcher --> MonitorPool["📊 Monitoring\n32 agents"]
+    Dispatcher --> GitPool["🔀 Git & CI/CD\n28 agents"]
+    Dispatcher --> RefactorPool["🔧 Refactoring\n26 agents"]
+
+    GenPool & TestPool & DeployPool & DocsPool & MonitorPool & GitPool & RefactorPool --> Bridge["🌐 MCP Bridge\nmcp_bridge.py"]
+    Bridge -->|WebSocket :9742| JARVIS["🧠 JARVIS Core"]
+
+    Bridge --> Heartbeat["💓 HEARTBEAT.md"]
+    Bridge --> Tasks["📋 COWORK_TASKS.md"]
+    Bridge --> Alerts["📱 Telegram Alerts"]
+
+    style Human fill:#1e293b,stroke:#34d399,color:#e2e8f0
+    style Claude fill:#1e293b,stroke:#10b981,color:#e2e8f0
+    style Dispatcher fill:#1e293b,stroke:#34d399,color:#e2e8f0
+    style Bridge fill:#1e293b,stroke:#10b981,color:#e2e8f0
+    style JARVIS fill:#1e293b,stroke:#34d399,color:#e2e8f0
 ```
-                          +------------------------+
-                          |    Franc (Developer)    |
-                          +------------+-----------+
-                                       |
-                                       v
-                          +------------------------+
-                          | Claude Code (COWORK)   |
-                          +------------+-----------+
-                                       |
-                      +----------------+----------------+
-                      |                                 |
-                      v                                 v
-            +-----------------+               +-----------------+
-            | Task Dispatcher |               | COWORK_QUEUE.md |
-            | dispatcher.py   |<------------->| (task backlog)  |
-            +--------+--------+               +-----------------+
-                     |
-        +------------+------------+
-        |            |            |
-        v            v            v
-   +---------+  +---------+  +---------+
-   | Agent   |  | Agent   |  | Agent   |     249 specialized
-   | Pool A  |  | Pool B  |  | Pool C  |     scripts available
-   | (Gen)   |  | (Test)  |  | (Deploy)|
-   +---------+  +---------+  +---------+
-        |            |            |
-        +------------+------------+
-                     |
-                     v
-            +-----------------+
-            |   MCP Bridge    |       WebSocket :9742
-            | mcp_bridge.py   |-----> JARVIS Core
-            +--------+--------+
-                     |
-          +----------+----------+
-          |          |          |
-          v          v          v
-    HEARTBEAT   COWORK_TASKS  Telegram
-      .md          .md        Alerts
-```
+
+> **Human-Agent collaboration loop**: The developer sets intent, agents execute autonomously, results flow back for review, and the cycle repeats with persistent context across sessions.
 
 ---
 
@@ -91,6 +82,35 @@ Modern software development involves repetitive cycles of scaffolding, testing, 
 | **Git & CI/CD** | 28 | Source control automation | Auto-commits, PR creation, branch management |
 | **Refactoring** | 26 | Code quality improvements | Dead code removal, migration scripts, formatting |
 | **Total** | **249** | | |
+
+---
+
+## QA & Self-Repair
+
+JARVIS COWORK includes **570+ QA scripts** that form a self-repairing development pipeline:
+
+```mermaid
+flowchart LR
+    Code["Code Change"] --> QA["570+ QA Scripts"]
+    QA -->|Pass| Deploy["Deploy"]
+    QA -->|Fail| Diagnose["Auto-Diagnose"]
+    Diagnose --> Fix["Self-Repair Agent"]
+    Fix --> Code
+
+    style Code fill:#1e293b,stroke:#34d399,color:#e2e8f0
+    style QA fill:#1e293b,stroke:#f59e0b,color:#e2e8f0
+    style Deploy fill:#1e293b,stroke:#10b981,color:#e2e8f0
+    style Diagnose fill:#1e293b,stroke:#ef4444,color:#e2e8f0
+    style Fix fill:#1e293b,stroke:#34d399,color:#e2e8f0
+```
+
+| Capability | Description |
+|:-----------|:------------|
+| **Regression detection** | QA scripts run after every agent action to catch regressions |
+| **Auto-diagnosis** | Failed tests are analyzed to identify root cause |
+| **Self-repair** | Repair agents generate and apply fixes autonomously |
+| **Persistent context** | `HEARTBEAT.md` tracks system state across sessions |
+| **Multi-model routing** | Tasks routed to the optimal model (M1/M3/OL1) based on complexity |
 
 ---
 
