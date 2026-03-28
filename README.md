@@ -254,6 +254,39 @@ Contributions are welcome. Please open an issue first to discuss what you would 
 
 ---
 
+
+
+---
+
+## What is Cowork Mode?
+
+Cowork Mode is **human-AI pair programming** taken to its logical extreme. You write code, and JARVIS runs **570+ QA scripts automatically** in the background, finds bugs, security issues, and regressions -- then **self-repairs** them without you lifting a finger. It is like having a senior developer reviewing every line you write in real-time, except this one never sleeps and checks 570 things simultaneously.
+
+The key insight: instead of writing tests after code (which nobody does consistently), Cowork Mode runs the entire QA suite **after every agent action**, catching problems the moment they are introduced.
+
+## Example Session
+
+```
+Human: "Add authentication to the API"
+
+JARVIS: Generating auth module via code-gen agent...
+        Running 570 QA scripts...
+          ✅ 568 passed
+          ❌ 2 failed:
+             - test_cors_headers: missing CORS headers for /auth/* endpoints
+             - test_sql_injection: raw string interpolation in user lookup query
+
+JARVIS: Auto-fixing via self-repair agent...
+        - Added CORS middleware for auth routes
+        - Replaced raw SQL with parameterized queries
+        Re-running QA...
+          ✅ 570/570 passed
+
+JARVIS: Auth module deployed. 0 regressions. PR ready for review.
+```
+
+This loop -- **generate, test, diagnose, repair, re-test** -- runs continuously and autonomously. The human sets intent, agents handle execution.
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
