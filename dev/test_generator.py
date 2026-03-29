@@ -20,6 +20,7 @@ from io import StringIO
 from pathlib import Path
 from typing import List, Dict
 
+
 def extract_functions(filepath: Path) -> List[Dict]:
     """Extrait les fonctions publiques d'un fichier Python."""
     try:
@@ -57,6 +58,7 @@ def extract_functions(filepath: Path) -> List[Dict]:
             functions.append(func)
     return functions
 
+
 def generate_test_code(filepath: Path, functions: List[Dict]) -> str:
     """Génère le code de test unittest."""
     module_name = filepath.stem
@@ -86,7 +88,8 @@ def generate_test_code(filepath: Path, functions: List[Dict]) -> str:
     lines.append(f'')
     lines.append(f'    def test_module_imports(self):')
     lines.append(f'        """Le module s\'importe sans erreur."""')
-    lines.append(f'        self.assertIsNotNone({module_name}, "{module_name} failed to import")')
+    lines.append(
+        f'        self.assertIsNotNone({module_name}, "{module_name} failed to import")')
     lines.append(f'')
 
     for func in functions:
@@ -95,16 +98,23 @@ def generate_test_code(filepath: Path, functions: List[Dict]) -> str:
         lines.append(f'        """La fonction {func["name"]} existe."""')
         lines.append(f'        if {module_name} is None:')
         lines.append(f'            self.skipTest("Module not imported")')
-        lines.append(f'        self.assertTrue(hasattr({module_name}, "{func["name"]}"), "{func["name"]} not found")')
+        lines.append(
+            f'        self.assertTrue(hasattr({module_name}, "{
+                func["name"]}"), "{
+                func["name"]} not found")')
         lines.append(f'')
 
         if func["has_return"] and len(func["args"]) == 0:
             test_name2 = f"test_{func['name']}_callable"
             lines.append(f'    def {test_name2}(self):')
-            lines.append(f'        """La fonction {func["name"]} est appelable."""')
+            lines.append(
+                f'        """La fonction {
+                    func["name"]} est appelable."""')
             lines.append(f'        if {module_name} is None:')
             lines.append(f'            self.skipTest("Module not imported")')
-            lines.append(f'        fn = getattr({module_name}, "{func["name"]}", None)')
+            lines.append(
+                f'        fn = getattr({module_name}, "{
+                    func["name"]}", None)')
             lines.append(f'        self.assertTrue(callable(fn))')
             lines.append(f'')
 
@@ -112,22 +122,31 @@ def generate_test_code(filepath: Path, functions: List[Dict]) -> str:
     lines.append(f'    unittest.main()')
     return "\n".join(lines)
 
+
 def generate_for_file(filepath: Path, output_dir: Path = None):
     functions = extract_functions(filepath)
     if not functions:
-        print(f"[test_generator] {filepath.name}: aucune fonction publique trouvée.")
+        print(
+            f"[test_generator] {
+                filepath.name}: aucune fonction publique trouvée.")
         return None
 
     test_code = generate_test_code(filepath, functions)
     test_file = (output_dir or filepath.parent) / f"test_{filepath.name}"
 
     test_file.write_text(test_code, encoding="utf-8")
-    print(f"[test_generator] {filepath.name}: {len(functions)} fonctions → {test_file.name}")
+    print(
+        f"[test_generator] {
+            filepath.name}: {
+            len(functions)} fonctions → {
+                test_file.name}")
     return test_file
+
 
 def run_tests(test_file: Path):
     """Exécute les tests générés."""
-    spec = importlib.util.spec_from_file_location("test_module", str(test_file))
+    spec = importlib.util.spec_from_file_location(
+        "test_module", str(test_file))
     if spec is None:
         print(f"[test_generator] Impossible de charger {test_file}")
         return
@@ -147,15 +166,29 @@ def run_tests(test_file: Path):
     result = runner.run(suite)
 
     print(stream.getvalue())
-    print(f"\n{'='*40}")
-    print(f"Tests: {result.testsRun} | OK: {result.testsRun - len(result.failures) - len(result.errors)} | Failures: {len(result.failures)} | Errors: {len(result.errors)}")
+    print(f"\n{'=' * 40}")
+    print(f"Tests: {result.testsRun} | OK: {result.testsRun -
+                                            len(result.failures) -
+                                            len(result.errors)} | Failures: {len(result.failures)} | Errors: {len(result.errors)}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Générateur de tests Python.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--generate", type=Path, help="Générer tests pour un fichier")
-    group.add_argument("--all", nargs="?", const=".", metavar="DIR", help="Générer pour tous les .py")
-    group.add_argument("--run", type=Path, help="Générer et exécuter les tests")
+    group.add_argument(
+        "--generate",
+        type=Path,
+        help="Générer tests pour un fichier")
+    group.add_argument(
+        "--all",
+        nargs="?",
+        const=".",
+        metavar="DIR",
+        help="Générer pour tous les .py")
+    group.add_argument(
+        "--run",
+        type=Path,
+        help="Générer et exécuter les tests")
     args = parser.parse_args()
 
     if args.generate:
@@ -163,7 +196,8 @@ def main():
 
     elif args.all is not None:
         directory = Path(args.all)
-        files = sorted(f for f in directory.glob("*.py") if not f.name.startswith("test_"))
+        files = sorted(f for f in directory.glob("*.py")
+                       if not f.name.startswith("test_"))
         total = 0
         for f in files:
             result = generate_for_file(f)
@@ -175,6 +209,7 @@ def main():
         test_file = generate_for_file(args.run)
         if test_file:
             run_tests(test_file)
+
 
 if __name__ == "__main__":
     main()

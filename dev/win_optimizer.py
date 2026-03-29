@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """JARVIS Win Optimizer — Nettoyage et optimisation Windows."""
-import json, sys, os, subprocess, shutil
+import argparse
+import json
+import sys
+import os
+import subprocess
+import shutil
 from datetime import datetime
 
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
@@ -14,13 +19,20 @@ TEMP_DIRS = [
     os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\Windows\INetCache"),
 ]
 
+
 def send_telegram(msg):
     import urllib.request
     data = json.dumps({"chat_id": TELEGRAM_CHAT, "text": msg}).encode()
-    req = urllib.request.Request(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-                                 data=data, headers={"Content-Type": "application/json"})
-    try: urllib.request.urlopen(req, timeout=10)
-    except: pass
+    req = urllib.request.Request(
+        f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
+        data=data,
+        headers={
+            "Content-Type": "application/json"})
+    try:
+        urllib.request.urlopen(req, timeout=10)
+    except BaseException:
+        pass
+
 
 def get_dir_size(path):
     total = 0
@@ -28,10 +40,14 @@ def get_dir_size(path):
         for dirpath, _, filenames in os.walk(path):
             for f in filenames:
                 fp = os.path.join(dirpath, f)
-                try: total += os.path.getsize(fp)
-                except: pass
-    except: pass
+                try:
+                    total += os.path.getsize(fp)
+                except BaseException:
+                    pass
+    except BaseException:
+        pass
     return total
+
 
 def clean_temp_dirs():
     total_freed = 0
@@ -50,12 +66,15 @@ def clean_temp_dirs():
                 elif os.path.isdir(fp):
                     shutil.rmtree(fp, ignore_errors=True)
                     count += 1
-            except: pass
+            except BaseException:
+                pass
         after = get_dir_size(d)
         freed = before - after
         total_freed += freed
-        cleaned.append({"dir": d, "freed_mb": round(freed / 1048576, 1), "items": count})
+        cleaned.append({"dir": d, "freed_mb": round(
+            freed / 1048576, 1), "items": count})
     return total_freed, cleaned
+
 
 def get_disk_info():
     result = subprocess.run(
@@ -63,8 +82,11 @@ def get_disk_info():
          "Get-PSDrive -PSProvider FileSystem | Select Name,Used,Free | ConvertTo-Json"],
         capture_output=True, text=True, timeout=10
     )
-    try: return json.loads(result.stdout)
-    except: return []
+    try:
+        return json.loads(result.stdout)
+    except BaseException:
+        return []
+
 
 def get_ram_info():
     result = subprocess.run(
@@ -72,14 +94,20 @@ def get_ram_info():
          "(Get-CimInstance Win32_OperatingSystem | Select TotalVisibleMemorySize,FreePhysicalMemory) | ConvertTo-Json"],
         capture_output=True, text=True, timeout=10
     )
-    try: return json.loads(result.stdout)
-    except: return {}
+    try:
+        return json.loads(result.stdout)
+    except BaseException:
+        return {}
+
 
 def flush_dns():
     try:
-        subprocess.run(["ipconfig", "/flushdns"], capture_output=True, timeout=10)
+        subprocess.run(["ipconfig", "/flushdns"],
+                       capture_output=True, timeout=10)
         return True
-    except: return False
+    except BaseException:
+        return False
+
 
 def run_optimization(notify=True):
     report = {"ts": datetime.now().isoformat(), "actions": []}
@@ -87,7 +115,8 @@ def run_optimization(notify=True):
     # 1. Clean temp
     freed, cleaned = clean_temp_dirs()
     freed_mb = round(freed / 1048576, 1)
-    report["actions"].append({"action": "clean_temp", "freed_mb": freed_mb, "details": cleaned})
+    report["actions"].append(
+        {"action": "clean_temp", "freed_mb": freed_mb, "details": cleaned})
 
     # 2. Disk info
     disks = get_disk_info()
@@ -105,7 +134,8 @@ def run_optimization(notify=True):
     try:
         with open(LOG_FILE, "a") as f:
             f.write(json.dumps(report) + "\n")
-    except: pass
+    except BaseException:
+        pass
 
     # Summary
     total_ram_mb = ram.get("TotalVisibleMemorySize", 0) / 1024
@@ -119,6 +149,7 @@ def run_optimization(notify=True):
         send_telegram(summary)
 
     return summary, report
+
 
 if __name__ == "__main__":
     if "--once" in sys.argv:

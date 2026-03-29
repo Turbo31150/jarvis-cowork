@@ -87,16 +87,17 @@ def get_current_plan():
         return {"name": "unknown", "guid": ""}
 
     # Parse: Power Scheme GUID: xxx-xxx  (Name)
-    match = re.search(r'GUID:\s*([a-f0-9-]+)\s*\(([^)]+)\)', output, re.IGNORECASE)
+    match = re.search(
+        r'GUID:\s*([a-f0-9-]+)\s*\(([^)]+)\)',
+        output,
+        re.IGNORECASE)
     if match:
         return {"guid": match.group(1), "name": match.group(2).strip()}
 
     # Fallback
     guid_match = re.search(r'([a-f0-9]{8}-[a-f0-9-]+)', output)
-    return {
-        "guid": guid_match.group(1) if guid_match else "",
-        "name": output.split("(")[-1].rstrip(")").strip() if "(" in output else "unknown"
-    }
+    return {"guid": guid_match.group(1) if guid_match else "", "name": output.split(
+        "(")[-1].rstrip(")").strip() if "(" in output else "unknown"}
 
 
 def list_plans():
@@ -107,7 +108,10 @@ def list_plans():
 
     for line in output.split("\n"):
         # Match both English "GUID:" and French "GUID du mode..."
-        match = re.search(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\s+\(([^)]+)\)', line, re.IGNORECASE)
+        match = re.search(
+            r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\s+\(([^)]+)\)',
+            line,
+            re.IGNORECASE)
         if match:
             guid = match.group(1)
             name = match.group(2).strip()
@@ -150,7 +154,11 @@ def switch_plan(db, plan_key):
     # Try matching by name in available plans
     if not target_guid:
         for p in list_plans():
-            if plan_key_lower in p["name"].lower().replace(" ", "_").replace("-", "_"):
+            if plan_key_lower in p["name"].lower().replace(
+                    " ",
+                    "_").replace(
+                    "-",
+                    "_"):
                 target_guid = p["guid"]
                 break
 
@@ -190,9 +198,12 @@ def switch_plan(db, plan_key):
 
     db.execute(
         "INSERT INTO plan_history (ts, plan_name, plan_guid, action, context) VALUES (?,?,?,?,?)",
-        (time.time(), new_plan["name"], target_guid, "switch",
-         f"from {old_plan['name']} to {plan_key}")
-    )
+        (time.time(),
+         new_plan["name"],
+         target_guid,
+         "switch",
+         f"from {
+            old_plan['name']} to {plan_key}"))
     db.commit()
 
     return {
@@ -222,10 +233,15 @@ def create_jarvis_plan(db):
     # Parse new GUID
     match = re.search(r'GUID:\s*([a-f0-9-]+)', output, re.IGNORECASE)
     if not match:
-        match = re.search(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})', output)
+        match = re.search(
+            r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})',
+            output)
 
     if not match:
-        return {"status": "error", "error": "Failed to create plan", "output": output}
+        return {
+            "status": "error",
+            "error": "Failed to create plan",
+            "output": output}
 
     new_guid = match.group(1)
 
@@ -257,8 +273,11 @@ def create_jarvis_plan(db):
 
     db.execute(
         "INSERT INTO plan_history (ts, plan_name, plan_guid, action, context) VALUES (?,?,?,?,?)",
-        (time.time(), JARVIS_PLAN_NAME, new_guid, "create", "custom plan from high_performance")
-    )
+        (time.time(),
+         JARVIS_PLAN_NAME,
+         new_guid,
+         "create",
+         "custom plan from high_performance"))
     db.commit()
 
     return {
@@ -310,8 +329,12 @@ def benchmark_plans(db):
 
         db.execute(
             "INSERT INTO benchmarks (ts, plan_name, cpu_score, gpu_score, duration_s, notes) VALUES (?,?,?,?,?,?)",
-            (time.time(), plan["name"], cpu_score, 0, cpu_duration, "auto-benchmark")
-        )
+            (time.time(),
+             plan["name"],
+                cpu_score,
+                0,
+                cpu_duration,
+                "auto-benchmark"))
 
     db.commit()
 
@@ -390,12 +413,14 @@ def once(db):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="win_power_plan_manager.py (#191) — Power plan manager Windows 11"
-    )
+        description="win_power_plan_manager.py (#191) — Power plan manager Windows 11")
     parser.add_argument("--current", action="store_true",
                         help="Show current power plan")
-    parser.add_argument("--switch", type=str, metavar="PLAN",
-                        help="Switch to plan (balanced/performance/saver/jarvis)")
+    parser.add_argument(
+        "--switch",
+        type=str,
+        metavar="PLAN",
+        help="Switch to plan (balanced/performance/saver/jarvis)")
     parser.add_argument("--create", action="store_true",
                         help="Create custom JARVIS Turbo power plan")
     parser.add_argument("--benchmark", action="store_true",
@@ -429,7 +454,12 @@ def main():
     try:
         print(output)
     except UnicodeEncodeError:
-        print(output.encode("utf-8", errors="replace").decode("ascii", errors="replace"))
+        print(
+            output.encode(
+                "utf-8",
+                errors="replace").decode(
+                "ascii",
+                errors="replace"))
     db.close()
 
 

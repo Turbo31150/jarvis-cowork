@@ -46,9 +46,9 @@ NODES = {
         "host": "127.0.0.1",
         "port": 1234,
         "type": "lmstudio",
-        "models_url": "http://127.0.0.1:1234/api/v1/models",
-        "chat_url": "http://127.0.0.1:1234/api/v1/chat",
-        "model_id": "qwen3-8b",
+        "models_url": "http://127.0.0.1:1234/v1/models",
+        "chat_url": "http://127.0.0.1:1234/v1/chat/completions",
+        "model_id": "qwen/qwen3.5-9b",
         "timeout": 15,
     },
     "M2": {
@@ -86,6 +86,8 @@ NODES = {
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db(conn: sqlite3.Connection):
     conn.execute("""
         CREATE TABLE IF NOT EXISTS model_health_checks (
@@ -115,7 +117,12 @@ def get_db() -> sqlite3.Connection:
 # ---------------------------------------------------------------------------
 # HTTP Helper
 # ---------------------------------------------------------------------------
-def http_request(url: str, data: dict | None = None, timeout: int = 10) -> tuple:
+
+
+def http_request(
+        url: str,
+        data: dict | None = None,
+        timeout: int = 10) -> tuple:
     """Make an HTTP request. Returns (status_code, response_dict, elapsed_ms)."""
     start = time.time()
     try:
@@ -146,11 +153,19 @@ def http_request(url: str, data: dict | None = None, timeout: int = 10) -> tuple
 # ---------------------------------------------------------------------------
 # Node Checks
 # ---------------------------------------------------------------------------
+
+
 def check_models_loaded(node: dict) -> dict:
     """Check how many models are loaded on a node."""
     status, resp, elapsed = http_request(node["models_url"], timeout=5)
     if status != 200:
-        return {"loaded": 0, "models": [], "ping_ms": elapsed, "error": resp.get("error", "unreachable")}
+        return {
+            "loaded": 0,
+            "models": [],
+            "ping_ms": elapsed,
+            "error": resp.get(
+                "error",
+                "unreachable")}
 
     if node["type"] == "lmstudio":
         models = resp.get("data", resp.get("models", []))
@@ -192,7 +207,8 @@ def run_inference(node: dict, prompt: str) -> dict:
     else:
         return {"error": f"Unknown node type: {node['type']}"}
 
-    status, resp, elapsed = http_request(node["chat_url"], payload, timeout=node["timeout"])
+    status, resp, elapsed = http_request(
+        node["chat_url"], payload, timeout=node["timeout"])
 
     if status != 200:
         return {
@@ -248,7 +264,10 @@ def assess_quality(response_text: str) -> int:
 def check_node(node_name: str) -> dict:
     """Perform a full health check on a single node."""
     if node_name not in NODES:
-        return {"node": node_name, "status": "unknown", "error": f"Unknown node: {node_name}"}
+        return {
+            "node": node_name,
+            "status": "unknown",
+            "error": f"Unknown node: {node_name}"}
 
     node = NODES[node_name]
     result = {
@@ -283,7 +302,9 @@ def check_node(node_name: str) -> dict:
     quality_inference = run_inference(node, TEST_PROMPT_QUALITY)
     quality_score = 0
     if quality_inference.get("status") == "ok":
-        quality_score = assess_quality(quality_inference.get("response_text", ""))
+        quality_score = assess_quality(
+            quality_inference.get(
+                "response_text", ""))
     result["quality_score"] = quality_score
     result["quality_response"] = quality_inference.get("response_text", "")
 
@@ -306,10 +327,17 @@ def check_node(node_name: str) -> dict:
 # ---------------------------------------------------------------------------
 # Actions
 # ---------------------------------------------------------------------------
-def action_check(node_name: str | None = None, all_nodes: bool = False) -> dict:
+
+
+def action_check(
+        node_name: str | None = None,
+        all_nodes: bool = False) -> dict:
     """Run health checks and persist results."""
     conn = get_db()
-    targets = list(NODES.keys()) if (all_nodes or node_name is None) else [node_name.upper()]
+    targets = list(
+        NODES.keys()) if (
+        all_nodes or node_name is None) else [
+            node_name.upper()]
 
     results = {
         "timestamp": datetime.now().isoformat(),
@@ -357,6 +385,8 @@ def action_check(node_name: str | None = None, all_nodes: bool = False) -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Deep health check of loaded models on the JARVIS cluster."

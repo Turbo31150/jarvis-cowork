@@ -48,6 +48,7 @@ USER_HOME = Path.home()
 # Helpers – stockage SQLite
 # ------------------------------------------------------------
 
+
 def init_db(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute(
@@ -62,6 +63,7 @@ def init_db(conn: sqlite3.Connection):
     )
     conn.commit()
 
+
 def store_scan(conn: sqlite3.Connection, category: str, result: str):
     cur = conn.cursor()
     cur.execute(
@@ -70,28 +72,35 @@ def store_scan(conn: sqlite3.Connection, category: str, result: str):
     )
     conn.commit()
 
+
 def fetch_recent(conn: sqlite3.Connection, limit: int = 20):
     cur = conn.cursor()
-    cur.execute("SELECT ts, category, result FROM scans ORDER BY ts DESC LIMIT ?", (limit,))
+    cur.execute(
+        "SELECT ts, category, result FROM scans ORDER BY ts DESC LIMIT ?", (limit,))
     return cur.fetchall()
 
 # ------------------------------------------------------------
 # Notification Telegram
 # ------------------------------------------------------------
 
+
 def telegram_alert(message: str):
     try:
-        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": message}).encode()
+        data = urllib.parse.urlencode(
+            {"chat_id": TELEGRAM_CHAT_ID, "text": message}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         req = urllib.request.Request(url, data=data)
         with urllib.request.urlopen(req, timeout=10):
             pass
     except Exception as e:
-        print(f"[security_scanner] Erreur d'envoi Telegram : {e}", file=sys.stderr)
+        print(
+            f"[security_scanner] Erreur d'envoi Telegram : {e}",
+            file=sys.stderr)
 
 # ------------------------------------------------------------
 # Scans individuels
 # ------------------------------------------------------------
+
 
 def run_ps(command: str) -> str:
     """Execute une commande PowerShell et retourne la sortie texte (utf‑8)."""
@@ -103,16 +112,26 @@ def run_ps(command: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+
 def scan_ports() -> str:
     cmd = "Get-NetTCPConnection -State Listen | Select-Object -Property LocalPort, OwningProcess | Format-Table -AutoSize"
     return run_ps(cmd)
+
 
 def scan_services() -> str:
     cmd = "Get-Service | Where-Object {$_.Status -eq 'Running'} | Select-Object -Property Name, Status | Format-Table -AutoSize"
     return run_ps(cmd)
 
+
 def scan_sensitive_files() -> str:
-    patterns = ["*.env", "*credentials*", "*.pem", "*.key", "*.crt", "*.config", "*.json"]
+    patterns = [
+        "*.env",
+        "*credentials*",
+        "*.pem",
+        "*.key",
+        "*.crt",
+        "*.config",
+        "*.json"]
     matches = []
     for pattern in patterns:
         for p in USER_HOME.rglob(pattern):
@@ -121,9 +140,11 @@ def scan_sensitive_files() -> str:
         return "Aucun fichier sensible trouvé."
     return "Fichiers sensibles :\n" + "\n".join(matches)
 
+
 def scan_firewall() -> str:
     cmd = "Get-NetFirewallProfile | Select-Object -Property Name, Enabled | Format-Table -AutoSize"
     return run_ps(cmd)
+
 
 def scan_defender() -> str:
     cmd = "Get-MpComputerStatus | Select-Object -Property AntivirusEnabled, RealTimeProtectionEnabled, AntivirusSignatureLastUpdated | Format-List"
@@ -133,7 +154,13 @@ def scan_defender() -> str:
 # Analyse des risques
 # ------------------------------------------------------------
 
-def detect_risks(port_output: str, service_output: str, file_output: str, firewall_output: str, defender_output: str) -> list:
+
+def detect_risks(
+        port_output: str,
+        service_output: str,
+        file_output: str,
+        firewall_output: str,
+        defender_output: str) -> list:
     alerts = []
     # Ports à risque – on regarde les numéros dans le texte
     risky_ports = {"3389", "445"}
@@ -147,25 +174,34 @@ def detect_risks(port_output: str, service_output: str, file_output: str, firewa
             if port in risky_ports or int(port) > 1024:
                 alerts.append(f"Port à risque ouvert : {port}")
     # Services à risque
-    risky_services = {"RemoteRegistry", "Telnet", "RemoteDesktop", "SMB", "RDP"}
+    risky_services = {
+        "RemoteRegistry",
+        "Telnet",
+        "RemoteDesktop",
+        "SMB",
+        "RDP"}
     for line in service_output.splitlines():
         for svc in risky_services:
             if svc.lower() in line.lower():
-                alerts.append(f"Service potentiellement dangereux actif : {svc}")
+                alerts.append(
+                    f"Service potentiellement dangereux actif : {svc}")
     # Fichiers sensibles
     if "Fichiers sensibles" in file_output:
-        alerts.append("Fichiers sensibles détectés dans le répertoire utilisateur")
+        alerts.append(
+            "Fichiers sensibles détectés dans le répertoire utilisateur")
     # Pare‑feu désactivé ?
     if "Enabled : False" in firewall_output or "Enabled : 0" in firewall_output:
         alerts.append("Pare‑feu Windows désactivé.")
     # Defender désactivé ?
     if "AntivirusEnabled : False" in defender_output or "RealTimeProtectionEnabled : False" in defender_output:
-        alerts.append("Windows Defender désactivé ou protection en temps réel désactivée.")
+        alerts.append(
+            "Windows Defender désactivé ou protection en temps réel désactivée.")
     return alerts
 
 # ------------------------------------------------------------
 # CLI actions
 # ------------------------------------------------------------
+
 
 def run_once():
     conn = sqlite3.connect(DB_PATH)
@@ -192,11 +228,14 @@ def run_once():
         print("[security_scanner] Aucun risque détecté.")
     conn.close()
 
+
 def show_ports():
     print(scan_ports())
 
+
 def show_services():
     print(scan_services())
+
 
 def show_history(limit: int = 20):
     conn = sqlite3.connect(DB_PATH)
@@ -208,13 +247,27 @@ def show_history(limit: int = 20):
         print("\n")
     conn.close()
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Scanner de sécurité Windows.")
+    parser = argparse.ArgumentParser(
+        description="Scanner de sécurité Windows.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--once", action="store_true", help="Exécuter le scan complet et alerter si risque")
-    group.add_argument("--ports", action="store_true", help="Afficher uniquement les ports ouverts")
-    group.add_argument("--services", action="store_true", help="Afficher les services actifs")
-    group.add_argument("--history", action="store_true", help="Afficher l'historique des scans")
+    group.add_argument(
+        "--once",
+        action="store_true",
+        help="Exécuter le scan complet et alerter si risque")
+    group.add_argument(
+        "--ports",
+        action="store_true",
+        help="Afficher uniquement les ports ouverts")
+    group.add_argument(
+        "--services",
+        action="store_true",
+        help="Afficher les services actifs")
+    group.add_argument(
+        "--history",
+        action="store_true",
+        help="Afficher l'historique des scans")
     args = parser.parse_args()
 
     if args.once:
@@ -225,6 +278,7 @@ def main():
         show_services()
     elif args.history:
         show_history()
+
 
 if __name__ == "__main__":
     main()

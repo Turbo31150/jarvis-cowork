@@ -110,10 +110,10 @@ def generate_test_plan():
                 "pattern": pattern,
                 "current_strategy": "single_m1",
                 "test_strategy": "m1_with_retry",
-                "hypothesis": f"Retry with OL1 fallback will increase {pattern} success from {current_rate*100:.0f}% to 90%+",
+                "hypothesis": f"Retry with OL1 fallback will increase {pattern} success from {current_rate * 100:.0f}% to 90%+",
                 "metric": "success_rate",
                 "sample_size_needed": 50,
-                "expected_improvement": f"+{(0.9 - current_rate)*100:.0f}% success rate",
+                "expected_improvement": f"+{(0.9 - current_rate) * 100:.0f}% success rate",
             }
         else:
             test = {
@@ -148,7 +148,10 @@ def generate_test_plan():
 
     for pat, strats in patterns_strategies.items():
         if len(strats) >= 2:
-            sorted_strats = sorted(strats.items(), key=lambda x: -x[1]["success_rate"])
+            sorted_strats = sorted(
+                strats.items(),
+                key=lambda x: -
+                x[1]["success_rate"])
             if len(sorted_strats) >= 2:
                 a_name, a_data = sorted_strats[0]
                 b_name, b_data = sorted_strats[1]
@@ -191,7 +194,10 @@ def generate_test_plan():
 
 def main():
     parser = argparse.ArgumentParser(description="Dispatch A/B Tester")
-    parser.add_argument("--once", action="store_true", help="Generate test plan")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Generate test plan")
     parser.add_argument("--stats", action="store_true", help="Show results")
     args = parser.parse_args()
 
@@ -201,7 +207,8 @@ def main():
 
     if args.stats:
         conn = get_db()
-        rows = conn.execute("SELECT * FROM ab_test_results ORDER BY timestamp DESC LIMIT 20").fetchall()
+        rows = conn.execute(
+            "SELECT * FROM ab_test_results ORDER BY timestamp DESC LIMIT 20").fetchall()
         conn.close()
         result = {"tests": [dict(r) for r in rows]}
     else:

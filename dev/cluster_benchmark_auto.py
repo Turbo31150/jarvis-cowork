@@ -24,13 +24,22 @@ DB_PATH = DEV / "data" / "cluster_bench.db"
 TELEGRAM_PROXY = "http://127.0.0.1:18800"
 
 # Test prompts (Python focused)
-PROMPTS = [
-    {"id": "fizzbuzz", "prompt": "Write a Python function fizzbuzz(n) that returns 'Fizz' for multiples of 3, 'Buzz' for multiples of 5, 'FizzBuzz' for both, else the number as string.", "expected": "def fizzbuzz"},
-    {"id": "fibonacci", "prompt": "Write a Python function fibonacci(n) that returns the nth Fibonacci number using iteration.", "expected": "def fibonacci"},
-    {"id": "palindrome", "prompt": "Write a Python function is_palindrome(s) that checks if a string is a palindrome, ignoring case and spaces.", "expected": "def is_palindrome"},
-    {"id": "sort", "prompt": "Write a Python function merge_sort(arr) that implements merge sort.", "expected": "def merge_sort"},
-    {"id": "api", "prompt": "Write a Python async function fetch_json(url) using urllib that fetches a URL and returns the parsed JSON.", "expected": "def fetch_json"},
-]
+PROMPTS = [{"id": "fizzbuzz",
+            "prompt": "Write a Python function fizzbuzz(n) that returns 'Fizz' for multiples of 3, 'Buzz' for multiples of 5, 'FizzBuzz' for both, else the number as string.",
+            "expected": "def fizzbuzz"},
+           {"id": "fibonacci",
+            "prompt": "Write a Python function fibonacci(n) that returns the nth Fibonacci number using iteration.",
+            "expected": "def fibonacci"},
+           {"id": "palindrome",
+            "prompt": "Write a Python function is_palindrome(s) that checks if a string is a palindrome, ignoring case and spaces.",
+            "expected": "def is_palindrome"},
+           {"id": "sort",
+            "prompt": "Write a Python function merge_sort(arr) that implements merge sort.",
+            "expected": "def merge_sort"},
+           {"id": "api",
+            "prompt": "Write a Python async function fetch_json(url) using urllib that fetches a URL and returns the parsed JSON.",
+            "expected": "def fetch_json"},
+           ]
 
 # Nodes to benchmark
 NODES = {
@@ -79,7 +88,9 @@ def query_lmstudio(url, model, prompt, timeout=30):
         "stream": False,
         "store": False,
     }).encode()
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        url, data=data, headers={
+            "Content-Type": "application/json"})
 
     start = time.time()
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -109,7 +120,9 @@ def query_ollama(url, model, prompt, timeout=60):
         "stream": False,
         "think": False,
     }).encode()
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        url, data=data, headers={
+            "Content-Type": "application/json"})
 
     start = time.time()
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -155,9 +168,15 @@ def benchmark_node(node_name, node_config, prompts):
     for p in prompts:
         try:
             if node_config["format"] == "lmstudio":
-                resp = query_lmstudio(node_config["url"], node_config["model"], p["prompt"])
+                resp = query_lmstudio(
+                    node_config["url"],
+                    node_config["model"],
+                    p["prompt"])
             else:
-                resp = query_ollama(node_config["url"], node_config["model"], p["prompt"])
+                resp = query_ollama(
+                    node_config["url"],
+                    node_config["model"],
+                    p["prompt"])
 
             quality = score_quality(resp["text"], p["expected"])
             tok_s = resp["tokens"] / max(resp["latency"], 0.01)
@@ -230,23 +249,39 @@ def do_bench():
             if "error" not in r:
                 db.execute(
                     "INSERT INTO bench_results (ts, node, prompt_id, latency_s, tokens, tok_s, quality_score, response_preview) VALUES (?,?,?,?,?,?,?,?)",
-                    (time.time(), r["node"], r["prompt_id"],
-                     r.get("latency_s", 0), r.get("tokens", 0),
-                     r.get("tok_s", 0), r.get("quality", 0),
-                     r.get("preview", ""))
-                )
+                    (time.time(),
+                     r["node"],
+                        r["prompt_id"],
+                        r.get(
+                        "latency_s",
+                        0),
+                        r.get(
+                        "tokens",
+                        0),
+                        r.get(
+                        "tok_s",
+                        0),
+                        r.get(
+                        "quality",
+                        0),
+                        r.get(
+                        "preview",
+                        "")))
 
         # Compare with previous
         prev = get_previous_scores(db, node_name)
         if prev:
-            current_tok = sum(r.get("tok_s", 0) for r in results) / max(len(results), 1)
+            current_tok = sum(r.get("tok_s", 0)
+                              for r in results) / max(len(results), 1)
             if prev["avg_tok_s"] > 0 and current_tok < prev["avg_tok_s"] * 0.85:
                 degradation = True
 
     # Summary
     nodes_ok = len(set(r["node"] for r in all_results if "error" not in r))
-    avg_tok = sum(r.get("tok_s", 0) for r in all_results) / max(len(all_results), 1)
-    avg_q = sum(r.get("quality", 0) for r in all_results) / max(len(all_results), 1)
+    avg_tok = sum(r.get("tok_s", 0)
+                  for r in all_results) / max(len(all_results), 1)
+    avg_q = sum(r.get("quality", 0)
+                for r in all_results) / max(len(all_results), 1)
 
     report = {
         "ts": datetime.now().isoformat(),
@@ -268,14 +303,21 @@ def do_bench():
 
     db.execute(
         "INSERT INTO bench_runs (ts, nodes_tested, prompts_tested, avg_tok_s, avg_quality, degradation_detected, report) VALUES (?,?,?,?,?,?,?)",
-        (time.time(), nodes_ok, len(PROMPTS), avg_tok, avg_q, 1 if degradation else 0, json.dumps(report))
-    )
+        (time.time(),
+         nodes_ok,
+         len(PROMPTS),
+         avg_tok,
+         avg_q,
+         1 if degradation else 0,
+         json.dumps(report)))
     db.commit()
     db.close()
 
     # Alert if degradation
     if degradation:
-        msg = f"[CLUSTER BENCH] DEGRADATION DETECTED\nAvg tok/s: {avg_tok:.1f}, Quality: {avg_q:.3f}\n"
+        msg = f"[CLUSTER BENCH] DEGRADATION DETECTED\nAvg tok/s: {
+            avg_tok:.1f}, Quality: {
+            avg_q:.3f}\n"
         for name, data in report["results_by_node"].items():
             msg += f"  {name}: {data['avg_tok_s']} tok/s, Q={data['avg_quality']}\n"
         send_telegram_alert(msg)
@@ -286,7 +328,8 @@ def do_bench():
 def get_report():
     """Get benchmark history."""
     db = init_db()
-    rows = db.execute("SELECT * FROM bench_runs ORDER BY ts DESC LIMIT 10").fetchall()
+    rows = db.execute(
+        "SELECT * FROM bench_runs ORDER BY ts DESC LIMIT 10").fetchall()
     db.close()
     report = []
     for r in rows:
@@ -300,10 +343,21 @@ def get_report():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cluster Benchmark Auto — Daily automated benchmark")
-    parser.add_argument("--once", "--bench", action="store_true", help="Run benchmark")
-    parser.add_argument("--compare", action="store_true", help="Compare with previous runs")
-    parser.add_argument("--report", action="store_true", help="Benchmark history")
+    parser = argparse.ArgumentParser(
+        description="Cluster Benchmark Auto — Daily automated benchmark")
+    parser.add_argument(
+        "--once",
+        "--bench",
+        action="store_true",
+        help="Run benchmark")
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        help="Compare with previous runs")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Benchmark history")
     args = parser.parse_args()
 
     if args.report or args.compare:

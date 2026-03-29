@@ -7,7 +7,13 @@ Usage:
     python dev/win_crash_analyzer.py --prevent
     python dev/win_crash_analyzer.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, re
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from collections import Counter
@@ -17,26 +23,73 @@ DB_PATH = DEV / "data" / "crash_analyzer.db"
 
 # Critical Event IDs
 CRASH_EVENTS = {
-    41: {"name": "Kernel-Power", "severity": "critical", "desc": "Unexpected shutdown/reboot"},
-    1001: {"name": "Windows Error Reporting", "severity": "high", "desc": "Application crash report"},
-    6008: {"name": "EventLog", "severity": "high", "desc": "Unexpected shutdown detected"},
-    1000: {"name": "Application Error", "severity": "medium", "desc": "Application crash"},
-    1002: {"name": "Application Hang", "severity": "medium", "desc": "Application not responding"},
-    7031: {"name": "Service Control Manager", "severity": "high", "desc": "Service terminated unexpectedly"},
-    7034: {"name": "Service Control Manager", "severity": "high", "desc": "Service terminated unexpectedly"},
-    161: {"name": "volmgr", "severity": "critical", "desc": "Dump file creation failed"},
+    41: {
+        "name": "Kernel-Power",
+        "severity": "critical",
+        "desc": "Unexpected shutdown/reboot"},
+    1001: {
+        "name": "Windows Error Reporting",
+        "severity": "high",
+        "desc": "Application crash report"},
+    6008: {
+        "name": "EventLog",
+                "severity": "high",
+                "desc": "Unexpected shutdown detected"},
+    1000: {
+        "name": "Application Error",
+        "severity": "medium",
+                    "desc": "Application crash"},
+    1002: {
+        "name": "Application Hang",
+        "severity": "medium",
+        "desc": "Application not responding"},
+    7031: {
+        "name": "Service Control Manager",
+        "severity": "high",
+        "desc": "Service terminated unexpectedly"},
+    7034: {
+        "name": "Service Control Manager",
+        "severity": "high",
+        "desc": "Service terminated unexpectedly"},
+    161: {
+        "name": "volmgr",
+        "severity": "critical",
+        "desc": "Dump file creation failed"},
 }
 
 # Common fix recommendations
 FIX_RECOMMENDATIONS = {
-    41: ["Check power supply stability", "Update BIOS/UEFI", "Check for overheating", "Run sfc /scannow"],
-    1001: ["Update the crashing application", "Check for driver conflicts", "Verify system files"],
-    6008: ["Check power supply", "Check for scheduled tasks causing shutdown", "Review thermal logs"],
-    1000: ["Update the application", "Reinstall if persistent", "Check compatibility"],
-    1002: ["Check disk performance", "Increase available RAM", "Update application"],
-    7031: ["Check service dependencies", "Update related drivers", "Check disk health"],
-    7034: ["Review service configuration", "Check for resource exhaustion"],
-    161: ["Free disk space for crash dumps", "Check disk health with chkdsk"],
+    41: [
+        "Check power supply stability",
+        "Update BIOS/UEFI",
+        "Check for overheating",
+        "Run sfc /scannow"],
+    1001: [
+        "Update the crashing application",
+        "Check for driver conflicts",
+        "Verify system files"],
+    6008: [
+        "Check power supply",
+        "Check for scheduled tasks causing shutdown",
+        "Review thermal logs"],
+    1000: [
+        "Update the application",
+        "Reinstall if persistent",
+        "Check compatibility"],
+    1002: [
+        "Check disk performance",
+        "Increase available RAM",
+        "Update application"],
+    7031: [
+        "Check service dependencies",
+        "Update related drivers",
+        "Check disk health"],
+    7034: [
+        "Review service configuration",
+        "Check for resource exhaustion"],
+    161: [
+        "Free disk space for crash dumps",
+        "Check disk health with chkdsk"],
 }
 
 
@@ -91,9 +144,11 @@ def _query_event_log(event_ids, count=50):
                 "/rd:true"  # reverse direction (newest first)
             ]
             result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=30,
-                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
-            )
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
             if result.returncode == 0 and result.stdout.strip():
                 events.extend(_parse_wevtutil_text(result.stdout, log_name))
         except subprocess.TimeoutExpired:
@@ -156,7 +211,8 @@ def scan_crashes(db):
 
     for ev in events:
         eid = ev.get("event_id", 0)
-        event_info = CRASH_EVENTS.get(eid, {"name": "Unknown", "severity": "low", "desc": ""})
+        event_info = CRASH_EVENTS.get(
+            eid, {"name": "Unknown", "severity": "low", "desc": ""})
 
         # Check if already recorded (by event_id + event_time)
         existing = db.execute(
@@ -167,10 +223,18 @@ def scan_crashes(db):
         if not existing:
             db.execute(
                 "INSERT INTO crashes (event_id, event_name, severity, source, message, event_time) VALUES (?,?,?,?,?,?)",
-                (eid, event_info["name"], event_info["severity"],
-                 ev.get("source", ""), ev.get("message", event_info["desc"]),
-                 ev.get("event_time", ""))
-            )
+                (eid,
+                 event_info["name"],
+                    event_info["severity"],
+                    ev.get(
+                     "source",
+                     ""),
+                    ev.get(
+                     "message",
+                     event_info["desc"]),
+                    ev.get(
+                     "event_time",
+                     "")))
             new_count += 1
 
         if event_info["severity"] == "critical":
@@ -217,8 +281,9 @@ def analyze_patterns(db):
     patterns = []
     for eid, ename, sev, cnt in freq:
         last = db.execute(
-            "SELECT event_time FROM crashes WHERE event_id=? ORDER BY id DESC LIMIT 1", (eid,)
-        ).fetchone()
+            "SELECT event_time FROM crashes WHERE event_id=? ORDER BY id DESC LIMIT 1",
+            (eid,
+             )).fetchone()
 
         recs = FIX_RECOMMENDATIONS.get(eid, ["No specific recommendation"])
         pattern = {
@@ -231,12 +296,20 @@ def analyze_patterns(db):
         }
         patterns.append(pattern)
 
-        db.execute("""INSERT OR REPLACE INTO patterns
+        db.execute(
+            """INSERT OR REPLACE INTO patterns
             (pattern_type, description, frequency, last_seen, recommendation)
             VALUES (?,?,?,?,?)""",
-            (f"event_{eid}", f"{ename}: {CRASH_EVENTS.get(eid, {}).get('desc', '')}",
-             cnt, last[0] if last else "", json.dumps(recs))
-        )
+            (f"event_{eid}",
+             f"{ename}: {
+                CRASH_EVENTS.get(
+                    eid,
+                    {}).get(
+                    'desc',
+                    '')}",
+                cnt,
+                last[0] if last else "",
+                json.dumps(recs)))
 
     db.commit()
 
@@ -250,8 +323,7 @@ def analyze_patterns(db):
         "patterns": patterns,
         "total_events": db.execute("SELECT COUNT(*) FROM crashes").fetchone()[0],
         "last_7_days": recent_count,
-        "most_common": patterns[0] if patterns else None
-    }
+        "most_common": patterns[0] if patterns else None}
 
 
 def get_prevention(db):
@@ -278,8 +350,7 @@ def get_prevention(db):
         "Keep drivers updated, especially GPU and chipset",
         "Monitor temperatures with GPU/CPU monitoring tools",
         "Ensure stable power supply and no overclocking instabilities",
-        "Check disk health with 'chkdsk /f'"
-    ]
+        "Check disk health with 'chkdsk /f'"]
 
     return {
         "targeted_recommendations": recs,
@@ -295,9 +366,11 @@ def get_prevention(db):
 
 def do_status(db):
     total = db.execute("SELECT COUNT(*) FROM crashes").fetchone()[0]
-    critical = db.execute("SELECT COUNT(*) FROM crashes WHERE severity='critical'").fetchone()[0]
+    critical = db.execute(
+        "SELECT COUNT(*) FROM crashes WHERE severity='critical'").fetchone()[0]
     scans = db.execute("SELECT COUNT(*) FROM scans").fetchone()[0]
-    last_scan = db.execute("SELECT ts FROM scans ORDER BY id DESC LIMIT 1").fetchone()
+    last_scan = db.execute(
+        "SELECT ts FROM scans ORDER BY id DESC LIMIT 1").fetchone()
     return {
         "script": "win_crash_analyzer.py",
         "id": 213,
@@ -312,11 +385,24 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Windows Crash Analyzer — BSOD/crash detection and analysis")
-    parser.add_argument("--scan", action="store_true", help="Scan event logs for crashes")
-    parser.add_argument("--recent", action="store_true", help="Show recent crashes")
-    parser.add_argument("--patterns", action="store_true", help="Analyze crash patterns")
-    parser.add_argument("--prevent", action="store_true", help="Prevention recommendations")
+    parser = argparse.ArgumentParser(
+        description="Windows Crash Analyzer — BSOD/crash detection and analysis")
+    parser.add_argument(
+        "--scan",
+        action="store_true",
+        help="Scan event logs for crashes")
+    parser.add_argument(
+        "--recent",
+        action="store_true",
+        help="Show recent crashes")
+    parser.add_argument(
+        "--patterns",
+        action="store_true",
+        help="Analyze crash patterns")
+    parser.add_argument(
+        "--prevent",
+        action="store_true",
+        help="Prevention recommendations")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

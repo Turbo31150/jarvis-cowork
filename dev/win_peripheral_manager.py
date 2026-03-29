@@ -7,7 +7,13 @@ Usage:
     python dev/win_peripheral_manager.py --problematic
     python dev/win_peripheral_manager.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, re
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -105,12 +111,17 @@ def scan_devices(db):
             is_usb = 1 if "USB" in dev_id.upper() else 0
 
             # Upsert device
-            existing = db.execute("SELECT id FROM devices WHERE device_id=?", (dev_id,)).fetchone()
+            existing = db.execute(
+                "SELECT id FROM devices WHERE device_id=?", (dev_id,)).fetchone()
             if existing:
                 db.execute(
                     "UPDATE devices SET name=?, status=?, manufacturer=?, pnp_class=?, is_usb=?, last_seen=datetime('now','localtime') WHERE device_id=?",
-                    (name, status, manufacturer, pnp_class, is_usb, dev_id)
-                )
+                    (name,
+                     status,
+                     manufacturer,
+                     pnp_class,
+                     is_usb,
+                     dev_id))
             else:
                 db.execute(
                     "INSERT INTO devices (device_id, name, status, manufacturer, pnp_class, is_usb) VALUES (?,?,?,?,?,?)",
@@ -152,9 +163,12 @@ def _count_by_key(items, key):
 def get_device_status(db):
     """Current device status summary."""
     total = db.execute("SELECT COUNT(*) FROM devices").fetchone()[0]
-    usb = db.execute("SELECT COUNT(*) FROM devices WHERE is_usb=1").fetchone()[0]
-    ok = db.execute("SELECT COUNT(*) FROM devices WHERE status='OK'").fetchone()[0]
-    problem = db.execute("SELECT COUNT(*) FROM devices WHERE status!='OK'").fetchone()[0]
+    usb = db.execute(
+        "SELECT COUNT(*) FROM devices WHERE is_usb=1").fetchone()[0]
+    ok = db.execute(
+        "SELECT COUNT(*) FROM devices WHERE status='OK'").fetchone()[0]
+    problem = db.execute(
+        "SELECT COUNT(*) FROM devices WHERE status!='OK'").fetchone()[0]
 
     by_class = db.execute(
         "SELECT pnp_class, COUNT(*) FROM devices GROUP BY pnp_class ORDER BY COUNT(*) DESC LIMIT 10"
@@ -164,14 +178,14 @@ def get_device_status(db):
         "SELECT name, manufacturer, last_seen FROM devices WHERE is_usb=1 ORDER BY last_seen DESC LIMIT 5"
     ).fetchall()
 
-    return {
-        "total_devices": total,
-        "usb_devices": usb,
-        "ok_devices": ok,
-        "problem_devices": problem,
-        "by_class": {c[0] or "unknown": c[1] for c in by_class},
-        "recent_usb": [{"name": r[0], "manufacturer": r[1], "last_seen": r[2]} for r in recent_usb]
-    }
+    return {"total_devices": total,
+            "usb_devices": usb,
+            "ok_devices": ok,
+            "problem_devices": problem,
+            "by_class": {c[0] or "unknown": c[1] for c in by_class},
+            "recent_usb": [{"name": r[0],
+                            "manufacturer": r[1],
+                            "last_seen": r[2]} for r in recent_usb]}
 
 
 def check_drivers(db):
@@ -246,7 +260,8 @@ def get_problematic(db):
             name = d.get("Name", "Unknown")
             status = d.get("Status", "Error")
             err_code = d.get("ConfigManagerErrorCode", 0)
-            recommendation = error_codes.get(err_code, f"Error code {err_code} — check Device Manager")
+            recommendation = error_codes.get(
+                err_code, f"Error code {err_code} — check Device Manager")
 
             problems.append({
                 "device_id": dev_id,
@@ -277,8 +292,10 @@ def get_problematic(db):
 
 def do_status(db):
     total = db.execute("SELECT COUNT(*) FROM devices").fetchone()[0]
-    problems = db.execute("SELECT COUNT(*) FROM problem_devices WHERE resolved=0").fetchone()[0]
-    usb = db.execute("SELECT COUNT(*) FROM devices WHERE is_usb=1").fetchone()[0]
+    problems = db.execute(
+        "SELECT COUNT(*) FROM problem_devices WHERE resolved=0").fetchone()[0]
+    usb = db.execute(
+        "SELECT COUNT(*) FROM devices WHERE is_usb=1").fetchone()[0]
     return {
         "script": "win_peripheral_manager.py",
         "id": 215,
@@ -291,11 +308,18 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Windows Peripheral Manager — device/driver/USB tracking")
+    parser = argparse.ArgumentParser(
+        description="Windows Peripheral Manager — device/driver/USB tracking")
     parser.add_argument("--scan", action="store_true", help="Scan all devices")
-    parser.add_argument("--status", action="store_true", help="Device status summary")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Device status summary")
     parser.add_argument("--drivers", action="store_true", help="Check drivers")
-    parser.add_argument("--problematic", action="store_true", help="List problem devices")
+    parser.add_argument(
+        "--problematic",
+        action="store_true",
+        help="List problem devices")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

@@ -24,12 +24,14 @@ from typing import List, Dict, Optional
 # Helpers – exécution de netsh et parsing simplifié
 # ---------------------------------------------------------------------------
 
+
 def run_netsh(args: List[str]) -> str:
     """Execute ``netsh`` avec les arguments fournis et retourne la sortie décodée.
     En cas d’erreur, renvoie une chaîne vide et affiche le problème sur stderr.
     """
     try:
-        result = subprocess.check_output(["netsh"] + args, text=True, timeout=15)
+        result = subprocess.check_output(
+            ["netsh"] + args, text=True, timeout=15)
         return result.strip()
     except subprocess.CalledProcessError as e:
         print(f"[wifi_manager] netsh error: {e}", file=sys.stderr)
@@ -42,6 +44,7 @@ def run_netsh(args: List[str]) -> str:
 # Parsing helpers – we keep it simple, extracting lines we need.
 # ---------------------------------------------------------------------------
 
+
 def parse_interface_info(output: str) -> Dict[str, str]:
     info = {}
     for line in output.splitlines():
@@ -50,6 +53,7 @@ def parse_interface_info(output: str) -> Dict[str, str]:
         key, val = [part.strip() for part in line.split(":", 1)]
         info[key] = val
     return info
+
 
 def parse_networks(output: str) -> List[Dict[str, str]]:
     networks = []
@@ -77,10 +81,12 @@ def parse_networks(output: str) -> List[Dict[str, str]]:
 # CLI actions
 # ---------------------------------------------------------------------------
 
+
 def show_status():
     out = run_netsh(["wlan", "show", "interfaces"])
     if not out:
-        print("[wifi_manager] Aucun résultat – l'interface Wi-Fi est peut-être désactivée.")
+        print(
+            "[wifi_manager] Aucun résultat – l'interface Wi-Fi est peut-être désactivée.")
         return
     info = parse_interface_info(out)
     ssid = info.get("SSID", "(non connecté)")
@@ -89,6 +95,7 @@ def show_status():
     print(f"État : {state}")
     print(f"SSID  : {ssid}")
     print(f"Signal: {signal}")
+
 
 def scan_networks():
     out = run_netsh(["wlan", "show", "networks", "mode=bssid"])
@@ -107,12 +114,14 @@ def scan_networks():
         cipher = net.get("Cipher", "N/A")
         print(f"- {ssid} | Signal: {signal} | Auth: {auth} | Cipher: {cipher}")
 
+
 def disconnect():
     out = run_netsh(["wlan", "disconnect"])
     if out:
         print("[wifi_manager] Déconnexion demandée.")
     else:
         print("[wifi_manager] Aucun résultat – peut-être déjà déconnecté.")
+
 
 def connect(ssid: str):
     # Attempt to connect using the profile name equal to SSID
@@ -126,13 +135,28 @@ def connect(ssid: str):
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Gestionnaire Wi-Fi Windows via netsh.")
+    parser = argparse.ArgumentParser(
+        description="Gestionnaire Wi-Fi Windows via netsh.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--status", action="store_true", help="Afficher le réseau actuellement connecté")
-    group.add_argument("--scan", action="store_true", help="Lister les réseaux disponibles")
-    group.add_argument("--disconnect", action="store_true", help="Déconnecter le client Wi-Fi actuel")
-    group.add_argument("--connect", metavar="SSID", help="Connecter au réseau indiqué (profil existant)")
+    group.add_argument(
+        "--status",
+        action="store_true",
+        help="Afficher le réseau actuellement connecté")
+    group.add_argument(
+        "--scan",
+        action="store_true",
+        help="Lister les réseaux disponibles")
+    group.add_argument(
+        "--disconnect",
+        action="store_true",
+        help="Déconnecter le client Wi-Fi actuel")
+    group.add_argument(
+        "--connect",
+        metavar="SSID",
+        help="Connecter au réseau indiqué (profil existant)")
     args = parser.parse_args()
 
     if args.status:
@@ -143,6 +167,7 @@ def main():
         disconnect()
     elif args.connect:
         connect(args.connect)
+
 
 if __name__ == "__main__":
     main()

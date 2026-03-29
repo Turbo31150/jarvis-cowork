@@ -166,7 +166,12 @@ def score_response(text, prompt):
         score += 10
 
     # Examples
-    if any(kw in text.lower() for kw in ["example", "for instance", "e.g.", "such as"]):
+    if any(
+        kw in text.lower() for kw in [
+            "example",
+            "for instance",
+            "e.g.",
+            "such as"]):
         score += 10
 
     # Relevance (check if prompt keywords appear in response)
@@ -177,7 +182,8 @@ def score_response(text, prompt):
     score += int(relevance * 15)
 
     # Reasoning
-    if any(kw in text.lower() for kw in ["because", "therefore", "since", "due to"]):
+    if any(kw in text.lower()
+           for kw in ["because", "therefore", "since", "due to"]):
         score += 5
 
     # Code blocks
@@ -255,7 +261,8 @@ def run_ab_test(db, prompt, model_a_key=None, model_b_key=None):
         (config_b["label"], winner == config_b["label"], score_b, lat_b),
     ]:
         is_tie = winner == "tie"
-        db.execute("""INSERT INTO ab_stats (model, wins, losses, ties, avg_latency_ms, avg_score, total_tests)
+        db.execute(
+            """INSERT INTO ab_stats (model, wins, losses, ties, avg_latency_ms, avg_score, total_tests)
                       VALUES (?,?,?,?,?,?,1)
                       ON CONFLICT(model) DO UPDATE SET
                       wins = wins + ?,
@@ -264,15 +271,17 @@ def run_ab_test(db, prompt, model_a_key=None, model_b_key=None):
                       avg_latency_ms = ((avg_latency_ms * total_tests) + ?) / (total_tests + 1),
                       avg_score = ((avg_score * total_tests) + ?) / (total_tests + 1),
                       total_tests = total_tests + 1""",
-                   (model_label,
-                    1 if is_winner and not is_tie else 0,
-                    1 if not is_winner and not is_tie else 0,
-                    1 if is_tie else 0,
-                    latency, score,
-                    1 if is_winner and not is_tie else 0,
-                    1 if not is_winner and not is_tie else 0,
-                    1 if is_tie else 0,
-                    latency, score))
+            (model_label,
+             1 if is_winner and not is_tie else 0,
+             1 if not is_winner and not is_tie else 0,
+             1 if is_tie else 0,
+             latency,
+             score,
+             1 if is_winner and not is_tie else 0,
+             1 if not is_winner and not is_tie else 0,
+             1 if is_tie else 0,
+             latency,
+             score))
 
     db.commit()
 
@@ -305,9 +314,7 @@ def compare_history(db, limit=10):
     """Show recent A/B test results."""
     rows = db.execute(
         "SELECT ts, prompt, model_a, model_b, score_a, score_b, latency_a_ms, latency_b_ms, winner "
-        "FROM tests ORDER BY ts DESC LIMIT ?",
-        (limit,)
-    ).fetchall()
+        "FROM tests ORDER BY ts DESC LIMIT ?", (limit,)).fetchall()
 
     history = []
     for r in rows:
@@ -355,7 +362,8 @@ def get_winner_stats(db):
 
 def once(db):
     """Run once: quick A/B test + stats."""
-    test_result = run_ab_test(db, "What are the benefits of using SQLite for local data storage?")
+    test_result = run_ab_test(
+        db, "What are the benefits of using SQLite for local data storage?")
     stats = get_winner_stats(db)
 
     return {
@@ -366,11 +374,21 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="A/B Tester (#200) — Compare AI model responses")
+    parser = argparse.ArgumentParser(
+        description="A/B Tester (#200) — Compare AI model responses")
     parser.add_argument("--test", type=str, help="Run A/B test with a prompt")
-    parser.add_argument("--compare", action="store_true", help="Show recent test history")
-    parser.add_argument("--winner", action="store_true", help="Show winner statistics")
-    parser.add_argument("--once", action="store_true", help="Run once with demo")
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        help="Show recent test history")
+    parser.add_argument(
+        "--winner",
+        action="store_true",
+        help="Show winner statistics")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once with demo")
     args = parser.parse_args()
 
     db = init_db()

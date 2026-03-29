@@ -34,7 +34,8 @@ DEFAULT_FILTERS = [
 ]
 
 
-def run_ffmpeg(input_path: Path, output_path: Path, extra_filters: List[str] = None) -> None:
+def run_ffmpeg(input_path: Path, output_path: Path,
+               extra_filters: List[str] = None) -> None:
     """Exécute ffmpeg avec les filtres définis.
     Lève une exception si ffmpeg retourne un code d'erreur.
     """
@@ -102,7 +103,14 @@ def test_pipeline() -> Dict[str, str]:
     tmp_dir.mkdir(exist_ok=True)
     src = tmp_dir / "tone.wav"
     # Générer le ton avec ffmpeg
-    cmd = ["ffmpeg", "-y", "-f", "lavfi", "-i", "sine=frequency=440:duration=1", str(src)]
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=frequency=440:duration=1",
+        str(src)]
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
         raise RuntimeError(f"ffmpeg (tone) a échoué : {res.stderr}")
@@ -118,45 +126,71 @@ def compare_files(paths: List[Path]) -> str:
     for p in paths:
         try:
             # obtenir la durée avec ffprobe (via ffmpeg -i)
-            cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(p)]
+            cmd = [
+                "ffprobe",
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                str(p)]
             res = subprocess.run(cmd, capture_output=True, text=True)
-            duration = float(res.stdout.strip()) if res.returncode == 0 else None
+            duration = float(
+                res.stdout.strip()) if res.returncode == 0 else None
         except Exception:
             duration = None
-        data.append({"path": str(p), "size_bytes": p.stat().st_size, "duration_sec": duration})
+        data.append({"path": str(p),
+                     "size_bytes": p.stat().st_size,
+                     "duration_sec": duration})
     return json.dumps(data, ensure_ascii=False, indent=2)
 
 
 def show_settings() -> str:
     """Affiche les filtres ffmpeg par défaut sous forme JSON."""
-    return json.dumps({"filters": DEFAULT_FILTERS}, ensure_ascii=False, indent=2)
+    return json.dumps({"filters": DEFAULT_FILTERS},
+                      ensure_ascii=False, indent=2)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Améliore la qualité des fichiers vocaux TTS via ffmpeg.")
+    parser = argparse.ArgumentParser(
+        description="Améliore la qualité des fichiers vocaux TTS via ffmpeg.")
     subparsers = parser.add_subparsers(dest="command")
 
     # enhance
-    p_enh = subparsers.add_parser("--enhance", help="Applique les filtres et génère 3 versions.")
-    p_enh.add_argument("--input", required=True, help="Chemin du fichier audio source (wav/ogg/mp3).")
-    p_enh.add_argument("--output-dir", default="enhanced", help="Dossier où enregistrer les fichiers générés.")
+    p_enh = subparsers.add_parser(
+        "--enhance",
+        help="Applique les filtres et génère 3 versions.")
+    p_enh.add_argument(
+        "--input",
+        required=True,
+        help="Chemin du fichier audio source (wav/ogg/mp3).")
+    p_enh.add_argument(
+        "--output-dir",
+        default="enhanced",
+        help="Dossier où enregistrer les fichiers générés.")
 
     # test
     subparsers.add_parser("--test", help="Exécute un test rapide du pipeline.")
 
     # compare
-    p_cmp = subparsers.add_parser("--compare", help="Compare les fichiers produits (JSON).")
-    p_cmp.add_argument("--files", nargs="+", required=True, help="Liste des fichiers à comparer.")
+    p_cmp = subparsers.add_parser("--compare",
+                                  help="Compare les fichiers produits (JSON).")
+    p_cmp.add_argument("--files", nargs="+", required=True,
+                       help="Liste des fichiers à comparer.")
 
     # settings
-    subparsers.add_parser("--settings", help="Affiche les paramètres de filtres utilisés.")
+    subparsers.add_parser(
+        "--settings",
+        help="Affiche les paramètres de filtres utilisés.")
 
     args = parser.parse_args()
 
     if args.command == "--enhance":
         try:
             out_paths = enhance(args.input, args.output_dir)
-            print(json.dumps({"generated": [str(p) for p in out_paths]}, ensure_ascii=False, indent=2))
+            print(json.dumps(
+                {"generated": [str(p) for p in out_paths]}, ensure_ascii=False, indent=2))
         except Exception as e:
             print(f"Erreur : {e}", file=sys.stderr)
             sys.exit(1)

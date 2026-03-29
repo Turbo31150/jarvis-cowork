@@ -43,11 +43,18 @@ def query_m1(prompt, max_tokens=2048):
             "max_output_tokens": max_tokens,
             "stream": False, "store": False,
         })
-        out = subprocess.run(
-            ["curl", "-s", "--max-time", "60", "http://127.0.0.1:1234/api/v1/chat",
-             "-H", "Content-Type: application/json", "-d", body],
-            capture_output=True, text=True, timeout=65
-        )
+        out = subprocess.run(["curl",
+                              "-s",
+                              "--max-time",
+                              "60",
+                              "http://127.0.0.1:1234/api/v1/chat",
+                              "-H",
+                              "Content-Type: application/json",
+                              "-d",
+                              body],
+                             capture_output=True,
+                             text=True,
+                             timeout=65)
         if out.stdout.strip():
             data = json.loads(out.stdout)
             for item in reversed(data.get("output", [])):
@@ -63,12 +70,13 @@ def query_m1(prompt, max_tokens=2048):
 def extract_code(text, lang="python"):
     # Extract from markdown code blocks
     import re
-    pattern = rf"```(?:{lang}|py|python)?\s*\n(.*?)```"
+    pattern = rf"```(?:{lang}|py|python)?\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\s*\n(.*?)```"
     m = re.search(pattern, text, re.DOTALL)
     if m:
         return m.group(1).strip()
     # Fallback: return text that looks like code
-    lines = [l for l in text.split("\n") if l.strip() and not l.startswith("#")]
+    lines = [l for l in text.split(
+        "\n") if l.strip() and not l.startswith("#")]
     return "\n".join(lines)
 
 
@@ -142,8 +150,10 @@ def do_generate(spec=None, lang="py"):
 def do_stats():
     db = init_db()
     total = db.execute("SELECT COUNT(*) FROM generations").fetchone()[0]
-    valid = db.execute("SELECT COUNT(*) FROM generations WHERE valid=1").fetchone()[0]
-    avg_q = db.execute("SELECT AVG(quality_score) FROM generations").fetchone()[0] or 0
+    valid = db.execute(
+        "SELECT COUNT(*) FROM generations WHERE valid=1").fetchone()[0]
+    avg_q = db.execute(
+        "SELECT AVG(quality_score) FROM generations").fetchone()[0] or 0
     db.close()
     return {
         "ts": datetime.now().isoformat(),
@@ -156,14 +166,30 @@ def do_stats():
 def main():
     parser = argparse.ArgumentParser(description="IA Code Generator")
     parser.add_argument("--once", action="store_true", help="Generate sample")
-    parser.add_argument("--generate", metavar="SPEC", help="Generate from spec")
-    parser.add_argument("--language", metavar="LANG", default="py", choices=["py", "js", "bash"])
+    parser.add_argument(
+        "--generate",
+        metavar="SPEC",
+        help="Generate from spec")
+    parser.add_argument(
+        "--language",
+        metavar="LANG",
+        default="py",
+        choices=[
+            "py",
+            "js",
+            "bash"])
     parser.add_argument("--test", action="store_true", help="Test generation")
     parser.add_argument("--save", action="store_true", help="Save output")
     args = parser.parse_args()
 
     if args.generate:
-        print(json.dumps(do_generate(args.generate, args.language), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_generate(
+                    args.generate,
+                    args.language),
+                ensure_ascii=False,
+                indent=2))
     else:
         print(json.dumps(do_stats(), ensure_ascii=False, indent=2))
 

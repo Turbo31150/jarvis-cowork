@@ -92,8 +92,11 @@ def do_check():
         if existing == 0:
             db.execute(
                 "INSERT INTO updates (kb_id, description, installed_on, hotfix_id, scan_ts) VALUES (?,?,?,?,?)",
-                (u["hotfix_id"], u["description"], u["installed_on"], u["hotfix_id"], time.time())
-            )
+                (u["hotfix_id"],
+                 u["description"],
+                    u["installed_on"],
+                    u["hotfix_id"],
+                    time.time()))
 
     # Analyze dates
     dates = [u["installed_on"] for u in updates if u["installed_on"]]
@@ -101,8 +104,14 @@ def do_check():
     oldest = min(dates) if dates else "N/A"
 
     # Categorize
-    security = [u for u in updates if "security" in u.get("description", "").lower()]
-    other = [u for u in updates if "security" not in u.get("description", "").lower()]
+    security = [
+        u for u in updates if "security" in u.get(
+            "description",
+            "").lower()]
+    other = [
+        u for u in updates if "security" not in u.get(
+            "description",
+            "").lower()]
 
     report = {
         "ts": datetime.now().isoformat(),
@@ -138,7 +147,11 @@ def show_history():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Update Tracker")
-    parser.add_argument("--once", "--check", action="store_true", help="Check updates")
+    parser.add_argument(
+        "--once",
+        "--check",
+        action="store_true",
+        help="Check updates")
     parser.add_argument("--history", action="store_true", help="Show history")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()

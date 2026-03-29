@@ -2,6 +2,7 @@
 """JARVIS Clipboard History — Historique presse-papiers Windows."""
 import json, sys, os, sqlite3, subprocess, time
 from datetime import datetime
+import argparse
 
 DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/clipboard.db"
 

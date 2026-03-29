@@ -9,7 +9,12 @@ Usage:
     python dev/ia_image_prompt_crafter.py --history
     python dev/ia_image_prompt_crafter.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -67,6 +72,7 @@ STYLE_TEMPLATES = {
     }
 }
 
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -94,6 +100,7 @@ def init_db():
     db.commit()
     return db
 
+
 def enrich_prompt(description, style="photorealistic"):
     """Enrich a simple description with artistic details."""
     template = STYLE_TEMPLATES.get(style, STYLE_TEMPLATES["photorealistic"])
@@ -106,6 +113,7 @@ def enrich_prompt(description, style="photorealistic"):
     enriched = ", ".join(parts)
     negative = template["negative"]
     return enriched, negative, template
+
 
 def do_craft(description, style="photorealistic"):
     db = init_db()
@@ -122,8 +130,12 @@ def do_craft(description, style="photorealistic"):
                          len(description.split()), len(enriched.split())))
     prompt_id = cursor.lastrowid
 
-    db.execute("INSERT INTO prompt_history (ts, action, prompt_id, details) VALUES (?,?,?,?)",
-               (datetime.now().isoformat(), "craft", prompt_id, f"style={style}"))
+    db.execute(
+        "INSERT INTO prompt_history (ts, action, prompt_id, details) VALUES (?,?,?,?)",
+        (datetime.now().isoformat(),
+         "craft",
+         prompt_id,
+         f"style={style}"))
     db.commit()
 
     result = {
@@ -147,6 +159,7 @@ def do_craft(description, style="photorealistic"):
     db.close()
     return result
 
+
 def do_style(style_name=None):
     if style_name and style_name in STYLE_TEMPLATES:
         info = STYLE_TEMPLATES[style_name]
@@ -167,9 +180,11 @@ def do_style(style_name=None):
         "ts": datetime.now().isoformat()
     }
 
+
 def do_optimize():
     db = init_db()
-    last = db.execute("SELECT original, enriched, style FROM prompts ORDER BY id DESC LIMIT 1").fetchone()
+    last = db.execute(
+        "SELECT original, enriched, style FROM prompts ORDER BY id DESC LIMIT 1").fetchone()
     tips = [
         "Place the subject first in the prompt",
         "Add specific lighting details (golden hour, studio light, etc.)",
@@ -193,12 +208,16 @@ def do_optimize():
     db.close()
     return result
 
+
 def do_history():
     db = init_db()
-    rows = db.execute("SELECT id, ts, original, style, word_count_enriched FROM prompts ORDER BY id DESC LIMIT 20").fetchall()
-    history = [{"id": r[0], "ts": r[1], "original": r[2][:80], "style": r[3], "enriched_words": r[4]} for r in rows]
+    rows = db.execute(
+        "SELECT id, ts, original, style, word_count_enriched FROM prompts ORDER BY id DESC LIMIT 20").fetchall()
+    history = [{"id": r[0], "ts": r[1], "original": r[2][:80],
+                "style": r[3], "enriched_words": r[4]} for r in rows]
     total = db.execute("SELECT COUNT(*) FROM prompts").fetchone()[0]
-    style_dist = db.execute("SELECT style, COUNT(*) FROM prompts GROUP BY style ORDER BY COUNT(*) DESC").fetchall()
+    style_dist = db.execute(
+        "SELECT style, COUNT(*) FROM prompts GROUP BY style ORDER BY COUNT(*) DESC").fetchall()
     result = {
         "action": "history",
         "total_prompts": total,
@@ -208,6 +227,7 @@ def do_history():
     }
     db.close()
     return result
+
 
 def do_once():
     db = init_db()
@@ -222,18 +242,39 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="IA Image Prompt Crafter — COWORK #235")
-    parser.add_argument("--craft", type=str, metavar="DESC", help="Craft an enriched image prompt")
+    parser = argparse.ArgumentParser(
+        description="IA Image Prompt Crafter — COWORK #235")
+    parser.add_argument(
+        "--craft",
+        type=str,
+        metavar="DESC",
+        help="Craft an enriched image prompt")
     parser.add_argument("--style", type=str, help="Set/show style")
-    parser.add_argument("--optimize", action="store_true", help="Show optimization tips")
-    parser.add_argument("--history", action="store_true", help="Show prompt history")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Show optimization tips")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show prompt history")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.craft:
         style = args.style or "photorealistic"
-        print(json.dumps(do_craft(args.craft, style), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_craft(
+                    args.craft,
+                    style),
+                ensure_ascii=False,
+                indent=2))
     elif args.style:
         print(json.dumps(do_style(args.style), ensure_ascii=False, indent=2))
     elif args.optimize:
@@ -242,6 +283,7 @@ def main():
         print(json.dumps(do_history(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

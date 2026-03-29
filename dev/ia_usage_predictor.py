@@ -46,7 +46,8 @@ def load_usage_history():
     if ETOILE_DB.exists():
         try:
             db = sqlite3.connect(str(ETOILE_DB))
-            tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            tables = [t[0] for t in db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
 
             if "tool_metrics" in tables:
                 rows = db.execute(
@@ -116,7 +117,14 @@ def analyze_patterns(hourly):
     peak_hours = sorted(by_hour.items(), key=lambda x: x[1], reverse=True)[:5]
     peak_days = sorted(by_weekday.items(), key=lambda x: x[1], reverse=True)
 
-    day_names = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    day_names = [
+        "Lundi",
+        "Mardi",
+        "Mercredi",
+        "Jeudi",
+        "Vendredi",
+        "Samedi",
+        "Dimanche"]
 
     return {
         "peak_hours": [{"hour": h, "requests": c} for h, c in peak_hours],
@@ -135,9 +143,12 @@ def do_predict():
     for pred in predictions:
         db.execute(
             "INSERT INTO predictions (ts, hour, weekday, predicted_load, recommended_models) VALUES (?,?,?,?,?)",
-            (time.time(), pred["hour"], pred["weekday"],
-             pred["predicted_requests"], json.dumps(pred["recommended_models"]))
-        )
+            (time.time(),
+             pred["hour"],
+                pred["weekday"],
+                pred["predicted_requests"],
+                json.dumps(
+                pred["recommended_models"])))
 
     db.commit()
     db.close()
@@ -151,8 +162,15 @@ def do_predict():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Usage Predictor")
-    parser.add_argument("--once", "--predict", action="store_true", help="Predict usage")
-    parser.add_argument("--patterns", action="store_true", help="Show patterns")
+    parser.add_argument(
+        "--once",
+        "--predict",
+        action="store_true",
+        help="Predict usage")
+    parser.add_argument(
+        "--patterns",
+        action="store_true",
+        help="Show patterns")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()
 

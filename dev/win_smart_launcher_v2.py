@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_smart_launcher_v2.py — Smart launcher v2 (#244).
 
@@ -86,15 +87,41 @@ def do_learn():
     processes = get_running_processes()
     # Filter to meaningful user apps (skip system processes)
     system_procs = {
-        "system", "registry", "smss.exe", "csrss.exe", "wininit.exe", "services.exe",
-        "lsass.exe", "svchost.exe", "fontdrvhost.exe", "dwm.exe", "conhost.exe",
-        "sihost.exe", "taskhostw.exe", "ctfmon.exe", "runtimebroker.exe",
-        "shellexperiencehost.exe", "searchhost.exe", "startmenuexperiencehost.exe",
-        "textinputhost.exe", "widgetservice.exe", "systemsettings.exe",
-        "applicationframehost.exe", "dllhost.exe", "tasklist.exe", "cmd.exe",
-        "searchindexer.exe", "searchprotocolhost.exe", "searchfilterhost.exe",
-        "securityhealthservice.exe", "securityhealthsystray.exe", "audiodg.exe",
-        "spoolsv.exe", "wudfhost.exe", "dashost.exe", "msiexec.exe",
+        "system",
+        "registry",
+        "smss.exe",
+        "csrss.exe",
+        "wininit.exe",
+        "services.exe",
+        "lsass.exe",
+        "svchost.exe",
+        "fontdrvhost.exe",
+        "dwm.exe",
+        "conhost.exe",
+        "sihost.exe",
+        "taskhostw.exe",
+        "ctfmon.exe",
+        "runtimebroker.exe",
+        "shellexperiencehost.exe",
+        "searchhost.exe",
+        "startmenuexperiencehost.exe",
+        "textinputhost.exe",
+        "widgetservice.exe",
+        "systemsettings.exe",
+        "applicationframehost.exe",
+        "dllhost.exe",
+        "tasklist.exe",
+        "cmd.exe",
+        "searchindexer.exe",
+        "searchprotocolhost.exe",
+        "searchfilterhost.exe",
+        "securityhealthservice.exe",
+        "securityhealthsystray.exe",
+        "audiodg.exe",
+        "spoolsv.exe",
+        "wudfhost.exe",
+        "dashost.exe",
+        "msiexec.exe",
     }
 
     learned = []
@@ -154,7 +181,8 @@ def do_predict():
     predictions = []
     for name, score in scores.most_common(10):
         confidence = min(score / max(total_records * 0.1, 1), 1.0)
-        predictions.append({"app": name, "score": score, "confidence": round(confidence, 3)})
+        predictions.append({"app": name, "score": score,
+                           "confidence": round(confidence, 3)})
 
     # Store prediction
     db.execute(
@@ -195,7 +223,11 @@ def do_launch(app_name):
 
     db.execute(
         "INSERT INTO launches (ts, app_name, hour, weekday, source) VALUES (?,?,?,?,?)",
-        (now.isoformat(), app_name, now.hour, now.weekday(), "manual"),
+        (now.isoformat(),
+         app_name,
+         now.hour,
+         now.weekday(),
+         "manual"),
     )
     db.commit()
 
@@ -226,7 +258,14 @@ def do_history():
         "SELECT hour, COUNT(*) as cnt FROM launches GROUP BY hour ORDER BY cnt DESC LIMIT 5"
     ).fetchall()
 
-    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"]
     result = {
         "ts": datetime.now().isoformat(),
         "action": "history",
@@ -248,7 +287,8 @@ def do_status():
     total = db.execute("SELECT COUNT(*) FROM launches").fetchone()[0]
     profiles = db.execute("SELECT COUNT(*) FROM profiles").fetchone()[0]
     predictions = db.execute("SELECT COUNT(*) FROM predictions").fetchone()[0]
-    unique_apps = db.execute("SELECT COUNT(DISTINCT app_name) FROM launches").fetchone()[0]
+    unique_apps = db.execute(
+        "SELECT COUNT(DISTINCT app_name) FROM launches").fetchone()[0]
 
     result = {
         "ts": datetime.now().isoformat(),
@@ -266,12 +306,29 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="win_smart_launcher_v2.py — Smart launcher v2 (#244)")
-    parser.add_argument("--launch", type=str, metavar="APP", help="Launch an application")
-    parser.add_argument("--learn", action="store_true", help="Learn from current running processes")
-    parser.add_argument("--predict", action="store_true", help="Predict apps to launch now")
-    parser.add_argument("--history", action="store_true", help="Show launch history")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="win_smart_launcher_v2.py — Smart launcher v2 (#244)")
+    parser.add_argument(
+        "--launch",
+        type=str,
+        metavar="APP",
+        help="Launch an application")
+    parser.add_argument(
+        "--learn",
+        action="store_true",
+        help="Learn from current running processes")
+    parser.add_argument(
+        "--predict",
+        action="store_true",
+        help="Predict apps to launch now")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show launch history")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.launch:

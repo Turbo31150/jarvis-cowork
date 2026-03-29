@@ -61,12 +61,17 @@ def audit_script(filepath):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 if alias.name in ("ctypes", "winreg"):
-                    issues.append({
-                        "line": node.lineno,
-                        "type": "import",
-                        "detail": f"Import {alias.name} — {DANGEROUS_CALLS.get(alias.name, 'system access')}",
-                        "risk": "medium",
-                    })
+                    issues.append(
+                        {
+                            "line": node.lineno,
+                            "type": "import",
+                            "detail": f"Import {
+                                alias.name} — {
+                                DANGEROUS_CALLS.get(
+                                    alias.name,
+                                    'system access')}",
+                            "risk": "medium",
+                        })
         elif isinstance(node, ast.ImportFrom):
             if node.module and node.module in ("ctypes", "winreg"):
                 issues.append({
@@ -87,7 +92,8 @@ def audit_script(filepath):
                 func_name = node.func.id
 
             if func_name in DANGEROUS_CALLS:
-                risk = "high" if func_name in ("eval", "exec", "os.system") else "medium"
+                risk = "high" if func_name in (
+                    "eval", "exec", "os.system") else "medium"
                 issues.append({
                     "line": node.lineno,
                     "type": "call",
@@ -98,7 +104,8 @@ def audit_script(filepath):
             # Check shell=True in subprocess
             if func_name.startswith("subprocess."):
                 for kw in node.keywords:
-                    if kw.arg == "shell" and isinstance(kw.value, ast.Constant) and kw.value.value:
+                    if kw.arg == "shell" and isinstance(
+                            kw.value, ast.Constant) and kw.value.value:
                         issues.append({
                             "line": node.lineno,
                             "type": "shell",
@@ -128,25 +135,38 @@ def do_audit():
             high_risk += sum(1 for i in issues if i["risk"] == "high")
 
     db.execute("INSERT INTO audits (ts, scripts_scanned, issues_found, high_risk, report) VALUES (?,?,?,?,?)",
-               (time.time(), len(list(DEV.glob("*.py"))), total_issues, high_risk,
-                json.dumps(results[:20])))
+               (time.time(), len(list(DEV.glob("*.py"))), total_issues, high_risk, json.dumps(results[:20])))
     db.commit()
     db.close()
 
     return {
         "ts": datetime.now().isoformat(),
-        "scripts_scanned": len(list(DEV.glob("*.py"))),
+        "scripts_scanned": len(
+            list(
+                DEV.glob("*.py"))),
         "total_issues": total_issues,
         "high_risk": high_risk,
-        "medium_risk": total_issues - high_risk,
-        "top_risky_scripts": sorted(results, key=lambda x: x["high_risk"], reverse=True)[:10],
+        "medium_risk": total_issues -
+        high_risk,
+        "top_risky_scripts": sorted(
+            results,
+            key=lambda x: x["high_risk"],
+            reverse=True)[
+            :10],
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Permission Auditor")
-    parser.add_argument("--once", "--audit", action="store_true", help="Audit permissions")
-    parser.add_argument("--excessive", action="store_true", help="Show excessive")
+    parser.add_argument(
+        "--once",
+        "--audit",
+        action="store_true",
+        help="Audit permissions")
+    parser.add_argument(
+        "--excessive",
+        action="store_true",
+        help="Show excessive")
     parser.add_argument("--fix", action="store_true", help="Suggest fixes")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()

@@ -54,6 +54,7 @@ API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def init_db(conn):
     conn.execute("""CREATE TABLE IF NOT EXISTS telegram_reports (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -143,9 +144,15 @@ def run_script(name, args):
     script_path = SCRIPT_DIR / f"{name}.py"
     if not script_path.exists():
         return {"error": f"{name}.py not found"}
-    cmd = [PYTHON, str(script_path)] + (args if isinstance(args, list) else [args])
+    cmd = [PYTHON, str(script_path)] + \
+        (args if isinstance(args, list) else [args])
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120, cwd=str(SCRIPT_DIR))
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd=str(SCRIPT_DIR))
         if r.returncode == 0 and r.stdout.strip():
             return json.loads(r.stdout)
         return {"error": r.stderr[:200] if r.stderr else "empty"}
@@ -181,7 +188,8 @@ def spark(values, width=8):
     mn, mx = min(values), max(values)
     rng = mx - mn or 1
     chars = " _.-~*#@"
-    return "".join(chars[min(int((v - mn) / rng * 7), 7)] for v in values[-width:])
+    return "".join(chars[min(int((v - mn) / rng * 7), 7)]
+                   for v in values[-width:])
 
 
 def status_icon(ok):
@@ -236,13 +244,19 @@ def section_main():
     if not edb:
         return "etoile.db introuvable", main_keyboard()
 
-    total = edb.execute("SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
-    success = edb.execute("SELECT SUM(success) FROM agent_dispatch_log").fetchone()[0] or 0
+    total = edb.execute(
+        "SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
+    success = edb.execute(
+        "SELECT SUM(success) FROM agent_dispatch_log").fetchone()[0] or 0
     rate = success / max(total, 1) * 100
-    avg_q = edb.execute("SELECT AVG(quality_score) FROM agent_dispatch_log WHERE success=1").fetchone()[0] or 0
-    avg_lat = edb.execute("SELECT AVG(latency_ms) FROM agent_dispatch_log").fetchone()[0] or 0
-    scripts = edb.execute("SELECT COUNT(*) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
-    patterns = edb.execute("SELECT COUNT(DISTINCT pattern_id) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
+    avg_q = edb.execute(
+        "SELECT AVG(quality_score) FROM agent_dispatch_log WHERE success=1").fetchone()[0] or 0
+    avg_lat = edb.execute(
+        "SELECT AVG(latency_ms) FROM agent_dispatch_log").fetchone()[0] or 0
+    scripts = edb.execute(
+        "SELECT COUNT(*) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
+    patterns = edb.execute(
+        "SELECT COUNT(DISTINCT pattern_id) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
     edb.close()
 
     files = len(list(SCRIPT_DIR.glob("*.py")))
@@ -273,16 +287,23 @@ def section_cluster():
     if "error" in data:
         return f"Erreur: {data['error']}", back_keyboard()
 
-    lines = [f"<b>Cluster Health</b>  [{data.get('cluster_status', '?').upper()}]",
-             f"Noeuds: {data.get('nodes_online', '?')}", ""]
+    lines = [
+        f"<b>Cluster Health</b>  [{
+            data.get(
+                'cluster_status', '?').upper()}]", f"Noeuds: {
+            data.get(
+                'nodes_online', '?')}", ""]
 
     for n in data.get("nodes", []):
         ok = n["status"] == "healthy"
         icon = status_icon(ok)
         ms = n["response_ms"]
         models = n["models_loaded"]
-        latbar = f"[{'#' * min(ms // 5, 10)}{'.' * max(10 - ms // 5, 0)}]" if ms < 100 else "[!!!!!!!!!!]"
-        lines.append(f"  <b>{n['node']:3s}</b> [{icon}] {latbar} {ms:>4d}ms  {models} mod.")
+        latbar = f"[{'#' * min(ms // 5,
+                               10)}{'.' * max(10 - ms // 5,
+                                              0)}]" if ms < 100 else "[!!!!!!!!!!]"
+        lines.append(
+            f"  <b>{n['node']:3s}</b> [{icon}] {latbar} {ms:>4d}ms  {models} mod.")
 
     alerts = data.get("alerts", [])
     if alerts:
@@ -322,11 +343,15 @@ def section_gpu():
                         temp_warn = ""
 
                     # Short GPU name
-                    short = name.replace("NVIDIA GeForce ", "").replace("NVIDIA ", "")
+                    short = name.replace(
+                        "NVIDIA GeForce ", "").replace(
+                        "NVIDIA ", "")
 
                     lines.append(f"  <b>GPU{idx}</b> {short}")
-                    lines.append(f"    Temp  {bar(temp_i, 100, 10)}{temp_warn}")
-                    lines.append(f"    VRAM  {bar(mem_pct, 100, 10)} {mem_used}/{mem_total}MB")
+                    lines.append(
+                        f"    Temp  {bar(temp_i, 100, 10)}{temp_warn}")
+                    lines.append(
+                        f"    VRAM  {bar(mem_pct, 100, 10)} {mem_used}/{mem_total}MB")
                     lines.append(f"    Load  {bar(util_i, 100, 10)}")
                     lines.append("")
         else:
@@ -371,7 +396,12 @@ def section_dispatch():
         q = r["avg_q"] or 0
 
         rate_bar = "#" * int(rate / 10) + "." * (10 - int(rate / 10))
-        lines.append(f"<code>{pat:12s} {total:4d} [{rate_bar}] {lat:5.0f} {q:.1f}</code>")
+        lines.append(
+            f"<code>{
+                pat:12s} {
+                total:4d} [{rate_bar}] {
+                lat:5.0f} {
+                    q:.1f}</code>")
 
     lines.append(f"\n<code>{datetime.now().strftime('%H:%M:%S')}</code>")
     return "\n".join(lines), back_keyboard()
@@ -395,13 +425,15 @@ def section_quality():
     if best:
         lines.append("<b>Meilleurs combos</b>")
         for b in best[:5]:
-            lines.append(f"  {b['pattern']:12s} / {b['node']:3s} q={b['avg_quality']:.3f}")
+            lines.append(
+                f"  {b['pattern']:12s} / {b['node']:3s} q={b['avg_quality']:.3f}")
 
     worst = data.get("worst_combos", [])
     if worst:
         lines.append("\n<b>Pires combos</b>")
         for w in worst[:5]:
-            lines.append(f"  {w['pattern']:12s} / {w['node']:3s} q={w['avg_quality']:.3f} [{w['trend']}]")
+            lines.append(
+                f"  {w['pattern']:12s} / {w['node']:3s} q={w['avg_quality']:.3f} [{w['trend']}]")
 
     # Quality by response length
     by_len = data.get("quality_by_length", [])
@@ -409,7 +441,15 @@ def section_quality():
         lines.append("\n<b>Qualite par longueur reponse</b>")
         for bl in by_len:
             q = bl.get("avg_q", 0) or 0
-            lines.append(f"  {bl.get('length_bucket', '?'):18s} q={q:.3f} (n={bl.get('cnt', 0)})")
+            lines.append(
+                f"  {
+                    bl.get(
+                        'length_bucket',
+                        '?'):18s} q={
+                    q:.3f} (n={
+                    bl.get(
+                        'cnt',
+                        0)})")
 
     return "\n".join(lines), back_keyboard()
 
@@ -448,7 +488,13 @@ def section_errors():
     if recs:
         lines.append(f"\n<b>Recommandations ({len(recs)})</b>")
         for r in recs[:4]:
-            lines.append(f"  [{r.get('priority', '?').upper():4s}] {r.get('fix', '')[:60]}")
+            lines.append(
+                f"  [{
+                    r.get(
+                        'priority', '?').upper():4s}] {
+                    r.get(
+                        'fix', '')[
+                        :60]}")
 
     return "\n".join(lines), back_keyboard()
 
@@ -480,7 +526,10 @@ def section_trends():
                 arrow = trend_arrow(t.get("volume_change_pct", 0))
                 vol = t.get("volume_change_pct", "?")
                 sr = t.get("recent_success_pct", "?")
-                lines.append(f"  {arrow}{t['pattern']:12s} vol:{vol:+.0f}% ok:{sr}%")
+                lines.append(
+                    f"  {arrow}{
+                        t['pattern']:12s} vol:{
+                        vol:+.0f}% ok:{sr}%")
             lines.append("")
 
     return "\n".join(lines), back_keyboard()
@@ -499,7 +548,11 @@ def section_tests():
             dur = data.get("duration_ms", 0)
             names = {1: "Syntax", 2: "Imports", 3: "--help"}
             icon = "OK" if rate == 100 else "!!"
-            lines.append(f"  L{level} {names.get(level, '?'):7s} [{icon}] {p}/{t} ({rate}%) {dur}ms")
+            lines.append(
+                f"  L{level} {
+                    names.get(
+                        level,
+                        '?'):7s} [{icon}] {p}/{t} ({rate}%) {dur}ms")
 
     fails = 0
     data3 = run_script("cowork_self_test_runner", ["--level", "3", "--failed"])
@@ -529,7 +582,8 @@ def section_cycle():
     for r in data.get("results", []):
         icon = status_icon(r["status"] == "ok")
         summary = r.get("summary", {})
-        detail = " | ".join(f"{k}={v}" for k, v in summary.items()) if summary else ""
+        detail = " | ".join(f"{k}={v}" for k,
+                            v in summary.items()) if summary else ""
         dur = r.get("duration_ms", 0)
         lines.append(f"  [{icon}] {r['label']:15s} {dur:5d}ms")
         if detail:
@@ -609,7 +663,8 @@ def section_nodes():
         lines.append(f"  Success  {bar(rate)}")
         lines.append(f"  Qualite  {bar(q * 100)}")
         lines.append(f"  Latence  {bar_latency(lat)}")
-        lines.append(f"  Echecs   {fails}  |  Min/Max: {r['min_lat'] or 0:.0f}/{r['max_lat'] or 0:.0f}ms")
+        lines.append(
+            f"  Echecs   {fails}  |  Min/Max: {r['min_lat'] or 0:.0f}/{r['max_lat'] or 0:.0f}ms")
         lines.append("")
 
     lines.append(f"<code>{datetime.now().strftime('%H:%M:%S')}</code>")
@@ -639,7 +694,14 @@ def section_history():
         node = (r["node"] or "?")[:3]
         lat = r["latency_ms"] or 0
         q = r["quality_score"] or 0
-        lines.append(f"<code>{r['id']:4d} {pat:12s} {node:3s} {ok:2s} {lat:7.0f} {q:.2f}</code>")
+        lines.append(
+            f"<code>{
+                r['id']:4d} {
+                pat:12s} {
+                node:3s} {
+                    ok:2s} {
+                        lat:7.0f} {
+                            q:.2f}</code>")
 
     lines.append(f"\n<code>{datetime.now().strftime('%H:%M:%S')}</code>")
     return "\n".join(lines), back_keyboard()
@@ -711,7 +773,10 @@ def section_scheduler():
         minutes_until = t.get("minutes_until_next", 0)
 
         lines.append(f"  [{enabled:3s}] <b>{name:15s}</b> {interval:>4d}m")
-        lines.append(f"         runs={runs:3d}  next={minutes_until:.0f}m  last={status}")
+        lines.append(
+            f"         runs={
+                runs:3d}  next={
+                minutes_until:.0f}m  last={status}")
 
     kb = [
         [{"text": "Executer taches dues", "callback_data": "run:run_scheduler"}],
@@ -733,7 +798,14 @@ def run_scheduler():
     ]
     for t in data.get("results", []):
         icon = status_icon(t.get("status") == "ok")
-        lines.append(f"  [{icon}] {t.get('task_name', '?'):15s} {t.get('duration_ms', 0)}ms")
+        lines.append(
+            f"  [{icon}] {
+                t.get(
+                    'task_name',
+                    '?'):15s} {
+                t.get(
+                    'duration_ms',
+                    0)}ms")
 
     return "\n".join(lines), back_keyboard()
 
@@ -744,14 +816,21 @@ def run_full_cycle():
     if "error" in data:
         return f"Erreur: {data['error']}", back_keyboard()
 
-    lines = [
-        "<b>Cycle COMPLET</b>", "",
-        f"  {data.get('ok', 0)}/{data.get('total_scripts', 0)} OK en {data.get('duration_ms', 0)}ms", "",
-    ]
+    lines = ["<b>Cycle COMPLET</b>",
+             "",
+             f"  {data.get('ok',
+                           0)}/{data.get('total_scripts',
+                                         0)} OK en {data.get('duration_ms',
+                                                             0)}ms",
+             "",
+             ]
     for r in data.get("results", []):
         icon = status_icon(r["status"] == "ok")
         summary = r.get("summary", {})
-        detail = " | ".join(f"{k}={v}" for k, v in list(summary.items())[:3]) if summary else ""
+        detail = " | ".join(
+            f"{k}={v}" for k, v in list(
+                summary.items())[
+                :3]) if summary else ""
         lines.append(f"  [{icon}] {r['label']:15s} {detail[:45]}")
 
     return "\n".join(lines), back_keyboard()
@@ -849,7 +928,8 @@ def poll():
                             else:
                                 send_msg(text, kb, chat_id)
                             _log_report(section)
-                            print(f"  [{datetime.now().strftime('%H:%M:%S')}] Section: {section}")
+                            print(
+                                f"  [{datetime.now().strftime('%H:%M:%S')}] Section: {section}")
 
                     elif cb_data.startswith("run:"):
                         action = cb_data[4:]
@@ -861,7 +941,8 @@ def poll():
                                 edit_msg(msg_id, text, kb, chat_id)
                             else:
                                 send_msg(text, kb, chat_id)
-                            print(f"  [{datetime.now().strftime('%H:%M:%S')}] Action: {action}")
+                            print(
+                                f"  [{datetime.now().strftime('%H:%M:%S')}] Action: {action}")
 
                     continue
 
@@ -877,11 +958,13 @@ def poll():
                     text_out, kb = section_main()
                     send_msg(text_out, kb, chat_id)
                     _log_report("dashboard_open")
-                    print(f"  [{datetime.now().strftime('%H:%M:%S')}] Dashboard opened")
+                    print(
+                        f"  [{datetime.now().strftime('%H:%M:%S')}] Dashboard opened")
 
                 elif text.startswith("/search "):
                     query = text[8:].strip().lower()
-                    results = [s.stem for s in SCRIPT_DIR.glob("*.py") if query in s.stem.lower()]
+                    results = [s.stem for s in SCRIPT_DIR.glob(
+                        "*.py") if query in s.stem.lower()]
                     if results:
                         out = f"<b>Recherche: '{query}'</b>\n\n"
                         out += "\n".join(f"  {r}" for r in results[:20])
@@ -920,12 +1003,28 @@ def _log_report(report_type):
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="COWORK Interactive Telegram Dashboard")
-    parser.add_argument("--poll", action="store_true", help="Start interactive bot")
-    parser.add_argument("--once", action="store_true", help="Send main dashboard")
-    parser.add_argument("--health", action="store_true", help="Send cluster health")
-    parser.add_argument("--full", action="store_true", help="Send all sections")
-    parser.add_argument("--stats", action="store_true", help="Show sent reports")
+    parser = argparse.ArgumentParser(
+        description="COWORK Interactive Telegram Dashboard")
+    parser.add_argument(
+        "--poll",
+        action="store_true",
+        help="Start interactive bot")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Send main dashboard")
+    parser.add_argument(
+        "--health",
+        action="store_true",
+        help="Send cluster health")
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Send all sections")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show sent reports")
     args = parser.parse_args()
 
     if not any([args.poll, args.once, args.health, args.full, args.stats]):

@@ -2,6 +2,7 @@
 """JARVIS Auto Trader — Scanner MEXC Futures avec alertes Telegram."""
 import json, sys, time, urllib.request
 from datetime import datetime
+import argparse
 
 PAIRS = ["BTC_USDT","ETH_USDT","SOL_USDT","SUI_USDT","PEPE_USDT","DOGE_USDT","XRP_USDT","ADA_USDT","AVAX_USDT","LINK_USDT"]
 ALERT_THRESHOLD = 2.0  # % variation

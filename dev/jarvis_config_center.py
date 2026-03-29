@@ -25,38 +25,59 @@ DB_PATH = DEV / "data" / "config_center.db"
 # Default configs to seed on first run
 DEFAULT_CONFIGS = [
     # Cluster
-    ("cluster.m1.url", "http://127.0.0.1:1234", "str", "M1 LM Studio URL", "JARVIS_M1_URL"),
+    ("cluster.m1.url", "http://127.0.0.1:1234",
+     "str", "M1 LM Studio URL", "JARVIS_M1_URL"),
     ("cluster.m1.model", "qwen3-8b", "str", "M1 default model", "JARVIS_M1_MODEL"),
-    ("cluster.m2.url", "http://192.168.1.26:1234", "str", "M2 LM Studio URL", "JARVIS_M2_URL"),
-    ("cluster.m2.model", "deepseek-coder-v2-lite-instruct", "str", "M2 default model", "JARVIS_M2_MODEL"),
-    ("cluster.m3.url", "http://192.168.1.113:1234", "str", "M3 LM Studio URL", "JARVIS_M3_URL"),
-    ("cluster.ol1.url", "http://127.0.0.1:11434", "str", "OL1 Ollama URL", "JARVIS_OL1_URL"),
-    ("cluster.ol1.model", "qwen3:1.7b", "str", "OL1 default local model", "JARVIS_OL1_MODEL"),
+    ("cluster.m2.url", "http://192.168.1.26:1234",
+     "str", "M2 LM Studio URL", "JARVIS_M2_URL"),
+    ("cluster.m2.model", "deepseek-coder-v2-lite-instruct",
+     "str", "M2 default model", "JARVIS_M2_MODEL"),
+    ("cluster.m3.url", "http://192.168.1.113:1234",
+     "str", "M3 LM Studio URL", "JARVIS_M3_URL"),
+    ("cluster.ol1.url", "http://127.0.0.1:11434",
+     "str", "OL1 Ollama URL", "JARVIS_OL1_URL"),
+    ("cluster.ol1.model", "qwen3:1.7b", "str",
+     "OL1 default local model", "JARVIS_OL1_MODEL"),
     # Server
-    ("server.webhook.port", "9801", "int", "Webhook server port", "JARVIS_WEBHOOK_PORT"),
+    ("server.webhook.port", "9801", "int",
+     "Webhook server port", "JARVIS_WEBHOOK_PORT"),
     ("server.api.port", "9742", "int", "API server port", "JARVIS_API_PORT"),
-    ("server.dashboard.port", "8080", "int", "Dashboard port", "JARVIS_DASHBOARD_PORT"),
+    ("server.dashboard.port", "8080", "int",
+     "Dashboard port", "JARVIS_DASHBOARD_PORT"),
     # Timeouts
     ("timeout.m1", "60", "int", "M1 request timeout seconds", "JARVIS_TIMEOUT_M1"),
     ("timeout.m2", "120", "int", "M2 request timeout seconds", "JARVIS_TIMEOUT_M2"),
     ("timeout.ol1", "30", "int", "OL1 request timeout seconds", "JARVIS_TIMEOUT_OL1"),
-    ("timeout.gemini", "45", "int", "Gemini request timeout seconds", "JARVIS_TIMEOUT_GEMINI"),
+    ("timeout.gemini",
+     "45",
+     "int",
+     "Gemini request timeout seconds",
+     "JARVIS_TIMEOUT_GEMINI"),
     # Trading
     ("trading.dry_run", "false", "bool", "Trading dry run mode", "JARVIS_DRY_RUN"),
-    ("trading.tp_percent", "0.4", "float", "Take profit percentage", "JARVIS_TP_PERCENT"),
-    ("trading.sl_percent", "0.25", "float", "Stop loss percentage", "JARVIS_SL_PERCENT"),
+    ("trading.tp_percent", "0.4", "float",
+     "Take profit percentage", "JARVIS_TP_PERCENT"),
+    ("trading.sl_percent", "0.25", "float",
+     "Stop loss percentage", "JARVIS_SL_PERCENT"),
     ("trading.size_usdt", "10", "float", "Trade size in USDT", "JARVIS_TRADE_SIZE"),
     ("trading.min_score", "70", "int", "Minimum signal score", "JARVIS_MIN_SCORE"),
     # System
-    ("system.gpu.thermal_warn", "75", "int", "GPU thermal warning threshold C", "JARVIS_GPU_WARN"),
-    ("system.gpu.thermal_critical", "85", "int", "GPU thermal critical threshold C", "JARVIS_GPU_CRITICAL"),
-    ("system.ollama.parallel", "3", "int", "Ollama parallel requests", "OLLAMA_NUM_PARALLEL"),
+    ("system.gpu.thermal_warn", "75", "int",
+     "GPU thermal warning threshold C", "JARVIS_GPU_WARN"),
+    ("system.gpu.thermal_critical", "85", "int",
+     "GPU thermal critical threshold C", "JARVIS_GPU_CRITICAL"),
+    ("system.ollama.parallel", "3", "int",
+     "Ollama parallel requests", "OLLAMA_NUM_PARALLEL"),
     # Self-critic
-    ("ia.self_critic.min_score", "70", "int", "Min score before regeneration", "JARVIS_MIN_CRITIC_SCORE"),
-    ("ia.self_critic.max_iterations", "3", "int", "Max improvement iterations", "JARVIS_MAX_CRITIC_ITER"),
+    ("ia.self_critic.min_score", "70", "int",
+     "Min score before regeneration", "JARVIS_MIN_CRITIC_SCORE"),
+    ("ia.self_critic.max_iterations", "3", "int",
+     "Max improvement iterations", "JARVIS_MAX_CRITIC_ITER"),
     # Event bus
-    ("events.ttl_seconds", "3600", "int", "Event TTL in seconds", "JARVIS_EVENT_TTL"),
-    ("events.max_batch", "50", "int", "Max events per subscribe", "JARVIS_EVENT_BATCH"),
+    ("events.ttl_seconds", "3600", "int",
+     "Event TTL in seconds", "JARVIS_EVENT_TTL"),
+    ("events.max_batch", "50", "int",
+     "Max events per subscribe", "JARVIS_EVENT_BATCH"),
 ]
 
 
@@ -193,8 +214,11 @@ def set_config(db, key, value):
                 "expected_type": vtype
             }
 
-        db.execute("UPDATE configs SET value = ?, updated_ts = ? WHERE key = ?",
-                    (str(value), now, key))
+        db.execute(
+            "UPDATE configs SET value = ?, updated_ts = ? WHERE key = ?",
+            (str(value),
+             now,
+             key))
         db.execute(
             "INSERT INTO config_history (ts, key, old_value, new_value, source) VALUES (?,?,?,?,?)",
             (now, key, old_value, str(value), "cli")
@@ -215,9 +239,7 @@ def set_config(db, key, value):
 
         db.execute(
             """INSERT INTO configs (key, value, value_type, description, default_value, updated_ts, created_ts)
-               VALUES (?,?,?,?,?,?,?)""",
-            (key, value, vtype, "", value, now, now)
-        )
+               VALUES (?,?,?,?,?,?,?)""", (key, value, vtype, "", value, now, now))
         db.execute(
             "INSERT INTO config_history (ts, key, old_value, new_value, source) VALUES (?,?,?,?,?)",
             (now, key, None, value, "cli:new")
@@ -334,11 +356,13 @@ def once(db):
         "SELECT SUBSTR(key, 1, INSTR(key, '.') - 1) AS grp, COUNT(*) FROM configs GROUP BY grp ORDER BY grp"
     ).fetchall()
 
-    history_count = db.execute("SELECT COUNT(*) FROM config_history").fetchone()[0]
+    history_count = db.execute(
+        "SELECT COUNT(*) FROM config_history").fetchone()[0]
 
     # Count env overrides active
     env_overrides = 0
-    rows = db.execute("SELECT env_override FROM configs WHERE env_override IS NOT NULL AND env_override != ''").fetchall()
+    rows = db.execute(
+        "SELECT env_override FROM configs WHERE env_override IS NOT NULL AND env_override != ''").fetchall()
     for row in rows:
         if os.environ.get(row[0]):
             env_overrides += 1
@@ -357,8 +381,7 @@ def once(db):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="jarvis_config_center.py (#194) — Unified configuration center"
-    )
+        description="jarvis_config_center.py (#194) — Unified configuration center")
     parser.add_argument("--get", type=str, metavar="KEY",
                         help="Get config value by key")
     parser.add_argument("--set", nargs=2, metavar=("KEY", "VALUE"),

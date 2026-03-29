@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_event_monitor.py — Moniteur evenements Windows.
 
@@ -105,9 +106,24 @@ def do_scan():
             all_events.append(e)
 
     # Categorize
-    errors = [e for e in all_events if e.get("level", "").lower() in ("error", "2")]
-    warnings = [e for e in all_events if e.get("level", "").lower() in ("warning", "3")]
-    critical = [e for e in all_events if e.get("level", "").lower() in ("critical", "1")]
+    errors = [
+        e for e in all_events if e.get(
+            "level",
+            "").lower() in (
+            "error",
+            "2")]
+    warnings = [
+        e for e in all_events if e.get(
+            "level",
+            "").lower() in (
+            "warning",
+            "3")]
+    critical = [
+        e for e in all_events if e.get(
+            "level",
+            "").lower() in (
+            "critical",
+            "1")]
 
     # Detect patterns
     patterns = {}
@@ -115,7 +131,11 @@ def do_scan():
         source = e.get("source", "unknown")
         patterns[source] = patterns.get(source, 0) + 1
 
-    frequent_sources = sorted(patterns.items(), key=lambda x: x[1], reverse=True)[:5]
+    frequent_sources = sorted(
+        patterns.items(),
+        key=lambda x: x[1],
+        reverse=True)[
+        :5]
 
     # Store
     for e in all_events[:50]:
@@ -140,8 +160,11 @@ def do_scan():
 
     db.execute(
         "INSERT INTO scans (ts, errors, warnings, critical, report) VALUES (?,?,?,?,?)",
-        (time.time(), len(errors), len(warnings), len(critical), json.dumps(report))
-    )
+        (time.time(),
+         len(errors),
+         len(warnings),
+         len(critical),
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -149,8 +172,15 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Event Monitor")
-    parser.add_argument("--once", "--errors", action="store_true", help="Scan events")
-    parser.add_argument("--security", action="store_true", help="Security events")
+    parser.add_argument(
+        "--once",
+        "--errors",
+        action="store_true",
+        help="Scan events")
+    parser.add_argument(
+        "--security",
+        action="store_true",
+        help="Security events")
     parser.add_argument("--report", action="store_true", help="Report")
     parser.add_argument("--watch", action="store_true", help="Watch mode")
     args = parser.parse_args()

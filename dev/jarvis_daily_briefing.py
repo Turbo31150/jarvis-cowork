@@ -19,13 +19,24 @@ import time
 import urllib.request
 from datetime import datetime
 from pathlib import Path
+import sys
 
 DEV = Path(__file__).parent
+PROJECT_ROOT = DEV.parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+try:
+    from core.unified.services import get_service_registry
+    _services = get_service_registry()
+except Exception:
+    _services = None
+
 DB_PATH = DEV / "data" / "daily_briefing.db"
-WS_URL = "http://127.0.0.1:9742"
-OL1_URL = "http://127.0.0.1:11434"
-M1_URL = "http://127.0.0.1:1234"
-TELEGRAM_PROXY = "http://127.0.0.1:18800"
+WS_URL = _services.base_url("jarvis_ws") if _services else "http://127.0.0.1:9742"
+OL1_URL = _services.base_url("ollama") if _services else "http://127.0.0.1:11434"
+M1_URL = _services.base_url("lmstudio_m1") if _services else "http://127.0.0.1:1234"
+TELEGRAM_PROXY = _services.base_url("canvas_proxy") if _services else "http://127.0.0.1:18800"
 
 
 def init_db():
@@ -41,7 +52,8 @@ def init_db():
 def collect_cluster_status():
     """Collect cluster health."""
     nodes = {}
-    for name, url in [("OL1", f"{OL1_URL}/api/tags"), ("M1", f"{M1_URL}/api/v1/models")]:
+    for name, url in [("OL1", f"{OL1_URL}/api/tags"),
+                      ("M1", f"{M1_URL}/api/v1/models")]:
         try:
             req = urllib.request.Request(url)
             with urllib.request.urlopen(req, timeout=3) as r:
@@ -58,7 +70,10 @@ def collect_autonomous_status():
         with urllib.request.urlopen(req, timeout=5) as r:
             data = json.loads(r.read().decode())
             tasks = data.get("tasks", {})
-            ok = sum(1 for t in tasks.values() if isinstance(t, dict) and t.get("fail_count", 0) <= 3)
+            ok = sum(
+                1 for t in tasks.values() if isinstance(
+                    t, dict) and t.get(
+                    "fail_count", 0) <= 3)
             return {"tasks_ok": ok, "total": len(tasks)}
     except Exception:
         return {"tasks_ok": 0, "total": 0}
@@ -94,7 +109,8 @@ def collect_disk_status():
     for drive in ["C:", "F:"]:
         try:
             usage = shutil.disk_usage(drive + "\\")
-            disks[drive] = {"free_gb": round(usage.free / (1024**3), 1), "total_gb": round(usage.total / (1024**3), 1)}
+            disks[drive] = {"free_gb": round(
+                usage.free / (1024**3), 1), "total_gb": round(usage.total / (1024**3), 1)}
         except Exception:
             pass
     return disks
@@ -115,16 +131,23 @@ def generate_briefing():
     lines.append(f"**Cluster**: {cluster_str}")
 
     # Autonomous
-    lines.append(f"**Taches autonomes**: {autonomous['tasks_ok']}/{autonomous['total']} OK")
+    lines.append(
+        f"**Taches autonomes**: {autonomous['tasks_ok']}/{autonomous['total']} OK")
 
     # GPU
     if gpus:
         for i, gpu in enumerate(gpus):
-            lines.append(f"**GPU {i}**: {gpu['temp']}C, VRAM {gpu['vram_used']}/{gpu['vram_total']}MB, Load {gpu['load']}%")
+            lines.append(
+                f"**GPU {i}**: {
+                    gpu['temp']}C, VRAM {
+                    gpu['vram_used']}/{
+                    gpu['vram_total']}MB, Load {
+                    gpu['load']}%")
 
     # Disks
     for drive, info in disks.items():
-        lines.append(f"**{drive}**: {info['free_gb']}GB free / {info['total_gb']}GB")
+        lines.append(
+            f"**{drive}**: {info['free_gb']}GB free / {info['total_gb']}GB")
 
     # Dev scripts count
     dev_count = len(list(DEV.glob("*.py")))
@@ -152,7 +175,8 @@ def do_once():
     db = init_db()
     briefing = generate_briefing()
 
-    db.execute("INSERT INTO briefings (ts, briefing) VALUES (?,?)", (time.time(), briefing))
+    db.execute("INSERT INTO briefings (ts, briefing) VALUES (?,?)",
+               (time.time(), briefing))
     db.commit()
     db.close()
     return {"briefing": briefing}
@@ -173,9 +197,19 @@ def do_send():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Daily Briefing")
-    parser.add_argument("--once", "--generate", action="store_true", help="Generate briefing")
-    parser.add_argument("--send", action="store_true", help="Generate + send Telegram")
-    parser.add_argument("--history", action="store_true", help="Past briefings")
+    parser.add_argument(
+        "--once",
+        "--generate",
+        action="store_true",
+        help="Generate briefing")
+    parser.add_argument(
+        "--send",
+        action="store_true",
+        help="Generate + send Telegram")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Past briefings")
     args = parser.parse_args()
 
     if args.send:

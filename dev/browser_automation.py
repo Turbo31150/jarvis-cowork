@@ -123,7 +123,8 @@ def save_macro(name, description, steps):
 def replay_macro(name, variables=None):
     """Replay a saved macro."""
     db = init_db()
-    row = db.execute("SELECT steps FROM macros WHERE name=?", (name,)).fetchone()
+    row = db.execute("SELECT steps FROM macros WHERE name=?",
+                     (name,)).fetchone()
     if not row:
         # Check templates
         if name in TEMPLATES:
@@ -214,12 +215,16 @@ def do_once():
     db = init_db()
     installed = 0
     for name, tmpl in TEMPLATES.items():
-        existing = db.execute("SELECT COUNT(*) FROM macros WHERE name=?", (name,)).fetchone()[0]
+        existing = db.execute(
+            "SELECT COUNT(*) FROM macros WHERE name=?", (name,)).fetchone()[0]
         if existing == 0:
             db.execute(
                 "INSERT INTO macros (name, description, steps, created) VALUES (?,?,?,?)",
-                (name, tmpl["description"], json.dumps(tmpl["steps"]), time.time())
-            )
+                (name,
+                 tmpl["description"],
+                    json.dumps(
+                     tmpl["steps"]),
+                    time.time()))
             installed += 1
     db.commit()
     db.close()
@@ -232,13 +237,20 @@ def do_once():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Browser Automation — Record & replay macros")
-    parser.add_argument("--once", action="store_true", help="Install templates + status")
+    parser = argparse.ArgumentParser(
+        description="Browser Automation — Record & replay macros")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Install templates + status")
     parser.add_argument("--record", metavar="NAME", help="Record a new macro")
     parser.add_argument("--replay", metavar="NAME", help="Replay a macro")
     parser.add_argument("--list", action="store_true", help="List all macros")
     parser.add_argument("--test", action="store_true", help="Test templates")
-    parser.add_argument("--var", action="append", help="Variable KEY=VALUE for replay")
+    parser.add_argument(
+        "--var",
+        action="append",
+        help="Variable KEY=VALUE for replay")
     args = parser.parse_args()
 
     if args.list:
@@ -253,7 +265,9 @@ def main():
         result = replay_macro(args.replay, variables)
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.test:
-        result = replay_macro("google_search", {"query": "JARVIS AI assistant"})
+        result = replay_macro(
+            "google_search", {
+                "query": "JARVIS AI assistant"})
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         result = do_once()

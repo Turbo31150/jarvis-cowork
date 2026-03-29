@@ -22,6 +22,7 @@ DB_PATH = Path(__file__).parent / "data" / "scheduler.db"
 # Database helpers
 # ---------------------------------------------------------------------------
 
+
 def get_conn():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
@@ -40,6 +41,7 @@ def get_conn():
 # ---------------------------------------------------------------------------
 # Natural‑language time parser (very small subset)
 # ---------------------------------------------------------------------------
+
 
 def parse_time(expr: str) -> datetime:
     """Parse simple French time expressions.
@@ -83,7 +85,14 @@ def parse_time(expr: str) -> datetime:
     if m:
         hour = int(m.group(1))
         minute = int(m.group(2))
-        tomorrow = (now + timedelta(days=1)).replace(hour=hour, minute=minute, second=0, microsecond=0)
+        tomorrow = (
+            now +
+            timedelta(
+                days=1)).replace(
+            hour=hour,
+            minute=minute,
+            second=0,
+            microsecond=0)
         return tomorrow
 
     # "à HH:MM"
@@ -91,7 +100,11 @@ def parse_time(expr: str) -> datetime:
     if m:
         hour = int(m.group(1))
         minute = int(m.group(2))
-        candidate = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        candidate = now.replace(
+            hour=hour,
+            minute=minute,
+            second=0,
+            microsecond=0)
         if candidate <= now:
             # time already passed today -> assume tomorrow
             candidate += timedelta(days=1)
@@ -102,6 +115,7 @@ def parse_time(expr: str) -> datetime:
 # ---------------------------------------------------------------------------
 # Core actions
 # ---------------------------------------------------------------------------
+
 
 def schedule_reminder(raw_text: str):
     """Extract time expression and message from a raw natural language string.
@@ -139,14 +153,19 @@ def schedule_reminder(raw_text: str):
             conn.commit()
             rid = cur.lastrowid
             conn.close()
-            return {"id": rid, "remind_at": remind_at.isoformat(), "message": message}
-    raise ValueError("Aucune expression temporelle reconnue dans le texte fourni.")
+            return {
+                "id": rid,
+                "remind_at": remind_at.isoformat(),
+                "message": message}
+    raise ValueError(
+        "Aucune expression temporelle reconnue dans le texte fourni.")
 
 
 def list_reminders():
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT id, remind_at, message, status FROM reminders ORDER BY remind_at")
+    cur.execute(
+        "SELECT id, remind_at, message, status FROM reminders ORDER BY remind_at")
     rows = cur.fetchall()
     conn.close()
     return [
@@ -186,36 +205,54 @@ def trigger_due():
 # CLI handling
 # ---------------------------------------------------------------------------
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Planificateur de messages / rappels Telegram")
+    parser = argparse.ArgumentParser(
+        description="Planificateur de messages / rappels Telegram")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--schedule", type=str, help="Texte naturel contenant l'heure et le message à planifier")
-    group.add_argument("--list", action="store_true", help="Lister tous les rappels")
-    group.add_argument("--cancel", type=int, metavar="ID", help="Annuler le rappel avec l'ID donné")
-    group.add_argument("--remind", action="store_true", help="Émettre les rappels dont le temps est atteint")
+    group.add_argument(
+        "--schedule",
+        type=str,
+        help="Texte naturel contenant l'heure et le message à planifier")
+    group.add_argument(
+        "--list",
+        action="store_true",
+        help="Lister tous les rappels")
+    group.add_argument("--cancel", type=int, metavar="ID",
+                       help="Annuler le rappel avec l'ID donné")
+    group.add_argument(
+        "--remind",
+        action="store_true",
+        help="Émettre les rappels dont le temps est atteint")
 
     args = parser.parse_args()
 
     if args.schedule is not None:
         try:
             result = schedule_reminder(args.schedule)
-            print(json.dumps({"status": "scheduled", "reminder": result}, ensure_ascii=False, indent=2))
+            print(json.dumps(
+                {"status": "scheduled", "reminder": result}, ensure_ascii=False, indent=2))
         except Exception as e:
-            print(json.dumps({"error": str(e)}, ensure_ascii=False), file=sys.stderr)
+            print(json.dumps({"error": str(e)},
+                  ensure_ascii=False), file=sys.stderr)
             sys.exit(1)
     elif args.list:
         reminders = list_reminders()
-        print(json.dumps({"reminders": reminders}, ensure_ascii=False, indent=2))
+        print(json.dumps({"reminders": reminders},
+              ensure_ascii=False, indent=2))
     elif args.cancel is not None:
         changed = cancel_reminder(args.cancel)
         if changed:
-            print(json.dumps({"status": "canceled", "id": args.cancel}, ensure_ascii=False))
+            print(json.dumps({"status": "canceled",
+                  "id": args.cancel}, ensure_ascii=False))
         else:
-            print(json.dumps({"error": f"ID {args.cancel} introuvable"}, ensure_ascii=False), file=sys.stderr)
+            print(json.dumps(
+                {"error": f"ID {args.cancel} introuvable"}, ensure_ascii=False), file=sys.stderr)
             sys.exit(1)
     elif args.remind:
         due = trigger_due()
         print(json.dumps({"triggered": due}, ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

@@ -91,14 +91,21 @@ def do_scan():
     db = init_db()
     drivers = get_drivers()
 
-    running = sum(1 for d in drivers if d.get("state", "").lower() == "running")
-    stopped = sum(1 for d in drivers if d.get("state", "").lower() == "stopped")
+    running = sum(
+        1 for d in drivers if d.get(
+            "state",
+            "").lower() == "running")
+    stopped = sum(
+        1 for d in drivers if d.get(
+            "state",
+            "").lower() == "stopped")
 
     # Detect issues
     issues = []
     for d in drivers:
         if d.get("status", "").lower() not in ("ok", "running", ""):
-            issues.append({"name": d["name"], "issue": d.get("status", "unknown")})
+            issues.append(
+                {"name": d["name"], "issue": d.get("status", "unknown")})
 
     # Store
     for d in drivers[:200]:
@@ -130,10 +137,23 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Driver Checker")
-    parser.add_argument("--once", "--scan", action="store_true", help="Scan drivers")
-    parser.add_argument("--outdated", action="store_true", help="Find outdated")
-    parser.add_argument("--problematic", action="store_true", help="Problematic drivers")
-    parser.add_argument("--backup", action="store_true", help="Backup driver info")
+    parser.add_argument(
+        "--once",
+        "--scan",
+        action="store_true",
+        help="Scan drivers")
+    parser.add_argument(
+        "--outdated",
+        action="store_true",
+        help="Find outdated")
+    parser.add_argument(
+        "--problematic",
+        action="store_true",
+        help="Problematic drivers")
+    parser.add_argument(
+        "--backup",
+        action="store_true",
+        help="Backup driver info")
     args = parser.parse_args()
 
     result = do_scan()

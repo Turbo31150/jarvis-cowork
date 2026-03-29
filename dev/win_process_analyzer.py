@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_process_analyzer.py — Deep process analysis (#252).
 
@@ -26,14 +27,39 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "process_analyzer.db"
 
 KNOWN_SYSTEM = {
-    "system idle process", "system", "registry", "smss.exe", "csrss.exe",
-    "wininit.exe", "services.exe", "lsass.exe", "svchost.exe", "fontdrvhost.exe",
-    "dwm.exe", "conhost.exe", "sihost.exe", "taskhostw.exe", "ctfmon.exe",
-    "runtimebroker.exe", "shellexperiencehost.exe", "searchhost.exe",
-    "startmenuexperiencehost.exe", "textinputhost.exe", "widgetservice.exe",
-    "dllhost.exe", "audiodg.exe", "spoolsv.exe", "wudfhost.exe", "dashost.exe",
-    "securityhealthservice.exe", "securityhealthsystray.exe", "searchindexer.exe",
-    "msedgewebview2.exe", "tasklist.exe", "cmd.exe", "explorer.exe",
+    "system idle process",
+    "system",
+    "registry",
+    "smss.exe",
+    "csrss.exe",
+    "wininit.exe",
+    "services.exe",
+    "lsass.exe",
+    "svchost.exe",
+    "fontdrvhost.exe",
+    "dwm.exe",
+    "conhost.exe",
+    "sihost.exe",
+    "taskhostw.exe",
+    "ctfmon.exe",
+    "runtimebroker.exe",
+    "shellexperiencehost.exe",
+    "searchhost.exe",
+    "startmenuexperiencehost.exe",
+    "textinputhost.exe",
+    "widgetservice.exe",
+    "dllhost.exe",
+    "audiodg.exe",
+    "spoolsv.exe",
+    "wudfhost.exe",
+    "dashost.exe",
+    "securityhealthservice.exe",
+    "securityhealthsystray.exe",
+    "searchindexer.exe",
+    "msedgewebview2.exe",
+    "tasklist.exe",
+    "cmd.exe",
+    "explorer.exe",
 }
 
 
@@ -87,7 +113,15 @@ def parse_tasklist():
         for row in reader:
             name = row.get("Image Name", "").strip()
             pid_str = row.get("PID", "0").strip()
-            mem_str = row.get("Mem Usage", "0").strip().replace(",", "").replace(" K", "").replace("\xa0", "")
+            mem_str = row.get(
+                "Mem Usage",
+                "0").strip().replace(
+                ",",
+                "").replace(
+                " K",
+                "").replace(
+                "\xa0",
+                "")
             try:
                 pid = int(pid_str)
             except ValueError:
@@ -109,7 +143,8 @@ def parse_tasklist():
                 "window_title": row.get("Window Title", "").strip(),
             })
     except Exception as e:
-        processes.append({"name": "ERROR", "pid": 0, "error": str(e), "mem_kb": 0})
+        processes.append({"name": "ERROR", "pid": 0,
+                         "error": str(e), "mem_kb": 0})
     return processes
 
 
@@ -147,7 +182,7 @@ def find_suspicious(processes):
 
         # High memory (>500MB)
         if p["mem_kb"] > 512000:
-            reasons.append(f"high_memory:{p['mem_kb']//1024}MB")
+            reasons.append(f"high_memory:{p['mem_kb'] // 1024}MB")
 
         # Unknown process (not in known list)
         if name_lower not in KNOWN_SYSTEM and p["pid"] > 4:
@@ -189,15 +224,44 @@ def do_scan():
 
     scan_id = db.execute(
         "INSERT INTO process_scans (ts, total_processes, total_memory_mb, suspicious_count) VALUES (?,?,?,?)",
-        (now.isoformat(), len(processes), round(total_mem / 1024, 1), len(suspicious)),
+        (now.isoformat(),
+         len(processes),
+         round(
+            total_mem /
+            1024,
+            1),
+            len(suspicious)),
     ).lastrowid
 
     for p in processes[:200]:
         db.execute(
             "INSERT INTO processes (scan_id, ts, name, pid, session_name, mem_kb, status, username, cpu_time, window_title) VALUES (?,?,?,?,?,?,?,?,?,?)",
-            (scan_id, now.isoformat(), p.get("name", ""), p.get("pid", 0),
-             p.get("session_name", ""), p.get("mem_kb", 0), p.get("status", ""),
-             p.get("username", ""), p.get("cpu_time", ""), p.get("window_title", "")),
+            (scan_id,
+             now.isoformat(),
+             p.get(
+                 "name",
+                 ""),
+                p.get(
+                 "pid",
+                 0),
+                p.get(
+                 "session_name",
+                 ""),
+                p.get(
+                 "mem_kb",
+                    0),
+                p.get(
+                 "status",
+                 ""),
+                p.get(
+                 "username",
+                 ""),
+                p.get(
+                 "cpu_time",
+                 ""),
+                p.get(
+                 "window_title",
+                 "")),
         )
 
     db.commit()
@@ -237,8 +301,13 @@ def do_suspicious():
     for s in suspicious:
         db.execute(
             "INSERT INTO suspicious (ts, name, pid, reason, mem_kb, details) VALUES (?,?,?,?,?,?)",
-            (now.isoformat(), s["name"], s["pid"], ", ".join(s["reasons"]),
-             s["mem_kb"], json.dumps(s)),
+            (now.isoformat(),
+             s["name"],
+                s["pid"],
+                ", ".join(
+                s["reasons"]),
+                s["mem_kb"],
+                json.dumps(s)),
         )
     db.commit()
 
@@ -285,7 +354,9 @@ def do_tree():
 def do_status():
     db = init_db()
     result = {
-        "ts": datetime.now().isoformat(), "script": "win_process_analyzer.py", "script_id": 252,
+        "ts": datetime.now().isoformat(),
+        "script": "win_process_analyzer.py",
+        "script_id": 252,
         "db": str(DB_PATH),
         "total_scans": db.execute("SELECT COUNT(*) FROM process_scans").fetchone()[0],
         "total_suspicious": db.execute("SELECT COUNT(*) FROM suspicious").fetchone()[0],
@@ -296,12 +367,28 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="win_process_analyzer.py — Deep process analysis (#252)")
-    parser.add_argument("--scan", action="store_true", help="Full process scan")
-    parser.add_argument("--top", action="store_true", help="Top processes by memory")
-    parser.add_argument("--suspicious", action="store_true", help="Show suspicious processes")
-    parser.add_argument("--tree", action="store_true", help="Show process tree")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="win_process_analyzer.py — Deep process analysis (#252)")
+    parser.add_argument(
+        "--scan",
+        action="store_true",
+        help="Full process scan")
+    parser.add_argument(
+        "--top",
+        action="store_true",
+        help="Top processes by memory")
+    parser.add_argument(
+        "--suspicious",
+        action="store_true",
+        help="Show suspicious processes")
+    parser.add_argument(
+        "--tree",
+        action="store_true",
+        help="Show process tree")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.scan:

@@ -24,13 +24,103 @@ import time
 from datetime import datetime
 from collections import defaultdict, Counter
 from pathlib import Path
+from path_resolver import resolve_db_with_table, resolve_openclaw_dev_dir, resolve_project_root
 
 BASE = Path(__file__).parent
-TURBO = BASE.parent
-DB_PATH = TURBO / "etoile.db"
+
+# ── TELEGRAM ALERTING ─────────────────────────────────────────────────
+
+def send_telegram_alert(message):
+    """Send a Telegram alert via Bot API. Silently fails if not configured."""
+    import urllib.request
+    import urllib.parse
+    token = os.environ.get("TELEGRAM_TOKEN", "")
+    chat = os.environ.get("TELEGRAM_CHAT", "")
+    if not token or not chat:
+        env_file = Path("/home/turbo/jarvis-linux/.env")
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                if line.startswith("TELEGRAM_TOKEN=") and not token:
+                    token = line.split("=", 1)[1].strip()
+                elif line.startswith("TELEGRAM_CHAT=") and not chat:
+                    chat = line.split("=", 1)[1].strip()
+    if not token or not chat:
+        print("[telegram] No TELEGRAM_TOKEN/TELEGRAM_CHAT configured, skipping alert", file=sys.stderr)
+        return
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        data = urllib.parse.urlencode({
+            "chat_id": chat,
+            "text": message,
+            "parse_mode": "HTML",
+        }).encode()
+        req = urllib.request.Request(url, data=data, method="POST")
+        urllib.request.urlopen(req, timeout=5)
+    except Exception as e:
+        print(f"[telegram] Alert failed: {e}", file=sys.stderr)
+TURBO = resolve_project_root()
+DB_PATH = resolve_db_with_table("etoile.db", "cowork_script_mapping")
 DEV_PATH = BASE / "dev"
-OPENCLAW_DEV = Path("C:/Users/franc/.openclaw/workspace/dev")
+OPENCLAW_DEV = resolve_openclaw_dev_dir()
 PYTHON = sys.executable
+
+
+def _auto_migrate_db():
+    """Auto-migrate cowork tables: add missing columns and tables for v12.6 compat."""
+    db = sqlite3.connect(str(DB_PATH))
+    # -- cowork_script_mapping: ensure pattern_id, script_name, status columns exist
+    cols = {r[1] for r in db.execute("PRAGMA table_info(cowork_script_mapping)").fetchall()}
+    if "pattern_id" not in cols and "pattern" in cols:
+        db.execute("ALTER TABLE cowork_script_mapping ADD COLUMN pattern_id TEXT DEFAULT ''")
+        db.execute("UPDATE cowork_script_mapping SET pattern_id = pattern WHERE pattern_id = ''")
+        db.commit()
+    elif "pattern_id" not in cols:
+        db.execute("ALTER TABLE cowork_script_mapping ADD COLUMN pattern_id TEXT DEFAULT ''")
+        db.commit()
+    if "script_name" not in cols and "script" in cols:
+        db.execute("ALTER TABLE cowork_script_mapping ADD COLUMN script_name TEXT DEFAULT ''")
+        db.execute("UPDATE cowork_script_mapping SET script_name = script WHERE script_name = ''")
+        db.commit()
+    elif "script_name" not in cols:
+        db.execute("ALTER TABLE cowork_script_mapping ADD COLUMN script_name TEXT DEFAULT ''")
+        db.commit()
+    if "status" not in cols:
+        db.execute("ALTER TABLE cowork_script_mapping ADD COLUMN status TEXT DEFAULT 'active'")
+        db.commit()
+    if "total_calls" not in cols:
+        db.execute("ALTER TABLE cowork_script_mapping ADD COLUMN total_calls INTEGER DEFAULT 0")
+        db.commit()
+    # -- agent_patterns table: create if missing
+    tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+    if "agent_patterns" not in tables:
+        db.execute("""
+            CREATE TABLE agent_patterns (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                pattern_id TEXT NOT NULL,
+                agent_id TEXT DEFAULT '',
+                keywords TEXT DEFAULT '',
+                description TEXT DEFAULT '',
+                strategy TEXT DEFAULT 'round_robin',
+                priority INTEGER DEFAULT 50,
+                total_calls INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'active',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        db.commit()
+    else:
+        ap_cols = {r[1] for r in db.execute("PRAGMA table_info(agent_patterns)").fetchall()}
+        if "total_calls" not in ap_cols:
+            db.execute("ALTER TABLE agent_patterns ADD COLUMN total_calls INTEGER DEFAULT 0")
+            db.commit()
+    db.close()
+
+
+# Run migration on import
+try:
+    _auto_migrate_db()
+except Exception as _mig_err:
+    print(f"[cowork_engine] Migration warning: {_mig_err}", file=sys.stderr)
 
 
 # ── MULTI-TEST ENGINE ──────────────────────────────────────────────────
@@ -417,6 +507,165 @@ def openclaw_sync():
     return result
 
 
+# ── AUTO-IMPROVE ──────────────────────────────────────────────────
+
+def auto_improve():
+    """Auto-improve weak scripts: add docstrings, fix escape sequences, add __main__, add argparse."""
+    fixed = 0
+    skipped = 0
+    details = []
+
+    # Valid Python escape characters (after the backslash)
+    valid_escapes = set('\\\'\"abfnrtvx01234567NuU\n\r')
+
+    def _fix_escape_sequences(source):
+        """Fix invalid escape sequences in non-raw string literals."""
+        result = []
+        i = 0
+        in_string = None  # None, or the quote character(s)
+        raw = False
+        while i < len(source):
+            ch = source[i]
+
+            # Detect raw string prefix
+            if in_string is None and ch in ('r', 'R') and i + 1 < len(source) and source[i + 1] in ('"', "'"):
+                raw = True
+                result.append(ch)
+                i += 1
+                continue
+
+            # Detect string start
+            if in_string is None and ch in ('"', "'"):
+                raw_flag = raw
+                raw = False
+                # Check for triple quote
+                if source[i:i+3] in ('"""', "'''"):
+                    in_string = source[i:i+3]
+                    result.append(in_string)
+                    i += 3
+                    # Scan triple-quoted string
+                    while i < len(source):
+                        if source[i:i+len(in_string)] == in_string:
+                            result.append(in_string)
+                            i += len(in_string)
+                            break
+                        elif source[i] == '\\' and not raw_flag:
+                            if i + 1 < len(source) and source[i + 1] not in valid_escapes:
+                                result.append('\\\\')
+                                i += 1
+                                continue
+                        result.append(source[i])
+                        i += 1
+                    in_string = None
+                    continue
+                else:
+                    in_string = ch
+                    result.append(ch)
+                    i += 1
+                    # Scan single-quoted string
+                    while i < len(source):
+                        if source[i] == in_string and (i == 0 or source[i-1] != '\\'):
+                            result.append(source[i])
+                            i += 1
+                            break
+                        elif source[i] == '\\' and not raw_flag:
+                            if i + 1 < len(source) and source[i + 1] not in valid_escapes:
+                                result.append('\\\\')
+                                i += 1
+                                continue
+                        result.append(source[i])
+                        i += 1
+                    in_string = None
+                    continue
+
+            raw = False
+            result.append(ch)
+            i += 1
+
+        return ''.join(result)
+
+    for f in sorted(DEV_PATH.glob("*.py")):
+        try:
+            with open(f, 'r', encoding='utf-8', errors='ignore') as fh:
+                source = fh.read()
+            original = source
+            fixes_applied = []
+
+            # Fix 1: Add missing module-level docstring
+            try:
+                tree = ast.parse(source)
+                if ast.get_docstring(tree) is None:
+                    friendly = f.stem.replace('_', ' ').title()
+                    docline = f'"""{friendly} — COWORK auto-generated docstring."""\n'
+                    lines = source.split('\n')
+                    insert_at = 0
+                    for idx, line in enumerate(lines):
+                        if line.startswith('#!') or line.startswith('# -*-') or line.startswith('# coding'):
+                            insert_at = idx + 1
+                        else:
+                            break
+                    lines.insert(insert_at, docline)
+                    source = '\n'.join(lines)
+                    fixes_applied.append("added_docstring")
+            except SyntaxError:
+                pass
+
+            # Fix 2: Fix invalid escape sequences (\B, \Z, etc.)
+            new_source = _fix_escape_sequences(source)
+            if new_source != source:
+                source = new_source
+                fixes_applied.append("fixed_escape_sequences")
+
+            # Fix 3: Add missing if __name__ == "__main__" block
+            if 'if __name__' not in source:
+                source = source.rstrip() + '\n\n\nif __name__ == "__main__":\n    pass\n'
+                fixes_applied.append("added_main_block")
+
+            # Fix 4: Add missing argparse with --help for scripts that have __main__ but no argparse
+            if 'argparse' not in source and 'if __name__' in source:
+                # Add import argparse after last import line
+                lines = source.split('\n')
+                import_idx = 0
+                for idx, line in enumerate(lines):
+                    stripped = line.strip()
+                    if stripped.startswith('import ') or stripped.startswith('from '):
+                        import_idx = idx + 1
+                if import_idx > 0:
+                    lines.insert(import_idx, 'import argparse')
+                    source = '\n'.join(lines)
+
+                # Replace bare "pass" in __main__ with argparse setup
+                source = re.sub(
+                    r"(if __name__ == ['\"]__main__['\"]:\s*\n)\s*pass\n?",
+                    r'\1'
+                    '    parser = argparse.ArgumentParser(description=f"{Path(__file__).stem} — COWORK script")\n'
+                    '    parser.add_argument("--help-ext", action="store_true", help="Show extended help")\n'
+                    '    args = parser.parse_args()\n',
+                    source
+                )
+                fixes_applied.append("added_argparse")
+
+            if source != original:
+                with open(f, 'w', encoding='utf-8') as fh:
+                    fh.write(source)
+                fixed += 1
+                details.append({"script": f.stem, "fixes": fixes_applied})
+                print(f"  FIXED: {f.stem} — {', '.join(fixes_applied)}")
+            else:
+                skipped += 1
+
+        except Exception as e:
+            skipped += 1
+            details.append({"script": f.stem, "error": str(e)})
+
+    result = {"fixed": fixed, "skipped": skipped, "details": details}
+
+    print(f"\n{'='*60}")
+    print(f"AUTO-IMPROVE: {fixed} fixed | {skipped} skipped")
+
+    return result
+
+
 # ── FULL CYCLE ─────────────────────────────────────────────────────────
 
 def full_cycle():
@@ -438,6 +687,10 @@ def full_cycle():
     print(f"\n{'='*60}\nPHASE 3: ANTICIPATION\n{'='*60}")
     predictions = anticipate_needs()
 
+    # Phase 3.5: Auto-improve
+    print(f"\n{'='*60}\nPHASE 3.5: AUTO-IMPROVE\n{'='*60}")
+    improvements = auto_improve()
+
     # Phase 4: Sync
     print(f"\n{'='*60}\nPHASE 4: OPENCLAW SYNC\n{'='*60}")
     sync = openclaw_sync()
@@ -449,6 +702,7 @@ def full_cycle():
     print(f"# Tests: {test_summary['ok']}/{test_summary['total']} OK")
     print(f"# Gaps: {len(gaps['potential_gaps'])} identified")
     print(f"# Predictions: {len(predictions['predictions'])} actions needed")
+    print(f"# Improved: {improvements['fixed']} fixed | {improvements['skipped']} skipped")
     print(f"# Sync: {sync['new']} new + {sync['updated']} updated")
     print(f"{'#'*60}")
 
@@ -458,6 +712,7 @@ def full_cycle():
         "tests": test_summary,
         "gaps": gaps,
         "predictions": predictions,
+        "improvements": improvements,
         "sync": sync,
         "timestamp": datetime.now().isoformat()
     }
@@ -466,7 +721,110 @@ def full_cycle():
         json.dump(report, f, indent=2, ensure_ascii=False, default=str)
     print(f"\nFull report: {report_path}")
 
+    # Telegram alerts on failures/gaps
+    fail_count = test_summary.get("fail", 0)
+    total_count = test_summary.get("total", 0)
+    gap_count = len(gaps.get("potential_gaps", []))
+    if fail_count > 0:
+        send_telegram_alert(f"<b>COWORK CYCLE FAIL</b>: {fail_count}/{total_count} scripts failed")
+    if gap_count > 5:
+        send_telegram_alert(f"<b>COWORK GAPS</b>: {gap_count} coverage gaps identified")
+
     return report
+
+
+# ── CYCLE METRICS → DB ───────────────────────────────────────────────
+
+def log_cycle_metrics(report):
+    """Persist cycle metrics into etoile.db for dashboard/history."""
+    db = sqlite3.connect(str(DB_PATH))
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS cowork_cycle_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            total_scripts INTEGER DEFAULT 0,
+            ok INTEGER DEFAULT 0,
+            fail INTEGER DEFAULT 0,
+            gaps INTEGER DEFAULT 0,
+            predictions INTEGER DEFAULT 0,
+            sync_new INTEGER DEFAULT 0,
+            sync_updated INTEGER DEFAULT 0,
+            elapsed_s REAL DEFAULT 0,
+            report_json TEXT DEFAULT ''
+        )
+    """)
+    tests = report.get("tests", {})
+    gaps = report.get("gaps", {})
+    preds = report.get("predictions", {})
+    sync = report.get("sync", {})
+    db.execute("""
+        INSERT INTO cowork_cycle_log
+        (timestamp, total_scripts, ok, fail, gaps, predictions, sync_new, sync_updated, elapsed_s, report_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        datetime.now().isoformat(),
+        tests.get("total", 0),
+        tests.get("ok", 0),
+        tests.get("fail", 0),
+        len(gaps.get("potential_gaps", [])),
+        len(preds.get("predictions", [])),
+        sync.get("new", 0),
+        sync.get("updated", 0),
+        tests.get("elapsed_s", 0),
+        json.dumps(report, default=str, ensure_ascii=False)[:50000]
+    ))
+    db.commit()
+    db.close()
+    print("[metrics] Cycle logged to etoile.db:cowork_cycle_log")
+
+
+# ── CONTINUOUS LOOP ──────────────────────────────────────────────────
+
+def continuous_loop(interval=300):
+    """Run full_cycle every `interval` seconds (default 5 min)."""
+    import signal
+
+    running = True
+    def _stop(sig, frame):
+        nonlocal running
+        running = False
+        print(f"\n[loop] Received signal {sig}, stopping after current cycle...")
+
+    signal.signal(signal.SIGTERM, _stop)
+    signal.signal(signal.SIGINT, _stop)
+
+    cycle_num = 0
+    pid = os.getpid()
+    print(f"[loop] COWORK continuous loop started — interval={interval}s")
+    print(f"[loop] PID={pid} | DB={DB_PATH}")
+    send_telegram_alert(f"<b>COWORK Loop started</b> — PID={pid}, interval={interval}s")
+
+    while running:
+        cycle_num += 1
+        print(f"\n{'='*60}")
+        print(f"[loop] Cycle #{cycle_num} — {datetime.now().isoformat()}")
+        print(f"{'='*60}")
+
+        try:
+            report = full_cycle()
+            log_cycle_metrics(report)
+        except Exception as e:
+            print(f"[loop] Cycle #{cycle_num} FAILED: {e}", file=sys.stderr)
+            import traceback
+            traceback.print_exc()
+            send_telegram_alert(f"<b>COWORK CYCLE ERROR</b> #{cycle_num}: <code>{e}</code>")
+
+        if not running:
+            break
+
+        print(f"[loop] Next cycle in {interval}s...")
+        # Sleep in small increments so we can respond to signals
+        for _ in range(interval):
+            if not running:
+                break
+            time.sleep(1)
+
+    print(f"[loop] Stopped after {cycle_num} cycles")
 
 
 if __name__ == "__main__":
@@ -477,8 +835,10 @@ if __name__ == "__main__":
     parser.add_argument("--anticipate", action="store_true", help="Predict needs")
     parser.add_argument("--improve", action="store_true", help="Auto-improve scripts")
     parser.add_argument("--openclaw-sync", action="store_true", help="Sync to OpenClaw")
-    parser.add_argument("--cycle", action="store_true", help="Full cycle")
+    parser.add_argument("--cycle", action="store_true", help="Full cycle (once)")
     parser.add_argument("--once", action="store_true", help="Alias for --cycle")
+    parser.add_argument("--loop", action="store_true", help="Continuous loop (default 5min)")
+    parser.add_argument("--interval", type=int, default=300, help="Loop interval in seconds")
     args = parser.parse_args()
 
     if args.test_all:
@@ -487,7 +847,11 @@ if __name__ == "__main__":
         analyze_gaps()
     elif args.anticipate:
         anticipate_needs()
+    elif args.improve:
+        auto_improve()
     elif args.openclaw_sync:
         openclaw_sync()
+    elif args.loop:
+        continuous_loop(interval=args.interval)
     elif args.cycle or args.once or len(sys.argv) == 1:
         full_cycle()

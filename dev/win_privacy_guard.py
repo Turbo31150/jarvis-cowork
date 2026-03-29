@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_privacy_guard.py — Audit et durcissement vie privee Windows.
 
@@ -64,14 +65,29 @@ def check_registry(check):
         value, _ = winreg.QueryValueEx(key, check["key"])
         winreg.CloseKey(key)
         is_good = value == check["good_value"]
-        return {"name": check["name"], "desc": check["desc"], "current": value,
-                "expected": check["good_value"], "ok": is_good, "weight": check["weight"]}
+        return {
+            "name": check["name"],
+            "desc": check["desc"],
+            "current": value,
+            "expected": check["good_value"],
+            "ok": is_good,
+            "weight": check["weight"]}
     except FileNotFoundError:
-        return {"name": check["name"], "desc": check["desc"], "current": "NOT_SET",
-                "expected": check["good_value"], "ok": False, "weight": check["weight"]}
+        return {
+            "name": check["name"],
+            "desc": check["desc"],
+            "current": "NOT_SET",
+            "expected": check["good_value"],
+            "ok": False,
+            "weight": check["weight"]}
     except Exception as e:
-        return {"name": check["name"], "desc": check["desc"], "current": f"ERROR: {e}",
-                "expected": check["good_value"], "ok": False, "weight": check["weight"]}
+        return {
+            "name": check["name"],
+            "desc": check["desc"],
+            "current": f"ERROR: {e}",
+            "expected": check["good_value"],
+            "ok": False,
+            "weight": check["weight"]}
 
 
 def do_scan():
@@ -97,7 +113,8 @@ def do_scan():
         "checks_passed": passed,
         "checks_total": len(results),
         "results": results,
-        "recommendations": [r for r in results if not r["ok"] and r["weight"] > 0],
+        "recommendations": [
+            r for r in results if not r["ok"] and r["weight"] > 0],
     }
 
     db.execute(
@@ -111,8 +128,15 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Privacy Guard")
-    parser.add_argument("--once", "--scan", action="store_true", help="Full privacy scan")
-    parser.add_argument("--telemetry", action="store_true", help="Check telemetry only")
+    parser.add_argument(
+        "--once",
+        "--scan",
+        action="store_true",
+        help="Full privacy scan")
+    parser.add_argument(
+        "--telemetry",
+        action="store_true",
+        help="Check telemetry only")
     parser.add_argument("--report", action="store_true", help="History")
     args = parser.parse_args()
 

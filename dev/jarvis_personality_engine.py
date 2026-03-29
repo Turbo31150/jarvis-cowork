@@ -9,7 +9,12 @@ Usage:
     python dev/jarvis_personality_engine.py --stats
     python dev/jarvis_personality_engine.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -77,6 +82,7 @@ SUBJECT_KEYWORDS = {
     "learning": ["apprends", "explique", "comment", "pourquoi", "tutorial"],
 }
 
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -105,11 +111,17 @@ def init_db():
     db.commit()
     return db
 
+
 def get_current_mode(db):
-    row = db.execute("SELECT mode, ts, reason FROM personality_state ORDER BY id DESC LIMIT 1").fetchone()
+    row = db.execute(
+        "SELECT mode, ts, reason FROM personality_state ORDER BY id DESC LIMIT 1").fetchone()
     if row:
         return {"mode": row[0], "since": row[1], "reason": row[2]}
-    return {"mode": "professionnel", "since": datetime.now().isoformat(), "reason": "default"}
+    return {
+        "mode": "professionnel",
+        "since": datetime.now().isoformat(),
+        "reason": "default"}
+
 
 def detect_subject(text):
     text_lower = text.lower()
@@ -119,6 +131,7 @@ def detect_subject(text):
         if score > 0:
             scores[subject] = score
     return max(scores, key=scores.get) if scores else "general"
+
 
 def suggest_mode_by_context(hour=None, subject=None):
     """Suggest personality mode based on hour and subject."""
@@ -142,6 +155,7 @@ def suggest_mode_by_context(hour=None, subject=None):
     else:
         return "decontracte"
 
+
 def do_mode():
     db = init_db()
     current = get_current_mode(db)
@@ -162,15 +176,23 @@ def do_mode():
     db.close()
     return result
 
+
 def do_set(mode_name):
     db = init_db()
     mode_name = mode_name.lower()
     if mode_name not in PERSONALITIES:
         db.close()
-        return {"error": f"Unknown mode '{mode_name}'", "available": list(PERSONALITIES.keys())}
+        return {
+            "error": f"Unknown mode '{mode_name}'",
+            "available": list(
+                PERSONALITIES.keys())}
 
-    db.execute("INSERT INTO personality_state (ts, mode, reason, auto_detected) VALUES (?,?,?,?)",
-               (datetime.now().isoformat(), mode_name, "manual_set", 0))
+    db.execute(
+        "INSERT INTO personality_state (ts, mode, reason, auto_detected) VALUES (?,?,?,?)",
+        (datetime.now().isoformat(),
+         mode_name,
+         "manual_set",
+         0))
     db.commit()
 
     mode_info = PERSONALITIES[mode_name]
@@ -186,6 +208,7 @@ def do_set(mode_name):
     db.close()
     return result
 
+
 def do_adapt():
     db = init_db()
     hour = datetime.now().hour
@@ -194,11 +217,20 @@ def do_adapt():
 
     changed = suggested != current["mode"]
     if changed:
-        db.execute("INSERT INTO personality_state (ts, mode, reason, auto_detected) VALUES (?,?,?,?)",
-                   (datetime.now().isoformat(), suggested, f"auto_adapt_hour_{hour}", 1))
+        db.execute(
+            "INSERT INTO personality_state (ts, mode, reason, auto_detected) VALUES (?,?,?,?)",
+            (datetime.now().isoformat(),
+             suggested,
+             f"auto_adapt_hour_{hour}",
+             1))
 
-    db.execute("INSERT INTO adaptation_log (ts, hour, detected_subject, suggested_mode, applied) VALUES (?,?,?,?,?)",
-               (datetime.now().isoformat(), hour, "time_based", suggested, int(changed)))
+    db.execute(
+        "INSERT INTO adaptation_log (ts, hour, detected_subject, suggested_mode, applied) VALUES (?,?,?,?,?)",
+        (datetime.now().isoformat(),
+         hour,
+         "time_based",
+         suggested,
+         int(changed)))
     db.commit()
 
     result = {
@@ -213,14 +245,20 @@ def do_adapt():
     db.close()
     return result
 
+
 def do_stats():
     db = init_db()
-    mode_counts = db.execute("SELECT mode, COUNT(*) FROM personality_state GROUP BY mode ORDER BY COUNT(*) DESC").fetchall()
-    auto_count = db.execute("SELECT COUNT(*) FROM personality_state WHERE auto_detected=1").fetchone()[0]
-    manual_count = db.execute("SELECT COUNT(*) FROM personality_state WHERE auto_detected=0").fetchone()[0]
+    mode_counts = db.execute(
+        "SELECT mode, COUNT(*) FROM personality_state GROUP BY mode ORDER BY COUNT(*) DESC").fetchall()
+    auto_count = db.execute(
+        "SELECT COUNT(*) FROM personality_state WHERE auto_detected=1").fetchone()[0]
+    manual_count = db.execute(
+        "SELECT COUNT(*) FROM personality_state WHERE auto_detected=0").fetchone()[0]
     total = db.execute("SELECT COUNT(*) FROM personality_state").fetchone()[0]
-    recent = db.execute("SELECT ts, mode, reason FROM personality_state ORDER BY id DESC LIMIT 10").fetchall()
-    adaptations = db.execute("SELECT COUNT(*) FROM adaptation_log").fetchone()[0]
+    recent = db.execute(
+        "SELECT ts, mode, reason FROM personality_state ORDER BY id DESC LIMIT 10").fetchall()
+    adaptations = db.execute(
+        "SELECT COUNT(*) FROM adaptation_log").fetchone()[0]
 
     result = {
         "action": "stats",
@@ -235,6 +273,7 @@ def do_stats():
     db.close()
     return result
 
+
 def do_once():
     db = init_db()
     current = get_current_mode(db)
@@ -242,24 +281,46 @@ def do_once():
     result = {
         "status": "ok",
         "current_mode": current["mode"],
-        "current_description": PERSONALITIES.get(current["mode"], {}).get("description", ""),
+        "current_description": PERSONALITIES.get(
+            current["mode"],
+            {}).get(
+            "description",
+            ""),
         "since": current["since"],
         "total_switches": total,
-        "available_modes": list(PERSONALITIES.keys()),
+        "available_modes": list(
+                PERSONALITIES.keys()),
         "current_hour": datetime.now().hour,
         "suggested_mode": suggest_mode_by_context(),
-        "ts": datetime.now().isoformat()
-    }
+        "ts": datetime.now().isoformat()}
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Personality Engine — COWORK #223")
-    parser.add_argument("--mode", action="store_true", help="Show current personality mode")
-    parser.add_argument("--set", type=str, metavar="STYLE", help="Set personality mode")
-    parser.add_argument("--adapt", action="store_true", help="Auto-adapt based on context")
-    parser.add_argument("--stats", action="store_true", help="Show personality statistics")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Personality Engine — COWORK #223")
+    parser.add_argument(
+        "--mode",
+        action="store_true",
+        help="Show current personality mode")
+    parser.add_argument(
+        "--set",
+        type=str,
+        metavar="STYLE",
+        help="Set personality mode")
+    parser.add_argument(
+        "--adapt",
+        action="store_true",
+        help="Auto-adapt based on context")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show personality statistics")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.set:
@@ -272,6 +333,7 @@ def main():
         print(json.dumps(do_stats(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

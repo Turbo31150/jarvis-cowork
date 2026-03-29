@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ia_goal_tracker.py — #202 Hierarchical goal tracking (goal->subgoals->tasks).
 Usage:
@@ -7,7 +8,11 @@ Usage:
     python dev/ia_goal_tracker.py --report
     python dev/ia_goal_tracker.py --once
 """
-import argparse, json, sqlite3, time, os
+import argparse
+import json
+import sqlite3
+import time
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -59,8 +64,12 @@ def set_goal(db, spec):
 
     cur = db.execute(
         "INSERT INTO goals (name, description, deadline, priority, parent_id, level) VALUES (?,?,?,?,?,?)",
-        (name, desc, deadline, priority, parent_id, "goal" if not parent_id else "subgoal")
-    )
+        (name,
+         desc,
+         deadline,
+         priority,
+         parent_id,
+         "goal" if not parent_id else "subgoal"))
     goal_id = cur.lastrowid
 
     subgoal_ids = []
@@ -80,32 +89,59 @@ def set_goal(db, spec):
                 task = {"name": task}
             db.execute(
                 "INSERT INTO goals (name, description, parent_id, level, priority) VALUES (?,?,?,?,?)",
-                (task.get("name", ""), task.get("description", ""), sg_id, "task", task.get("priority", 5))
-            )
+                (task.get(
+                    "name",
+                    ""),
+                    task.get(
+                    "description",
+                    ""),
+                    sg_id,
+                    "task",
+                    task.get(
+                    "priority",
+                    5)))
 
     for task in spec.get("tasks", []):
         if isinstance(task, str):
             task = {"name": task}
         db.execute(
             "INSERT INTO goals (name, description, parent_id, level, priority) VALUES (?,?,?,?,?)",
-            (task.get("name", ""), task.get("description", ""), goal_id, "task", task.get("priority", 5))
-        )
+            (task.get(
+                "name",
+                ""),
+                task.get(
+                "description",
+                ""),
+                goal_id,
+                "task",
+                task.get(
+                "priority",
+                5)))
 
     db.commit()
-    return {"created": goal_id, "name": name, "subgoals": subgoal_ids, "level": "goal"}
+    return {
+        "created": goal_id,
+        "name": name,
+        "subgoals": subgoal_ids,
+        "level": "goal"}
 
 
 def _calc_progress(db, goal_id):
     """Recursively calculate progress from children."""
-    children = db.execute("SELECT id, status, progress_pct FROM goals WHERE parent_id=?", (goal_id,)).fetchall()
+    children = db.execute(
+        "SELECT id, status, progress_pct FROM goals WHERE parent_id=?",
+        (goal_id,
+         )).fetchall()
     if not children:
-        row = db.execute("SELECT status FROM goals WHERE id=?", (goal_id,)).fetchone()
+        row = db.execute(
+            "SELECT status FROM goals WHERE id=?", (goal_id,)).fetchone()
         return 100.0 if row and row[0] == "completed" else 0.0
 
     total = 0.0
     for cid, cstatus, cprog in children:
         child_prog = _calc_progress(db, cid)
-        db.execute("UPDATE goals SET progress_pct=? WHERE id=?", (child_prog, cid))
+        db.execute("UPDATE goals SET progress_pct=? WHERE id=?",
+                   (child_prog, cid))
         total += child_prog
 
     return round(total / len(children), 1)
@@ -113,12 +149,15 @@ def _calc_progress(db, goal_id):
 
 def update_progress(db):
     """Recalculate progress for all top-level goals."""
-    top_goals = db.execute("SELECT id, name FROM goals WHERE parent_id IS NULL AND level='goal'").fetchall()
+    top_goals = db.execute(
+        "SELECT id, name FROM goals WHERE parent_id IS NULL AND level='goal'").fetchall()
     results = []
     for gid, gname in top_goals:
-        old = db.execute("SELECT progress_pct FROM goals WHERE id=?", (gid,)).fetchone()[0]
+        old = db.execute(
+            "SELECT progress_pct FROM goals WHERE id=?", (gid,)).fetchone()[0]
         new_prog = _calc_progress(db, gid)
-        db.execute("UPDATE goals SET progress_pct=? WHERE id=?", (new_prog, gid))
+        db.execute(
+            "UPDATE goals SET progress_pct=? WHERE id=?", (new_prog, gid))
         if abs(new_prog - old) > 0.01:
             db.execute(
                 "INSERT INTO goal_history (goal_id, old_progress, new_progress) VALUES (?,?,?)",
@@ -131,7 +170,10 @@ def update_progress(db):
 
 def complete_item(db, item_id):
     """Mark a goal/subgoal/task as completed."""
-    row = db.execute("SELECT name, status, level FROM goals WHERE id=?", (item_id,)).fetchone()
+    row = db.execute(
+        "SELECT name, status, level FROM goals WHERE id=?",
+        (item_id,
+         )).fetchone()
     if not row:
         return {"error": f"Item {item_id} not found"}
     name, old_status, level = row
@@ -165,11 +207,15 @@ def generate_report(db):
                 "SELECT id, name, status, progress_pct FROM goals WHERE parent_id=? ORDER BY id",
                 (cid,)
             ).fetchall()
-            subs.append({
-                "id": cid, "name": cname, "status": cstatus,
-                "progress": cprog, "level": clevel,
-                "tasks": [{"id": t[0], "name": t[1], "status": t[2], "progress": t[3]} for t in tasks]
-            })
+            subs.append({"id": cid,
+                         "name": cname,
+                         "status": cstatus,
+                         "progress": cprog,
+                         "level": clevel,
+                         "tasks": [{"id": t[0],
+                                    "name": t[1],
+                                    "status": t[2],
+                                    "progress": t[3]} for t in tasks]})
 
         overdue = False
         if gdeadline and gstatus == "active":
@@ -187,16 +233,17 @@ def generate_report(db):
         })
 
     total = db.execute("SELECT COUNT(*) FROM goals").fetchone()[0]
-    completed = db.execute("SELECT COUNT(*) FROM goals WHERE status='completed'").fetchone()[0]
+    completed = db.execute(
+        "SELECT COUNT(*) FROM goals WHERE status='completed'").fetchone()[0]
     return {
         "report": report,
         "summary": {
             "total_items": total,
             "completed": completed,
             "active": total - completed,
-            "completion_rate": round(completed / total * 100, 1) if total else 0
-        }
-    }
+            "completion_rate": round(
+                completed / total * 100,
+                1) if total else 0}}
 
 
 def do_status(db):
@@ -205,32 +252,53 @@ def do_status(db):
     total = db.execute("SELECT COUNT(*) FROM goals").fetchone()[0]
     by_level = {}
     for lv in ["goal", "subgoal", "task"]:
-        by_level[lv] = db.execute("SELECT COUNT(*) FROM goals WHERE level=?", (lv,)).fetchone()[0]
+        by_level[lv] = db.execute(
+            "SELECT COUNT(*) FROM goals WHERE level=?", (lv,)).fetchone()[0]
     by_status = {}
     for st in ["active", "completed"]:
-        by_status[st] = db.execute("SELECT COUNT(*) FROM goals WHERE status=?", (st,)).fetchone()[0]
+        by_status[st] = db.execute(
+            "SELECT COUNT(*) FROM goals WHERE status=?", (st,)).fetchone()[0]
     top = db.execute(
         "SELECT id, name, progress_pct, deadline FROM goals WHERE parent_id IS NULL AND level='goal' AND status='active' ORDER BY priority DESC LIMIT 5"
     ).fetchall()
-    return {
-        "script": "ia_goal_tracker.py",
-        "id": 202,
-        "db": str(DB_PATH),
-        "total": total,
-        "by_level": by_level,
-        "by_status": by_status,
-        "active_goals": [{"id": t[0], "name": t[1], "progress": t[2], "deadline": t[3]} for t in top],
-        "ts": datetime.now().isoformat()
-    }
+    return {"script": "ia_goal_tracker.py",
+            "id": 202,
+            "db": str(DB_PATH),
+            "total": total,
+            "by_level": by_level,
+            "by_status": by_status,
+            "active_goals": [{"id": t[0],
+                              "name": t[1],
+                              "progress": t[2],
+                              "deadline": t[3]} for t in top],
+            "ts": datetime.now().isoformat()}
 
 
 def main():
-    parser = argparse.ArgumentParser(description="IA Goal Tracker — hierarchical goal management")
-    parser.add_argument("--set", type=str, metavar="GOAL_JSON", help="Create goal from JSON spec")
-    parser.add_argument("--progress", action="store_true", help="Update and show progress")
-    parser.add_argument("--complete", type=int, metavar="ID", help="Mark item as completed")
-    parser.add_argument("--report", action="store_true", help="Full hierarchical report")
-    parser.add_argument("--once", action="store_true", help="Show status and exit")
+    parser = argparse.ArgumentParser(
+        description="IA Goal Tracker — hierarchical goal management")
+    parser.add_argument(
+        "--set",
+        type=str,
+        metavar="GOAL_JSON",
+        help="Create goal from JSON spec")
+    parser.add_argument(
+        "--progress",
+        action="store_true",
+        help="Update and show progress")
+    parser.add_argument(
+        "--complete",
+        type=int,
+        metavar="ID",
+        help="Mark item as completed")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Full hierarchical report")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Show status and exit")
     args = parser.parse_args()
 
     db = init_db()

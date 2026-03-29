@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """jarvis_dictation_mode.py — Continuous dictation/transcription mode.
 COWORK #233 — Batch 105: JARVIS Voice 2.0
@@ -9,12 +10,19 @@ Usage:
     python dev/jarvis_dictation_mode.py --format json
     python dev/jarvis_dictation_mode.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, re
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import re
 from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "dictation_mode.db"
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -51,11 +59,18 @@ def init_db():
     db.commit()
     return db
 
+
 def get_active_session(db):
-    row = db.execute("SELECT id, started_at, total_chunks, total_words FROM dictation_sessions WHERE status='active' ORDER BY id DESC LIMIT 1").fetchone()
+    row = db.execute(
+        "SELECT id, started_at, total_chunks, total_words FROM dictation_sessions WHERE status='active' ORDER BY id DESC LIMIT 1").fetchone()
     if row:
-        return {"id": row[0], "started_at": row[1], "chunks": row[2], "words": row[3]}
+        return {
+            "id": row[0],
+            "started_at": row[1],
+            "chunks": row[2],
+            "words": row[3]}
     return None
+
 
 def auto_punctuate(text):
     """Add basic auto-punctuation to raw transcription text."""
@@ -71,23 +86,32 @@ def auto_punctuate(text):
     text = re.sub(r'\s+([.!?,;:])', r'\1', text)
     return text.strip()
 
+
 def do_start():
     db = init_db()
     # Deactivate any existing active sessions
-    db.execute("UPDATE dictation_sessions SET status='stopped', ended_at=? WHERE status='active'",
-               (datetime.now().isoformat(),))
+    db.execute(
+        "UPDATE dictation_sessions SET status='stopped', ended_at=? WHERE status='active'",
+        (datetime.now().isoformat(),
+         ))
 
     now = datetime.now().isoformat()
-    cursor = db.execute("INSERT INTO dictation_sessions (started_at, status, language) VALUES (?,?,?)",
-                        (now, "active", "fr"))
+    cursor = db.execute(
+        "INSERT INTO dictation_sessions (started_at, status, language) VALUES (?,?,?)",
+        (now,
+         "active",
+         "fr"))
     session_id = cursor.lastrowid
 
     # Add a simulated initial chunk (in real use, Whisper would feed chunks)
     initial_text = auto_punctuate("session de dictee demarree")
     db.execute("INSERT INTO dictation_chunks (session_id, ts, text, confidence, duration_ms, word_count) VALUES (?,?,?,?,?,?)",
                (session_id, now, initial_text, 0.95, 0, len(initial_text.split())))
-    db.execute("UPDATE dictation_sessions SET total_chunks=1, total_words=? WHERE id=?",
-               (len(initial_text.split()), session_id))
+    db.execute(
+        "UPDATE dictation_sessions SET total_chunks=1, total_words=? WHERE id=?",
+        (len(
+            initial_text.split()),
+            session_id))
     db.commit()
 
     result = {
@@ -97,25 +121,32 @@ def do_start():
         "status": "active",
         "language": "fr",
         "note": "Dictation session started. Whisper chunks will be concatenated.",
-        "ts": datetime.now().isoformat()
-    }
+        "ts": datetime.now().isoformat()}
     db.close()
     return result
+
 
 def do_stop():
     db = init_db()
     session = get_active_session(db)
     if not session:
         db.close()
-        return {"error": "No active dictation session", "ts": datetime.now().isoformat()}
+        return {
+            "error": "No active dictation session",
+            "ts": datetime.now().isoformat()}
 
     now = datetime.now().isoformat()
-    db.execute("UPDATE dictation_sessions SET status='stopped', ended_at=? WHERE id=?",
-               (now, session["id"]))
+    db.execute(
+        "UPDATE dictation_sessions SET status='stopped', ended_at=? WHERE id=?",
+        (now,
+         session["id"]))
     db.commit()
 
     # Get full text
-    chunks = db.execute("SELECT text FROM dictation_chunks WHERE session_id=? ORDER BY id", (session["id"],)).fetchall()
+    chunks = db.execute(
+        "SELECT text FROM dictation_chunks WHERE session_id=? ORDER BY id",
+        (session["id"],
+         )).fetchall()
     full_text = " ".join(c[0] for c in chunks if c[0])
 
     result = {
@@ -131,16 +162,21 @@ def do_stop():
     db.close()
     return result
 
+
 def do_output(file_path):
     db = init_db()
     # Get last session (active or stopped)
-    session = db.execute("SELECT id, started_at, total_chunks, total_words, status FROM dictation_sessions ORDER BY id DESC LIMIT 1").fetchone()
+    session = db.execute(
+        "SELECT id, started_at, total_chunks, total_words, status FROM dictation_sessions ORDER BY id DESC LIMIT 1").fetchone()
     if not session:
         db.close()
         return {"error": "No dictation sessions found"}
 
     session_id = session[0]
-    chunks = db.execute("SELECT ts, text, confidence FROM dictation_chunks WHERE session_id=? ORDER BY id", (session_id,)).fetchall()
+    chunks = db.execute(
+        "SELECT ts, text, confidence FROM dictation_chunks WHERE session_id=? ORDER BY id",
+        (session_id,
+         )).fetchall()
     full_text = " ".join(c[1] for c in chunks if c[1])
 
     # Determine format from extension
@@ -157,7 +193,12 @@ def do_output(file_path):
                 "word_count": len(full_text.split()),
                 "exported_at": datetime.now().isoformat()
             }
-            output_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+            output_path.write_text(
+                json.dumps(
+                    data,
+                    ensure_ascii=False,
+                    indent=2),
+                encoding="utf-8")
         elif ext == ".md":
             lines = [f"# Dictation — {session[1]}\n"]
             for c in chunks:
@@ -181,16 +222,22 @@ def do_output(file_path):
             "ts": datetime.now().isoformat()
         }
     except Exception as e:
-        result = {"action": "export", "error": str(e), "ts": datetime.now().isoformat()}
+        result = {
+            "action": "export",
+            "error": str(e),
+            "ts": datetime.now().isoformat()}
 
     db.close()
     return result
 
+
 def do_format(fmt):
     """Show format options and last session info."""
     db = init_db()
-    session = db.execute("SELECT id, started_at, total_chunks, total_words, status FROM dictation_sessions ORDER BY id DESC LIMIT 1").fetchone()
-    exports = db.execute("SELECT ts, format, file_path, word_count FROM dictation_exports ORDER BY id DESC LIMIT 5").fetchall()
+    session = db.execute(
+        "SELECT id, started_at, total_chunks, total_words, status FROM dictation_sessions ORDER BY id DESC LIMIT 1").fetchone()
+    exports = db.execute(
+        "SELECT ts, format, file_path, word_count FROM dictation_exports ORDER BY id DESC LIMIT 5").fetchall()
 
     result = {
         "action": "format_info",
@@ -206,13 +253,18 @@ def do_format(fmt):
     db.close()
     return result
 
+
 def do_once():
     db = init_db()
     active = get_active_session(db)
-    total_sessions = db.execute("SELECT COUNT(*) FROM dictation_sessions").fetchone()[0]
-    total_chunks = db.execute("SELECT COUNT(*) FROM dictation_chunks").fetchone()[0]
-    total_exports = db.execute("SELECT COUNT(*) FROM dictation_exports").fetchone()[0]
-    total_words = db.execute("SELECT SUM(total_words) FROM dictation_sessions").fetchone()[0] or 0
+    total_sessions = db.execute(
+        "SELECT COUNT(*) FROM dictation_sessions").fetchone()[0]
+    total_chunks = db.execute(
+        "SELECT COUNT(*) FROM dictation_chunks").fetchone()[0]
+    total_exports = db.execute(
+        "SELECT COUNT(*) FROM dictation_exports").fetchone()[0]
+    total_words = db.execute(
+        "SELECT SUM(total_words) FROM dictation_sessions").fetchone()[0] or 0
 
     result = {
         "status": "ok",
@@ -227,13 +279,32 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Dictation Mode — COWORK #233")
-    parser.add_argument("--start", action="store_true", help="Start dictation session")
-    parser.add_argument("--stop", action="store_true", help="Stop dictation session")
-    parser.add_argument("--output", type=str, metavar="FILE", help="Export to file (.txt/.md/.json)")
-    parser.add_argument("--format", type=str, metavar="FMT", help="Show format info")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Dictation Mode — COWORK #233")
+    parser.add_argument(
+        "--start",
+        action="store_true",
+        help="Start dictation session")
+    parser.add_argument(
+        "--stop",
+        action="store_true",
+        help="Stop dictation session")
+    parser.add_argument(
+        "--output",
+        type=str,
+        metavar="FILE",
+        help="Export to file (.txt/.md/.json)")
+    parser.add_argument(
+        "--format",
+        type=str,
+        metavar="FMT",
+        help="Show format info")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.start:
@@ -246,6 +317,7 @@ def main():
         print(json.dumps(do_format(args.format), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

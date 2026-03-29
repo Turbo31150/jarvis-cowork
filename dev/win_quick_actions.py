@@ -7,25 +7,59 @@ Usage:
     python dev/win_quick_actions.py --remove 3
     python dev/win_quick_actions.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "quick_actions.db"
 
-DEFAULT_ACTIONS = [
-    {"name": "open chrome", "command": "start chrome", "category": "browser", "alias": "chrome,web"},
-    {"name": "open explorer", "command": "start explorer", "category": "system", "alias": "files,folders"},
-    {"name": "open terminal", "command": "start cmd", "category": "dev", "alias": "cmd,shell"},
-    {"name": "open powershell", "command": "start powershell", "category": "dev", "alias": "ps,posh"},
-    {"name": "open task manager", "command": "start taskmgr", "category": "system", "alias": "taskmgr,procs"},
-    {"name": "open notepad", "command": "start notepad", "category": "editor", "alias": "note,text"},
-    {"name": "open calculator", "command": "start calc", "category": "util", "alias": "calc"},
-    {"name": "cluster check", "command": "python dev/health_checker.py --once", "category": "jarvis", "alias": "health,check"},
-    {"name": "gpu status", "command": "nvidia-smi --query-gpu=name,temperature.gpu,utilization.gpu,memory.used --format=csv,noheader", "category": "system", "alias": "gpu,nvidia"},
-    {"name": "ip config", "command": "ipconfig", "category": "network", "alias": "ip,network"},
-]
+DEFAULT_ACTIONS = [{"name": "open chrome",
+                    "command": "start chrome",
+                    "category": "browser",
+                    "alias": "chrome,web"},
+                   {"name": "open explorer",
+                    "command": "start explorer",
+                    "category": "system",
+                    "alias": "files,folders"},
+                   {"name": "open terminal",
+                    "command": "start cmd",
+                    "category": "dev",
+                    "alias": "cmd,shell"},
+                   {"name": "open powershell",
+                    "command": "start powershell",
+                    "category": "dev",
+                    "alias": "ps,posh"},
+                   {"name": "open task manager",
+                    "command": "start taskmgr",
+                    "category": "system",
+                    "alias": "taskmgr,procs"},
+                   {"name": "open notepad",
+                    "command": "start notepad",
+                    "category": "editor",
+                    "alias": "note,text"},
+                   {"name": "open calculator",
+                    "command": "start calc",
+                    "category": "util",
+                    "alias": "calc"},
+                   {"name": "cluster check",
+                    "command": "python dev/health_checker.py --once",
+                    "category": "jarvis",
+                    "alias": "health,check"},
+                   {"name": "gpu status",
+                    "command": "nvidia-smi --query-gpu=name,temperature.gpu,utilization.gpu,memory.used --format=csv,noheader",
+                    "category": "system",
+                    "alias": "gpu,nvidia"},
+                   {"name": "ip config",
+                    "command": "ipconfig",
+                    "category": "network",
+                    "alias": "ip,network"},
+                   ]
 
 
 def init_db():
@@ -58,8 +92,12 @@ def init_db():
         for a in DEFAULT_ACTIONS:
             db.execute(
                 "INSERT OR IGNORE INTO actions (name, command, category, alias) VALUES (?,?,?,?)",
-                (a["name"], a["command"], a["category"], a.get("alias", ""))
-            )
+                (a["name"],
+                 a["command"],
+                    a["category"],
+                    a.get(
+                    "alias",
+                    "")))
     db.commit()
     return db
 
@@ -77,7 +115,9 @@ def _fuzzy_match(query, name, alias):
     # Token match
     query_tokens = query.split()
     text_tokens = text.split()
-    matched = sum(1 for qt in query_tokens if any(qt in tt for tt in text_tokens))
+    matched = sum(
+        1 for qt in query_tokens if any(
+            qt in tt for tt in text_tokens))
     if matched > 0:
         return 50 + (matched / len(query_tokens)) * 30
     # Character match
@@ -117,13 +157,15 @@ def run_action(db, name_or_id):
     # Try by ID
     try:
         aid = int(name_or_id)
-        row = db.execute("SELECT id, name, command FROM actions WHERE id=?", (aid,)).fetchone()
+        row = db.execute(
+            "SELECT id, name, command FROM actions WHERE id=?", (aid,)).fetchone()
     except ValueError:
         row = None
 
     # Fuzzy search by name
     if not row:
-        rows = db.execute("SELECT id, name, command, alias FROM actions").fetchall()
+        rows = db.execute(
+            "SELECT id, name, command, alias FROM actions").fetchall()
         best = None
         best_score = 0
         for r in rows:
@@ -148,7 +190,10 @@ def run_action(db, name_or_id):
         success = proc.returncode == 0
         output = (proc.stdout or proc.stderr or "")[:2000]
 
-        db.execute("UPDATE actions SET use_count=use_count+1, last_used=datetime('now','localtime') WHERE id=?", (aid,))
+        db.execute(
+            "UPDATE actions SET use_count=use_count+1, last_used=datetime('now','localtime') WHERE id=?",
+            (aid,
+             ))
         db.execute(
             "INSERT INTO action_log (action_id, success, exit_code, output_preview, duration_ms) VALUES (?,?,?,?,?)",
             (aid, int(success), proc.returncode, output[:500], round(duration, 1))
@@ -187,8 +232,14 @@ def add_action(db, spec):
     try:
         db.execute(
             "INSERT INTO actions (name, command, category, alias) VALUES (?,?,?,?)",
-            (name, command, spec.get("category", "custom"), spec.get("alias", ""))
-        )
+            (name,
+             command,
+             spec.get(
+                 "category",
+                 "custom"),
+                spec.get(
+                 "alias",
+                 "")))
         db.commit()
         return {"added": name, "command": command}
     except sqlite3.IntegrityError:
@@ -197,7 +248,8 @@ def add_action(db, spec):
 
 def remove_action(db, action_id):
     """Remove an action by ID."""
-    row = db.execute("SELECT name FROM actions WHERE id=?", (action_id,)).fetchone()
+    row = db.execute("SELECT name FROM actions WHERE id=?",
+                     (action_id,)).fetchone()
     if not row:
         return {"error": f"Action {action_id} not found"}
     db.execute("DELETE FROM actions WHERE id=?", (action_id,))
@@ -228,11 +280,29 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Windows Quick Actions — catalog with fuzzy search")
-    parser.add_argument("--list", nargs="?", const="", metavar="QUERY", help="List actions (optional fuzzy filter)")
-    parser.add_argument("--run", type=str, metavar="ACTION", help="Run action by name or ID")
-    parser.add_argument("--add", type=str, metavar="JSON", help="Add action from JSON")
-    parser.add_argument("--remove", type=int, metavar="ID", help="Remove action by ID")
+    parser = argparse.ArgumentParser(
+        description="Windows Quick Actions — catalog with fuzzy search")
+    parser.add_argument(
+        "--list",
+        nargs="?",
+        const="",
+        metavar="QUERY",
+        help="List actions (optional fuzzy filter)")
+    parser.add_argument(
+        "--run",
+        type=str,
+        metavar="ACTION",
+        help="Run action by name or ID")
+    parser.add_argument(
+        "--add",
+        type=str,
+        metavar="JSON",
+        help="Add action from JSON")
+    parser.add_argument(
+        "--remove",
+        type=int,
+        metavar="ID",
+        help="Remove action by ID")
     parser.add_argument("--once", action="store_true", help="Show status")
     args = parser.parse_args()
 

@@ -62,6 +62,8 @@ AZERTY_NEIGHBORS = {
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db(conn: sqlite3.Connection):
     conn.execute("""
         CREATE TABLE IF NOT EXISTS fuzz_results (
@@ -100,6 +102,8 @@ def get_db() -> sqlite3.Connection:
 # ---------------------------------------------------------------------------
 # Load Voice Commands from etoile.db
 # ---------------------------------------------------------------------------
+
+
 def load_commands() -> list[str]:
     """Load voice commands from etoile.db."""
     commands = []
@@ -148,6 +152,8 @@ def load_commands() -> list[str]:
 # ---------------------------------------------------------------------------
 # Fuzz Generators
 # ---------------------------------------------------------------------------
+
+
 def levenshtein_distance(s1: str, s2: str) -> int:
     """Compute Levenshtein edit distance between two strings."""
     if len(s1) < len(s2):
@@ -252,6 +258,8 @@ FUZZ_TYPES = {
 # ---------------------------------------------------------------------------
 # Matching
 # ---------------------------------------------------------------------------
+
+
 def find_best_match(fuzzed: str, commands: list[str]) -> tuple:
     """Find the best matching command for a fuzzed input."""
     best_score = 0.0
@@ -266,6 +274,8 @@ def find_best_match(fuzzed: str, commands: list[str]) -> tuple:
 # ---------------------------------------------------------------------------
 # Actions
 # ---------------------------------------------------------------------------
+
+
 def action_once(count: int = 50) -> dict:
     """Run a fuzz cycle."""
     start_ms = int(time.time() * 1000)
@@ -283,7 +293,8 @@ def action_once(count: int = 50) -> dict:
         "worst_cases": [],
     }
 
-    type_stats = {t: {"total": 0, "correct": 0, "scores": []} for t in FUZZ_TYPES}
+    type_stats = {t: {"total": 0, "correct": 0, "scores": []}
+                  for t in FUZZ_TYPES}
     all_cases = []
 
     for _ in range(count):
@@ -353,7 +364,8 @@ def action_once(count: int = 50) -> dict:
 
     duration_ms = int(time.time() * 1000) - start_ms
     accuracy = results["correct"] / max(count, 1) * 100
-    avg_score = sum(c["match_score"] for c in all_cases) / max(len(all_cases), 1)
+    avg_score = sum(c["match_score"]
+                    for c in all_cases) / max(len(all_cases), 1)
 
     results["accuracy_pct"] = round(accuracy, 1)
     results["avg_match_score"] = round(avg_score, 4)
@@ -361,13 +373,19 @@ def action_once(count: int = 50) -> dict:
     results["worst_fuzz_type"] = worst_type
 
     # Persist run summary
-    conn.execute("""
+    conn.execute(
+        """
         INSERT INTO fuzz_runs
         (timestamp, total_tests, accuracy_pct, avg_match_score, worst_type, duration_ms)
         VALUES (?, ?, ?, ?, ?, ?)
-    """, (
-        results["timestamp"], count, accuracy, avg_score, worst_type, duration_ms,
-    ))
+    """,
+        (results["timestamp"],
+         count,
+         accuracy,
+         avg_score,
+         worst_type,
+         duration_ms,
+         ))
 
     conn.commit()
     conn.close()
@@ -380,7 +398,8 @@ def action_stats() -> dict:
     conn = get_db()
 
     # Overall stats
-    total = conn.execute("SELECT COUNT(*) as cnt FROM fuzz_results").fetchone()["cnt"]
+    total = conn.execute(
+        "SELECT COUNT(*) as cnt FROM fuzz_results").fetchone()["cnt"]
     correct = conn.execute(
         "SELECT COUNT(*) as cnt FROM fuzz_results WHERE is_correct = 1"
     ).fetchone()["cnt"]
@@ -432,10 +451,11 @@ def action_stats() -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Fuzz test voice commands for edge cases and recognition accuracy."
-    )
+        description="Fuzz test voice commands for edge cases and recognition accuracy.")
     parser.add_argument("--once", action="store_true",
                         help="Run a fuzz cycle and output JSON summary")
     parser.add_argument("--count", type=int, default=50,

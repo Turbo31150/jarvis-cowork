@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_clipboard_history.py — #204 Clipboard history with search and pin.
 Usage:
@@ -7,7 +8,13 @@ Usage:
     python dev/win_clipboard_history.py --clear
     python dev/win_clipboard_history.py --once
 """
-import argparse, json, sqlite3, time, os, ctypes, ctypes.wintypes
+import argparse
+import json
+import sqlite3
+import time
+import os
+import ctypes
+import ctypes.wintypes
 from datetime import datetime
 from pathlib import Path
 
@@ -83,9 +90,15 @@ def capture_clipboard(db):
         return {"captured": False, "reason": "clipboard empty or not text"}
 
     h = _content_hash(text)
-    existing = db.execute("SELECT id FROM clips WHERE content_hash=? ORDER BY id DESC LIMIT 1", (h,)).fetchone()
+    existing = db.execute(
+        "SELECT id FROM clips WHERE content_hash=? ORDER BY id DESC LIMIT 1",
+        (h,
+         )).fetchone()
     if existing:
-        return {"captured": False, "reason": "duplicate", "existing_id": existing[0]}
+        return {
+            "captured": False,
+            "reason": "duplicate",
+            "existing_id": existing[0]}
 
     db.execute(
         "INSERT INTO clips (content, content_hash, char_count) VALUES (?,?,?)",
@@ -94,7 +107,8 @@ def capture_clipboard(db):
     db.commit()
 
     # Enforce max entries (keep pinned)
-    total = db.execute("SELECT COUNT(*) FROM clips WHERE pinned=0").fetchone()[0]
+    total = db.execute(
+        "SELECT COUNT(*) FROM clips WHERE pinned=0").fetchone()[0]
     if total > MAX_ENTRIES:
         excess = total - MAX_ENTRIES
         db.execute(
@@ -122,7 +136,8 @@ def get_history(db, limit=30):
             "created_at": r[4]
         })
     total = db.execute("SELECT COUNT(*) FROM clips").fetchone()[0]
-    pinned = db.execute("SELECT COUNT(*) FROM clips WHERE pinned=1").fetchone()[0]
+    pinned = db.execute(
+        "SELECT COUNT(*) FROM clips WHERE pinned=1").fetchone()[0]
     return {"history": items, "total": total, "pinned_count": pinned}
 
 
@@ -147,7 +162,8 @@ def search_clips(db, text, limit=20):
 
 def pin_clip(db, clip_id):
     """Toggle pin on a clip."""
-    row = db.execute("SELECT pinned FROM clips WHERE id=?", (clip_id,)).fetchone()
+    row = db.execute("SELECT pinned FROM clips WHERE id=?",
+                     (clip_id,)).fetchone()
     if not row:
         return {"error": f"Clip {clip_id} not found"}
     new_pin = 0 if row[0] else 1
@@ -158,10 +174,12 @@ def pin_clip(db, clip_id):
 
 def clear_clips(db):
     """Clear non-pinned clips."""
-    count = db.execute("SELECT COUNT(*) FROM clips WHERE pinned=0").fetchone()[0]
+    count = db.execute(
+        "SELECT COUNT(*) FROM clips WHERE pinned=0").fetchone()[0]
     db.execute("DELETE FROM clips WHERE pinned=0")
     db.commit()
-    return {"cleared": count, "remaining_pinned": db.execute("SELECT COUNT(*) FROM clips WHERE pinned=1").fetchone()[0]}
+    return {"cleared": count, "remaining_pinned": db.execute(
+        "SELECT COUNT(*) FROM clips WHERE pinned=1").fetchone()[0]}
 
 
 def do_status(db):
@@ -169,7 +187,8 @@ def do_status(db):
     # Try to capture current clipboard on status check
     cap = capture_clipboard(db)
     total = db.execute("SELECT COUNT(*) FROM clips").fetchone()[0]
-    pinned = db.execute("SELECT COUNT(*) FROM clips WHERE pinned=1").fetchone()[0]
+    pinned = db.execute(
+        "SELECT COUNT(*) FROM clips WHERE pinned=1").fetchone()[0]
     recent = db.execute(
         "SELECT id, content, created_at FROM clips ORDER BY id DESC LIMIT 3"
     ).fetchall()
@@ -187,11 +206,26 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Windows Clipboard History — capture, search, pin")
-    parser.add_argument("--history", action="store_true", help="Show clipboard history")
-    parser.add_argument("--search", type=str, metavar="TEXT", help="Search clips")
-    parser.add_argument("--pin", type=int, metavar="ID", help="Toggle pin on clip")
-    parser.add_argument("--clear", action="store_true", help="Clear non-pinned clips")
+    parser = argparse.ArgumentParser(
+        description="Windows Clipboard History — capture, search, pin")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show clipboard history")
+    parser.add_argument(
+        "--search",
+        type=str,
+        metavar="TEXT",
+        help="Search clips")
+    parser.add_argument(
+        "--pin",
+        type=int,
+        metavar="ID",
+        help="Toggle pin on clip")
+    parser.add_argument(
+        "--clear",
+        action="store_true",
+        help="Clear non-pinned clips")
     parser.add_argument("--once", action="store_true", help="Capture + status")
     args = parser.parse_args()
 

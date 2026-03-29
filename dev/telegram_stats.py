@@ -328,11 +328,12 @@ def voice_stats() -> dict:
     ).fetchone())
 
     # Heures preferees pour les vocaux
-    voice_hours = _rows_to_list(conn.execute(
-        """SELECT CAST(strftime('%H', timestamp) AS INTEGER) AS hour, COUNT(*) AS count
+    voice_hours = _rows_to_list(
+        conn.execute(
+            """SELECT CAST(strftime('%H', timestamp) AS INTEGER) AS hour, COUNT(*) AS count
            FROM messages WHERE msg_type = 'voice'
            GROUP BY hour ORDER BY count DESC LIMIT 5""",
-    ).fetchall())
+        ).fetchall())
 
     # Taux d'erreur vocal
     voice_errors = conn.execute(
@@ -357,7 +358,8 @@ def full_report() -> dict:
     conn = get_db()
 
     # Informations generales de la base
-    total_all = conn.execute("SELECT COUNT(*) AS total FROM messages").fetchone()["total"]
+    total_all = conn.execute(
+        "SELECT COUNT(*) AS total FROM messages").fetchone()["total"]
     first_msg = conn.execute(
         "SELECT MIN(timestamp) AS first FROM messages"
     ).fetchone()["first"]
@@ -369,8 +371,7 @@ def full_report() -> dict:
     # Distribution par heure (all-time, pour heatmap)
     hourly_dist = _rows_to_list(conn.execute(
         """SELECT CAST(strftime('%H', timestamp) AS INTEGER) AS hour, COUNT(*) AS count
-           FROM messages GROUP BY hour ORDER BY hour"""
-    ).fetchall())
+           FROM messages GROUP BY hour ORDER BY hour""").fetchall())
 
     # Distribution par jour de la semaine (0=dimanche ... 6=samedi en SQLite)
     weekday_dist = _rows_to_list(conn.execute(
@@ -453,10 +454,13 @@ def seed_demo_data() -> dict:
     conn = get_db()
 
     # Verifier si des donnees existent deja
-    existing = conn.execute("SELECT COUNT(*) AS c FROM messages").fetchone()["c"]
+    existing = conn.execute(
+        "SELECT COUNT(*) AS c FROM messages").fetchone()["c"]
     if existing > 0:
         conn.close()
-        return {"status": "skipped", "reason": f"base non vide ({existing} messages)"}
+        return {
+            "status": "skipped",
+            "reason": f"base non vide ({existing} messages)"}
 
     # Commandes typiques JARVIS
     commands = [

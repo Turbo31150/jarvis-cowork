@@ -20,18 +20,28 @@ TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT_ID = "2010747443"
 TASK_PREFIX = "JARVIS_"
 
+
 def telegram_send(msg: str):
-    import urllib.parse, urllib.request
+    import urllib.parse
+    import urllib.request
     try:
-        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
+        data = urllib.parse.urlencode(
+            {"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=10)
+        urllib.request.urlopen(
+            urllib.request.Request(
+                url, data=data), timeout=10)
     except Exception:
         pass
 
+
 def run_cmd(cmd: List[str], timeout: int = 15) -> str:
     try:
-        return subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT, timeout=timeout).strip()
+        return subprocess.check_output(
+            cmd,
+            text=True,
+            stderr=subprocess.STDOUT,
+            timeout=timeout).strip()
     except subprocess.CalledProcessError as e:
         return e.output.strip() if e.output else ""
     except Exception:
@@ -40,7 +50,14 @@ def run_cmd(cmd: List[str], timeout: int = 15) -> str:
 # ---------------------------------------------------------------------------
 # Create
 # ---------------------------------------------------------------------------
-def create_task(name: str, command: str, trigger: str, time_str: str = None, interval: int = None):
+
+
+def create_task(
+        name: str,
+        command: str,
+        trigger: str,
+        time_str: str = None,
+        interval: int = None):
     full_name = f"{TASK_PREFIX}{name}"
     cmd = ["schtasks", "/Create", "/TN", full_name, "/TR", command, "/F"]
 
@@ -70,6 +87,8 @@ def create_task(name: str, command: str, trigger: str, time_str: str = None, int
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
+
+
 def list_tasks():
     out = run_cmd(["schtasks", "/Query", "/FO", "TABLE", "/NH"])
     jarvis_tasks = []
@@ -89,8 +108,11 @@ def list_tasks():
 # ---------------------------------------------------------------------------
 # Delete
 # ---------------------------------------------------------------------------
+
+
 def delete_task(name: str):
-    full_name = f"{TASK_PREFIX}{name}" if not name.startswith(TASK_PREFIX) else name
+    full_name = f"{TASK_PREFIX}{name}" if not name.startswith(
+        TASK_PREFIX) else name
     out = run_cmd(["schtasks", "/Delete", "/TN", full_name, "/F"])
     if "SUCCESS" in out.upper() or "succès" in out.lower():
         print(f"[scheduled_task_creator] Tâche '{full_name}' supprimée.")
@@ -100,8 +122,11 @@ def delete_task(name: str):
 # ---------------------------------------------------------------------------
 # Run now
 # ---------------------------------------------------------------------------
+
+
 def run_task(name: str):
-    full_name = f"{TASK_PREFIX}{name}" if not name.startswith(TASK_PREFIX) else name
+    full_name = f"{TASK_PREFIX}{name}" if not name.startswith(
+        TASK_PREFIX) else name
     out = run_cmd(["schtasks", "/Run", "/TN", full_name])
     if "SUCCESS" in out.upper() or "succès" in out.lower():
         print(f"[scheduled_task_creator] Tâche '{full_name}' lancée.")
@@ -111,9 +136,13 @@ def run_task(name: str):
 # ---------------------------------------------------------------------------
 # Status
 # ---------------------------------------------------------------------------
+
+
 def task_status(name: str):
-    full_name = f"{TASK_PREFIX}{name}" if not name.startswith(TASK_PREFIX) else name
-    out = run_cmd(["schtasks", "/Query", "/TN", full_name, "/V", "/FO", "LIST"])
+    full_name = f"{TASK_PREFIX}{name}" if not name.startswith(
+        TASK_PREFIX) else name
+    out = run_cmd(["schtasks", "/Query", "/TN",
+                  full_name, "/V", "/FO", "LIST"])
     if out:
         print(out)
     else:
@@ -122,14 +151,25 @@ def task_status(name: str):
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Créateur de tâches planifiées Windows.")
+    parser = argparse.ArgumentParser(
+        description="Créateur de tâches planifiées Windows.")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_create = sub.add_parser("create", help="Créer une tâche")
     p_create.add_argument("name", help="Nom de la tâche")
     p_create.add_argument("--cmd", required=True, help="Commande à exécuter")
-    p_create.add_argument("--trigger", required=True, choices=["daily", "hourly", "minute", "startup", "logon"])
+    p_create.add_argument(
+        "--trigger",
+        required=True,
+        choices=[
+            "daily",
+            "hourly",
+            "minute",
+            "startup",
+            "logon"])
     p_create.add_argument("--time", help="Heure (HH:MM) pour trigger daily")
     p_create.add_argument("--interval", type=int, help="Intervalle en minutes")
 
@@ -147,7 +187,12 @@ def main():
     args = parser.parse_args()
 
     if args.command == "create":
-        create_task(args.name, args.cmd, args.trigger, args.time, args.interval)
+        create_task(
+            args.name,
+            args.cmd,
+            args.trigger,
+            args.time,
+            args.interval)
     elif args.command == "list":
         list_tasks()
     elif args.command == "delete":
@@ -156,6 +201,7 @@ def main():
         run_task(args.name)
     elif args.command == "status":
         task_status(args.name)
+
 
 if __name__ == "__main__":
     main()

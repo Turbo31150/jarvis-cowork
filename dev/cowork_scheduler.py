@@ -174,7 +174,9 @@ def run_task(task_row):
                 parsed = json.loads(result.stdout)
                 output_summary = _extract_summary(parsed)
             except json.JSONDecodeError:
-                output_summary = {"output_lines": len(result.stdout.strip().split("\n"))}
+                output_summary = {
+                    "output_lines": len(
+                        result.stdout.strip().split("\n"))}
 
         return {
             "task_name": task_row["task_name"],
@@ -222,9 +224,8 @@ def update_after_run(conn, task_name, status, now_iso):
     ).fetchone()
     if not row:
         return
-    next_run = (
-        datetime.fromisoformat(now_iso) + timedelta(minutes=row["interval_minutes"])
-    ).isoformat()
+    next_run = (datetime.fromisoformat(now_iso) +
+                timedelta(minutes=row["interval_minutes"])).isoformat()
     conn.execute(
         """UPDATE cowork_schedules
            SET last_run = ?, next_run = ?, run_count = ?, last_status = ?
@@ -342,8 +343,7 @@ def cmd_list(conn):
     """List all tasks (compact view)."""
     rows = conn.execute(
         "SELECT task_name, script_name, interval_minutes, enabled, run_count, last_status "
-        "FROM cowork_schedules ORDER BY task_name"
-    ).fetchall()
+        "FROM cowork_schedules ORDER BY task_name").fetchall()
 
     tasks = []
     for row in rows:
@@ -455,7 +455,8 @@ def cmd_reset(conn):
     now_iso = datetime.now().isoformat()
     conn.execute("UPDATE cowork_schedules SET next_run = ?", (now_iso,))
     conn.commit()
-    count = conn.execute("SELECT COUNT(*) as cnt FROM cowork_schedules").fetchone()["cnt"]
+    count = conn.execute(
+        "SELECT COUNT(*) as cnt FROM cowork_schedules").fetchone()["cnt"]
     return {
         "timestamp": now_iso,
         "command": "reset",
@@ -467,7 +468,8 @@ def cmd_reset(conn):
 def cmd_init(conn):
     """Initialize DB with default tasks."""
     inserted = seed_defaults(conn)
-    total = conn.execute("SELECT COUNT(*) as cnt FROM cowork_schedules").fetchone()["cnt"]
+    total = conn.execute(
+        "SELECT COUNT(*) as cnt FROM cowork_schedules").fetchone()["cnt"]
     return {
         "timestamp": datetime.now().isoformat(),
         "command": "init",
@@ -486,27 +488,59 @@ def main():
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--once", action="store_true", help="Run all due tasks")
-    group.add_argument("--status", action="store_true", help="Show task statuses (JSON)")
-    group.add_argument("--register", action="store_true", help="Register/update a task")
-    group.add_argument("--list", action="store_true", help="List all tasks (JSON)")
+    group.add_argument(
+        "--status",
+        action="store_true",
+        help="Show task statuses (JSON)")
+    group.add_argument(
+        "--register",
+        action="store_true",
+        help="Register/update a task")
+    group.add_argument(
+        "--list",
+        action="store_true",
+        help="List all tasks (JSON)")
     group.add_argument("--enable", action="store_true", help="Enable a task")
     group.add_argument("--disable", action="store_true", help="Disable a task")
-    group.add_argument("--run-task", action="store_true", help="Force-run a task")
-    group.add_argument("--reset", action="store_true", help="Reset all schedules to now")
-    group.add_argument("--init", action="store_true", help="Initialize with default tasks")
+    group.add_argument(
+        "--run-task",
+        action="store_true",
+        help="Force-run a task")
+    group.add_argument(
+        "--reset",
+        action="store_true",
+        help="Reset all schedules to now")
+    group.add_argument(
+        "--init",
+        action="store_true",
+        help="Initialize with default tasks")
 
     # Parameters for --register
-    parser.add_argument("--task-name", type=str, help="Task name (for register/enable/disable/run-task)")
-    parser.add_argument("--script", type=str, help="Script filename (for register)")
-    parser.add_argument("--args", type=str, default="[]", help='Args as JSON array (for register), e.g. \'["--once"]\'')
-    parser.add_argument("--interval", type=int, help="Interval in minutes (for register)")
+    parser.add_argument(
+        "--task-name",
+        type=str,
+        help="Task name (for register/enable/disable/run-task)")
+    parser.add_argument(
+        "--script",
+        type=str,
+        help="Script filename (for register)")
+    parser.add_argument(
+        "--args",
+        type=str,
+        default="[]",
+        help='Args as JSON array (for register), e.g. \'["--once"]\'')
+    parser.add_argument(
+        "--interval",
+        type=int,
+        help="Interval in minutes (for register)")
 
     args = parser.parse_args()
 
     conn = get_db()
 
     # Auto-seed defaults on first use if table is empty
-    count = conn.execute("SELECT COUNT(*) as cnt FROM cowork_schedules").fetchone()["cnt"]
+    count = conn.execute(
+        "SELECT COUNT(*) as cnt FROM cowork_schedules").fetchone()["cnt"]
     if count == 0:
         seed_defaults(conn)
 
@@ -528,7 +562,12 @@ def main():
                 args_list = json.loads(args.args)
             except json.JSONDecodeError:
                 args_list = [args.args]
-            result = cmd_register(conn, args.task_name, args.script, args_list, args.interval)
+            result = cmd_register(
+                conn,
+                args.task_name,
+                args.script,
+                args_list,
+                args.interval)
         elif args.enable:
             if not args.task_name:
                 print(json.dumps({"error": "--enable requires --task-name"}))

@@ -144,7 +144,10 @@ def main():
     parser.add_argument("--close", metavar="APP", help="Close app")
     parser.add_argument("--focus", metavar="APP", help="Focus app")
     parser.add_argument("--list", action="store_true", help="List windows")
-    parser.add_argument("--profiles", action="store_true", help="Show profiles")
+    parser.add_argument(
+        "--profiles",
+        action="store_true",
+        help="Show profiles")
     parser.add_argument("--profile", metavar="NAME", help="Apply profile")
     args = parser.parse_args()
 
@@ -152,8 +155,12 @@ def main():
 
     if args.launch:
         result = launch_app(args.launch)
-        db.execute("INSERT INTO actions (ts, action, app, result) VALUES (?,?,?,?)",
-                   (time.time(), "launch", args.launch, json.dumps(result)))
+        db.execute(
+            "INSERT INTO actions (ts, action, app, result) VALUES (?,?,?,?)",
+            (time.time(),
+             "launch",
+             args.launch,
+             json.dumps(result)))
         db.commit()
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.close:

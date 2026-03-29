@@ -9,12 +9,20 @@ Usage:
     python dev/win_display_manager.py --rotate
     python dev/win_display_manager.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, ctypes, struct
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import ctypes
+import struct
 from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "display_manager.db"
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -37,10 +45,17 @@ def init_db():
     db.commit()
     return db
 
+
 def log_event(db, action, monitor=None, details=None, success=1):
-    db.execute("INSERT INTO display_events (ts, action, monitor, details, success) VALUES (?,?,?,?,?)",
-               (datetime.now().isoformat(), action, monitor, details, success))
+    db.execute(
+        "INSERT INTO display_events (ts, action, monitor, details, success) VALUES (?,?,?,?,?)",
+        (datetime.now().isoformat(),
+         action,
+         monitor,
+         details,
+         success))
     db.commit()
+
 
 def get_display_info():
     """Get display info using ctypes user32 and powershell."""
@@ -122,7 +137,11 @@ def get_display_info():
         return result
 
     except Exception as e:
-        return {"error": str(e), "monitors": [], "ts": datetime.now().isoformat()}
+        return {
+            "error": str(e),
+            "monitors": [],
+            "ts": datetime.now().isoformat()}
+
 
 def get_dpi():
     """Get system DPI."""
@@ -136,11 +155,17 @@ def get_dpi():
     except Exception:
         return 96
 
+
 def get_brightness():
     """Get brightness via powershell WMI."""
     try:
         cmd = 'powershell -NoProfile -Command "try { (Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorBrightness).CurrentBrightness } catch { Write-Output -1 }"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         val = r.stdout.strip()
         if val and val != "-1":
             return int(val)
@@ -148,16 +173,31 @@ def get_brightness():
     except Exception:
         return None
 
+
 def set_brightness(level):
     """Set brightness via powershell WMI."""
     level = max(0, min(100, level))
     try:
         cmd = f'powershell -NoProfile -Command "try {{ (Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorBrightnessMethods).WmiSetBrightness(1, {level}) ; Write-Output OK }} catch {{ Write-Output FAIL }}"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         success = "OK" in r.stdout
-        return {"action": "set_brightness", "level": level, "success": success, "ts": datetime.now().isoformat()}
+        return {
+            "action": "set_brightness",
+            "level": level,
+            "success": success,
+            "ts": datetime.now().isoformat()}
     except Exception as e:
-        return {"action": "set_brightness", "level": level, "success": False, "error": str(e)}
+        return {
+            "action": "set_brightness",
+            "level": level,
+            "success": False,
+            "error": str(e)}
+
 
 def set_resolution(res_str):
     """Set resolution via powershell (requires restart or display settings)."""
@@ -166,7 +206,12 @@ def set_resolution(res_str):
         w, h = int(parts[0]), int(parts[1])
         # Use powershell Set-DisplayResolution or QRes approach
         cmd = f'powershell -NoProfile -Command "Set-DisplayResolution -Width {w} -Height {h} -Force 2>$null; if($?) {{ Write-Output OK }} else {{ Write-Output NOTAVAIL }}"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            shell=True)
         ok = "OK" in r.stdout
         return {
             "action": "set_resolution",
@@ -175,16 +220,25 @@ def set_resolution(res_str):
             "height": h,
             "success": ok,
             "note": "May require Server edition for Set-DisplayResolution" if not ok else None,
-            "ts": datetime.now().isoformat()
-        }
+            "ts": datetime.now().isoformat()}
     except Exception as e:
-        return {"action": "set_resolution", "requested": res_str, "success": False, "error": str(e)}
+        return {
+            "action": "set_resolution",
+            "requested": res_str,
+            "success": False,
+            "error": str(e)}
+
 
 def rotate_display():
     """Display rotation info (actual rotation requires display settings or registry)."""
     try:
         cmd = 'powershell -NoProfile -Command "Get-CimInstance -ClassName Win32_VideoController | Select-Object Name, VideoModeDescription, CurrentRefreshRate | ConvertTo-Json"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         info = json.loads(r.stdout) if r.stdout.strip() else {}
         return {
             "action": "rotate_info",
@@ -195,24 +249,35 @@ def rotate_display():
     except Exception as e:
         return {"action": "rotate_info", "error": str(e)}
 
+
 def do_info():
     db = init_db()
     info = get_display_info()
     info["brightness"] = get_brightness()
     log_event(db, "info")
-    db.execute("INSERT INTO display_snapshots (ts, monitors_json, brightness, total_monitors) VALUES (?,?,?,?)",
-               (datetime.now().isoformat(), json.dumps(info["monitors"]), info.get("brightness"), info.get("total_monitors", 0)))
+    db.execute(
+        "INSERT INTO display_snapshots (ts, monitors_json, brightness, total_monitors) VALUES (?,?,?,?)",
+        (datetime.now().isoformat(),
+         json.dumps(
+            info["monitors"]),
+            info.get("brightness"),
+            info.get(
+            "total_monitors",
+            0)))
     db.commit()
     db.close()
     return info
+
 
 def do_once():
     db = init_db()
     info = get_display_info()
     info["brightness"] = get_brightness()
     # History
-    rows = db.execute("SELECT ts, action, monitor, details FROM display_events ORDER BY id DESC LIMIT 10").fetchall()
-    info["recent_events"] = [{"ts": r[0], "action": r[1], "monitor": r[2], "details": r[3]} for r in rows]
+    rows = db.execute(
+        "SELECT ts, action, monitor, details FROM display_events ORDER BY id DESC LIMIT 10").fetchall()
+    info["recent_events"] = [
+        {"ts": r[0], "action": r[1], "monitor": r[2], "details": r[3]} for r in rows]
     total = db.execute("SELECT COUNT(*) FROM display_events").fetchone()[0]
     info["total_events"] = total
     info["status"] = "ok"
@@ -221,37 +286,66 @@ def do_once():
     db.close()
     return info
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Windows Display Manager — COWORK #219")
-    parser.add_argument("--info", action="store_true", help="Show display information")
-    parser.add_argument("--resolution", type=str, help="Set resolution WxH (e.g. 1920x1080)")
+    parser = argparse.ArgumentParser(
+        description="Windows Display Manager — COWORK #219")
+    parser.add_argument(
+        "--info",
+        action="store_true",
+        help="Show display information")
+    parser.add_argument(
+        "--resolution",
+        type=str,
+        help="Set resolution WxH (e.g. 1920x1080)")
     parser.add_argument("--brightness", type=int, help="Set brightness 0-100")
-    parser.add_argument("--rotate", action="store_true", help="Show rotation info")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser.add_argument(
+        "--rotate",
+        action="store_true",
+        help="Show rotation info")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.resolution:
         db = init_db()
         result = set_resolution(args.resolution)
-        log_event(db, "set_resolution", details=args.resolution, success=int(result.get("success", False)))
-        db.commit(); db.close()
+        log_event(
+            db,
+            "set_resolution",
+            details=args.resolution,
+            success=int(
+                result.get(
+                    "success",
+                    False)))
+        db.commit()
+        db.close()
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.brightness is not None:
         db = init_db()
         result = set_brightness(args.brightness)
-        log_event(db, "set_brightness", details=str(args.brightness), success=int(result.get("success", False)))
-        db.commit(); db.close()
+        log_event(
+            db, "set_brightness", details=str(
+                args.brightness), success=int(
+                result.get(
+                    "success", False)))
+        db.commit()
+        db.close()
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.rotate:
         db = init_db()
         result = rotate_display()
         log_event(db, "rotate")
-        db.commit(); db.close()
+        db.commit()
+        db.close()
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.info:
         print(json.dumps(do_info(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

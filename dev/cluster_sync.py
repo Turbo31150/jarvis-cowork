@@ -34,15 +34,19 @@ NODES = {
 REMOTE_ROOT = "~/workspace"
 LOCAL_ROOT = Path.cwd()
 
+
 def run_cmd(command: List[str]) -> Tuple[int, str, str]:
     """Execute une commande et retourne (code_retour, stdout, stderr)."""
     result = subprocess.run(command, capture_output=True, text=True)
     return result.returncode, result.stdout.strip(), result.stderr.strip()
 
+
 def ssh_cmd(host: str, remote_cmd: str) -> Tuple[int, str, str]:
     return run_cmd(["ssh", host, remote_cmd])
 
-def scp_copy(src: str, host: str, dst: str, direction: str = "push") -> Tuple[int, str, str]:
+
+def scp_copy(src: str, host: str, dst: str,
+             direction: str = "push") -> Tuple[int, str, str]:
     """Copie de fichiers avec scp.
     direction = "push"  -> scp src to host:dst
     direction = "pull"  -> scp host:src dst
@@ -51,6 +55,7 @@ def scp_copy(src: str, host: str, dst: str, direction: str = "push") -> Tuple[in
         return run_cmd(["scp", "-r", src, f"{host}:{dst}"])
     else:
         return run_cmd(["scp", "-r", f"{host}:{src}", dst])
+
 
 def gather_checksums(path: Path) -> Dict[str, str]:
     """Retourne un dict {relative_path: md5} pour tous les fichiers sous path."""
@@ -65,6 +70,7 @@ def gather_checksums(path: Path) -> Dict[str, str]:
                     h.update(chunk)
             checksums[rel] = h.hexdigest()
     return checksums
+
 
 def remote_checksums(host: str) -> Dict[str, str]:
     """Demande au remote de calculer les checksums via ssh.
@@ -97,6 +103,7 @@ def remote_checksums(host: str) -> Dict[str, str]:
     except json.JSONDecodeError:
         return {}
 
+
 def diff_node(host: str) -> Dict[str, List[str]]:
     local = {}
     # local checksums for dev/ and IDENTITY.md
@@ -123,6 +130,7 @@ def diff_node(host: str) -> Dict[str, List[str]]:
             diff["only_remote"].append(k)
     return diff
 
+
 def perform_sync(action: str):
     results = {}
     for name, host in NODES.items():
@@ -143,14 +151,31 @@ def perform_sync(action: str):
         results[name] = {"rc": rc, "out": out, "err": err}
     print(json.dumps(results, ensure_ascii=False, indent=2))
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Synchronisation du cluster (M1,M2,M3)")
+    parser = argparse.ArgumentParser(
+        description="Synchronisation du cluster (M1,M2,M3)")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--sync", action="store_true", help="Push puis pull complet")
-    group.add_argument("--diff", action="store_true", help="Afficher les différences de checksum")
-    group.add_argument("--push", action="store_true", help="Envoyer les fichiers locaux vers les nœuds")
-    group.add_argument("--pull", action="store_true", help="Récupérer les fichiers des nœuds vers le local")
-    group.add_argument("--status", action="store_true", help="Résumé de l'état de synchronisation")
+    group.add_argument(
+        "--sync",
+        action="store_true",
+        help="Push puis pull complet")
+    group.add_argument(
+        "--diff",
+        action="store_true",
+        help="Afficher les différences de checksum")
+    group.add_argument(
+        "--push",
+        action="store_true",
+        help="Envoyer les fichiers locaux vers les nœuds")
+    group.add_argument(
+        "--pull",
+        action="store_true",
+        help="Récupérer les fichiers des nœuds vers le local")
+    group.add_argument(
+        "--status",
+        action="store_true",
+        help="Résumé de l'état de synchronisation")
     args = parser.parse_args()
 
     if args.sync:
@@ -167,6 +192,7 @@ def main():
         print(json.dumps(all_diff, ensure_ascii=False, indent=2))
     elif args.status:
         perform_sync("status")
+
 
 if __name__ == "__main__":
     main()

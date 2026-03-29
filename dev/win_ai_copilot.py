@@ -89,36 +89,83 @@ def detect_context(window_title, clipboard_text):
     contexts = []
 
     # IDE / Code editor detection
-    if any(k in title_lower for k in ["visual studio", "vscode", "code -", ".py", ".js", ".ts", "lm studio"]):
+    if any(
+        k in title_lower for k in [
+            "visual studio",
+            "vscode",
+            "code -",
+            ".py",
+            ".js",
+            ".ts",
+            "lm studio"]):
         contexts.append("coding")
     # Browser
-    if any(k in title_lower for k in ["chrome", "firefox", "edge", "brave", "opera"]):
+    if any(
+        k in title_lower for k in [
+            "chrome",
+            "firefox",
+            "edge",
+            "brave",
+            "opera"]):
         contexts.append("browsing")
     # Terminal
-    if any(k in title_lower for k in ["cmd", "powershell", "terminal", "bash", "wsl", "windows terminal"]):
+    if any(
+        k in title_lower for k in [
+            "cmd",
+            "powershell",
+            "terminal",
+            "bash",
+            "wsl",
+            "windows terminal"]):
         contexts.append("terminal")
     # File manager
     if any(k in title_lower for k in ["explorer", "dossier", "fichier"]):
         contexts.append("file_management")
     # Communication
-    if any(k in title_lower for k in ["telegram", "discord", "slack", "teams", "outlook", "mail"]):
+    if any(
+        k in title_lower for k in [
+            "telegram",
+            "discord",
+            "slack",
+            "teams",
+            "outlook",
+            "mail"]):
         contexts.append("communication")
     # Trading
     if any(k in title_lower for k in ["mexc", "binance", "trading", "crypto"]):
         contexts.append("trading")
     # Document
-    if any(k in title_lower for k in ["word", "notepad", "notion", "obsidian", ".md", ".txt"]):
+    if any(
+        k in title_lower for k in [
+            "word",
+            "notepad",
+            "notion",
+            "obsidian",
+            ".md",
+            ".txt"]):
         contexts.append("documentation")
 
     # Clipboard content analysis
     if clipboard_text:
         clip_lower = clipboard_text.lower()
-        if any(k in clip_lower for k in ["def ", "class ", "import ", "function", "const ", "var "]):
+        if any(
+            k in clip_lower for k in [
+                "def ",
+                "class ",
+                "import ",
+                "function",
+                "const ",
+                "var "]):
             if "coding" not in contexts:
                 contexts.append("coding")
         if any(k in clip_lower for k in ["http://", "https://", "www."]):
             contexts.append("url_detected")
-        if any(k in clip_lower for k in ["error", "traceback", "exception", "failed"]):
+        if any(
+            k in clip_lower for k in [
+                "error",
+                "traceback",
+                "exception",
+                "failed"]):
             contexts.append("error_detected")
         if "@" in clip_lower and "." in clip_lower:
             contexts.append("email_detected")
@@ -132,29 +179,57 @@ def generate_suggestions(contexts, window_title, clipboard_text):
 
     for ctx in contexts:
         if ctx == "coding":
-            suggestions.append({"action": "code_review", "label": "Lancer une revue de code via MAO consensus", "confidence": 0.85})
-            suggestions.append({"action": "run_tests", "label": "Executer les tests du fichier courant", "confidence": 0.7})
+            suggestions.append({"action": "code_review",
+                                "label": "Lancer une revue de code via MAO consensus",
+                                "confidence": 0.85})
+            suggestions.append({"action": "run_tests",
+                                "label": "Executer les tests du fichier courant",
+                                "confidence": 0.7})
         elif ctx == "error_detected":
-            suggestions.append({"action": "debug_error", "label": "Analyser l'erreur via M1+gpt-oss", "confidence": 0.95})
-            suggestions.append({"action": "search_fix", "label": "Rechercher un fix connu", "confidence": 0.8})
+            suggestions.append({"action": "debug_error",
+                                "label": "Analyser l'erreur via M1+gpt-oss",
+                                "confidence": 0.95})
+            suggestions.append({"action": "search_fix",
+                                "label": "Rechercher un fix connu",
+                                "confidence": 0.8})
         elif ctx == "browsing":
-            suggestions.append({"action": "save_page", "label": "Sauvegarder le contenu de la page", "confidence": 0.6})
-            suggestions.append({"action": "web_search", "label": "Recherche web via minimax", "confidence": 0.7})
+            suggestions.append({"action": "save_page",
+                                "label": "Sauvegarder le contenu de la page",
+                                "confidence": 0.6})
+            suggestions.append({"action": "web_search",
+                                "label": "Recherche web via minimax",
+                                "confidence": 0.7})
         elif ctx == "terminal":
-            suggestions.append({"action": "command_help", "label": "Aide sur la derniere commande", "confidence": 0.75})
-            suggestions.append({"action": "script_gen", "label": "Generer un script depuis la commande", "confidence": 0.65})
+            suggestions.append({"action": "command_help",
+                                "label": "Aide sur la derniere commande",
+                                "confidence": 0.75})
+            suggestions.append({"action": "script_gen",
+                                "label": "Generer un script depuis la commande",
+                                "confidence": 0.65})
         elif ctx == "communication":
-            suggestions.append({"action": "draft_reply", "label": "Generer un brouillon de reponse", "confidence": 0.7})
+            suggestions.append({"action": "draft_reply",
+                                "label": "Generer un brouillon de reponse",
+                                "confidence": 0.7})
         elif ctx == "trading":
-            suggestions.append({"action": "market_scan", "label": "Scanner les marches via pipeline trading", "confidence": 0.85})
+            suggestions.append({"action": "market_scan",
+                                "label": "Scanner les marches via pipeline trading",
+                                "confidence": 0.85})
         elif ctx == "url_detected":
-            suggestions.append({"action": "fetch_url", "label": "Fetcher et analyser l'URL du clipboard", "confidence": 0.8})
+            suggestions.append({"action": "fetch_url",
+                                "label": "Fetcher et analyser l'URL du clipboard",
+                                "confidence": 0.8})
         elif ctx == "file_management":
-            suggestions.append({"action": "organize_files", "label": "Organiser les fichiers du dossier", "confidence": 0.6})
+            suggestions.append({"action": "organize_files",
+                                "label": "Organiser les fichiers du dossier",
+                                "confidence": 0.6})
         elif ctx == "documentation":
-            suggestions.append({"action": "improve_doc", "label": "Ameliorer la documentation", "confidence": 0.7})
+            suggestions.append({"action": "improve_doc",
+                                "label": "Ameliorer la documentation",
+                                "confidence": 0.7})
         elif ctx == "general":
-            suggestions.append({"action": "quick_ask", "label": "Poser une question rapide a OL1", "confidence": 0.5})
+            suggestions.append({"action": "quick_ask",
+                                "label": "Poser une question rapide a OL1",
+                                "confidence": 0.5})
 
     # Sort by confidence
     suggestions.sort(key=lambda s: s["confidence"], reverse=True)
@@ -181,7 +256,10 @@ def do_clipboard():
             result["detected_types"].append("url")
         if "error" in clip_lower or "traceback" in clip_lower:
             result["detected_types"].append("error_log")
-        if any(k in clip_lower for k in ["{", "}", "[", "]"]) and (":" in clip_lower or "," in clip_lower):
+        if any(
+            k in clip_lower for k in [
+                "{", "}", "[", "]"]) and (
+                ":" in clip_lower or "," in clip_lower):
             result["detected_types"].append("structured_data")
         if not result["detected_types"]:
             result["detected_types"].append("plain_text")
@@ -272,8 +350,10 @@ def do_status():
     """Overall copilot status."""
     db = init_db()
     total_contexts = db.execute("SELECT COUNT(*) FROM contexts").fetchone()[0]
-    total_suggestions = db.execute("SELECT COUNT(*) FROM suggestions").fetchone()[0]
-    recent = db.execute("SELECT ts, detected_context FROM contexts ORDER BY id DESC LIMIT 5").fetchall()
+    total_suggestions = db.execute(
+        "SELECT COUNT(*) FROM suggestions").fetchone()[0]
+    recent = db.execute(
+        "SELECT ts, detected_context FROM contexts ORDER BY id DESC LIMIT 5").fetchall()
 
     result = {
         "ts": datetime.now().isoformat(),
@@ -290,12 +370,28 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="win_ai_copilot.py — IA contextual assistant (#243)")
-    parser.add_argument("--analyze", action="store_true", help="Full contextual analysis")
-    parser.add_argument("--suggest", action="store_true", help="Generate suggestions for current context")
-    parser.add_argument("--clipboard", action="store_true", help="Read and analyze clipboard content")
-    parser.add_argument("--context", action="store_true", help="Get current window context")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="win_ai_copilot.py — IA contextual assistant (#243)")
+    parser.add_argument(
+        "--analyze",
+        action="store_true",
+        help="Full contextual analysis")
+    parser.add_argument(
+        "--suggest",
+        action="store_true",
+        help="Generate suggestions for current context")
+    parser.add_argument(
+        "--clipboard",
+        action="store_true",
+        help="Read and analyze clipboard content")
+    parser.add_argument(
+        "--context",
+        action="store_true",
+        help="Get current window context")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.clipboard:

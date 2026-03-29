@@ -72,8 +72,17 @@ def check_task_scheduler():
 
 def check_startup_folder():
     """Verifie les raccourcis dans le dossier Startup."""
-    startup = os.path.join(os.environ.get("APPDATA", ""), "Microsoft", "Windows", "Start Menu", "Programs", "Startup")
-    jarvis_files = [f for f in os.listdir(startup) if "jarvis" in f.lower()] if os.path.isdir(startup) else []
+    startup = os.path.join(
+        os.environ.get(
+            "APPDATA",
+            ""),
+        "Microsoft",
+        "Windows",
+        "Start Menu",
+        "Programs",
+        "Startup")
+    jarvis_files = [f for f in os.listdir(
+        startup) if "jarvis" in f.lower()] if os.path.isdir(startup) else []
     if jarvis_files:
         print(f"  Startup folder: {len(jarvis_files)} fichiers JARVIS")
         for f in jarvis_files:
@@ -112,7 +121,8 @@ def check_services():
         pass
 
     # Ports check
-    for name, port in [("Canvas Proxy", 18800), ("WS Backend", 9742), ("Ollama", 11434), ("LM Studio M1", 1234)]:
+    for name, port in [("Canvas Proxy", 18800), ("WS Backend", 9742),
+                       ("Ollama", 11434), ("LM Studio M1", 1234)]:
         try:
             import urllib.request
             urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=2)
@@ -148,7 +158,13 @@ def check_gpu():
             for i, gpu in enumerate(gpus):
                 parts = [p.strip() for p in gpu.split(",")]
                 if len(parts) >= 5:
-                    print(f"    GPU{i}: {parts[0]} | {parts[1]}C | {parts[2]}/{parts[3]}MB | {parts[4]}%")
+                    print(
+                        f"    GPU{i}: {
+                            parts[0]} | {
+                            parts[1]}C | {
+                            parts[2]}/{
+                            parts[3]}MB | {
+                            parts[4]}%")
             return len(gpus)
     except Exception:
         print("  GPUs: nvidia-smi non disponible")
@@ -170,7 +186,8 @@ def run_check():
     check_task_scheduler()
     check_startup_folder()
 
-    up_count = sum(1 for v in services.values() if v == "UP" or (isinstance(v, int) and v > 0))
+    up_count = sum(1 for v in services.values() if v ==
+                   "UP" or (isinstance(v, int) and v > 0))
     total = len(services)
     print(f"\nResume: {up_count}/{total} services operationnels")
     return services
@@ -178,10 +195,22 @@ def run_check():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Integration Agent")
-    parser.add_argument("--check", action="store_true", help="Check integration actuelle")
-    parser.add_argument("--setup", action="store_true", help="Configure les integrations")
-    parser.add_argument("--loop", action="store_true", help="Monitoring continu (5 min)")
-    parser.add_argument("--toast", type=str, help="Envoie une notification toast test")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check integration actuelle")
+    parser.add_argument(
+        "--setup",
+        action="store_true",
+        help="Configure les integrations")
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Monitoring continu (5 min)")
+    parser.add_argument(
+        "--toast",
+        type=str,
+        help="Envoie une notification toast test")
     args = parser.parse_args()
 
     if args.toast:

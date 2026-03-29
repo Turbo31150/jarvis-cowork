@@ -156,6 +156,7 @@ RULES = [
 # Base de donnees SQLite
 # ---------------------------------------------------------------------------
 
+
 def _ensure_db_dir():
     """Cree le repertoire data/ s'il n'existe pas."""
     DB_DIR.mkdir(parents=True, exist_ok=True)
@@ -192,6 +193,7 @@ def _init_tables(conn: sqlite3.Connection):
 # ---------------------------------------------------------------------------
 # Moteur d'evaluation
 # ---------------------------------------------------------------------------
+
 
 def _match_rule(situation: str) -> list:
     """Trouve les regles correspondant a la situation decrite.
@@ -235,7 +237,8 @@ def decide(situation: str) -> dict:
             "situation": situation,
             "message": "Aucune regle ne correspond a cette situation.",
             "suggestion": "Decrire la situation avec des termes comme : gpu, disque, api, cpu, ram, reseau, modele.",
-            "available_rules": [r["id"] for r in RULES],
+            "available_rules": [
+                r["id"] for r in RULES],
         }
         return result
 
@@ -251,9 +254,14 @@ def decide(situation: str) -> dict:
     cur.execute(
         """INSERT INTO decisions (ts, situation, rule_id, rule_name, action, confidence, severity, reasoning)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (ts, situation, best["id"], best["name"],
-         primary_action["action"], best["confidence"],
-         best["severity"], reasoning),
+        (ts,
+         situation,
+         best["id"],
+         best["name"],
+         primary_action["action"],
+         best["confidence"],
+         best["severity"],
+         reasoning),
     )
     decision_id = cur.lastrowid
     conn.commit()
@@ -290,6 +298,7 @@ def decide(situation: str) -> dict:
 # ---------------------------------------------------------------------------
 # Commandes CLI
 # ---------------------------------------------------------------------------
+
 
 def cmd_decide(situation: str):
     """Evalue une situation et retourne la decision en JSON."""
@@ -430,6 +439,7 @@ def cmd_rules():
 # ---------------------------------------------------------------------------
 # Point d'entree
 # ---------------------------------------------------------------------------
+
 
 def main():
     parser = argparse.ArgumentParser(

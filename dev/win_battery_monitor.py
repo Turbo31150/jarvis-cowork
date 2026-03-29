@@ -7,7 +7,13 @@ Usage:
     python dev/win_battery_monitor.py --alert
     python dev/win_battery_monitor.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, re
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -69,9 +75,10 @@ def _get_battery_info():
     try:
         # Try Win32_Battery
         cmd = [
-            "powershell", "-NoProfile", "-Command",
-            "Get-CimInstance -ClassName Win32_Battery | Select-Object -Property * | ConvertTo-Json"
-        ]
+            "powershell",
+            "-NoProfile",
+            "-Command",
+            "Get-CimInstance -ClassName Win32_Battery | Select-Object -Property * | ConvertTo-Json"]
         result = subprocess.run(
             cmd, capture_output=True, text=True, timeout=15,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
@@ -88,11 +95,20 @@ def _get_battery_info():
                 info["voltage_mv"] = data.get("DesignVoltage")
 
                 # Battery status codes
-                status_map = {1: "Discharging", 2: "AC Power", 3: "Fully Charged",
-                              4: "Low", 5: "Critical", 6: "Charging", 7: "Charging+High",
-                              8: "Charging+Low", 9: "Charging+Critical"}
-                info["status"] = status_map.get(data.get("BatteryStatus"), "Unknown")
-                info["power_source"] = "Battery" if data.get("BatteryStatus") == 1 else "AC"
+                status_map = {
+                    1: "Discharging",
+                    2: "AC Power",
+                    3: "Fully Charged",
+                    4: "Low",
+                    5: "Critical",
+                    6: "Charging",
+                    7: "Charging+High",
+                    8: "Charging+Low",
+                    9: "Charging+Critical"}
+                info["status"] = status_map.get(
+                    data.get("BatteryStatus"), "Unknown")
+                info["power_source"] = "Battery" if data.get(
+                    "BatteryStatus") == 1 else "AC"
         else:
             info["is_laptop"] = False
             info["power_source"] = "AC (Desktop)"
@@ -104,11 +120,16 @@ def _get_battery_info():
     if info["is_laptop"]:
         try:
             cmd = [
-                "powershell", "-NoProfile", "-Command",
-                "Get-CimInstance -ClassName BatteryFullChargedCapacity -Namespace root\\wmi 2>$null | Select-Object FullChargedCapacity | ConvertTo-Json"
-            ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10,
-                                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "Get-CimInstance -ClassName BatteryFullChargedCapacity -Namespace root\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\wmi 2>$null | Select-Object FullChargedCapacity | ConvertTo-Json"]
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=10,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
             if result.returncode == 0 and result.stdout.strip():
                 fcc = json.loads(result.stdout)
                 if isinstance(fcc, list):
@@ -119,11 +140,16 @@ def _get_battery_info():
 
         try:
             cmd = [
-                "powershell", "-NoProfile", "-Command",
-                "Get-CimInstance -ClassName BatteryStaticData -Namespace root\\wmi 2>$null | Select-Object DesignedCapacity | ConvertTo-Json"
-            ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10,
-                                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "Get-CimInstance -ClassName BatteryStaticData -Namespace root\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\wmi 2>$null | Select-Object DesignedCapacity | ConvertTo-Json"]
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=10,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
             if result.returncode == 0 and result.stdout.strip():
                 dc = json.loads(result.stdout)
                 if isinstance(dc, list):
@@ -133,7 +159,8 @@ def _get_battery_info():
             pass
 
         if info["design_capacity_mwh"] and info["full_charge_mwh"] and info["design_capacity_mwh"] > 0:
-            info["health_pct"] = round(info["full_charge_mwh"] / info["design_capacity_mwh"] * 100, 1)
+            info["health_pct"] = round(
+                info["full_charge_mwh"] / info["design_capacity_mwh"] * 100, 1)
 
     return info
 
@@ -142,11 +169,16 @@ def _get_ups_status():
     """Check UPS status for desktop systems."""
     try:
         cmd = [
-            "powershell", "-NoProfile", "-Command",
-            "Get-CimInstance -ClassName Win32_Battery | Where-Object {$_.Chemistry -eq 'UPS'} | ConvertTo-Json"
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10,
-                                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+            "powershell",
+            "-NoProfile",
+            "-Command",
+            "Get-CimInstance -ClassName Win32_Battery | Where-Object {$_.Chemistry -eq 'UPS'} | ConvertTo-Json"]
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         if result.returncode == 0 and result.stdout.strip():
             data = json.loads(result.stdout)
             return {"ups_detected": True, "data": data}
@@ -194,7 +226,8 @@ def get_health(db):
     if history:
         health_values = [h[0] for h in history if h[0] is not None]
         if health_values:
-            result["avg_health"] = round(sum(health_values) / len(health_values), 1)
+            result["avg_health"] = round(
+                sum(health_values) / len(health_values), 1)
             result["min_health"] = min(health_values)
             result["max_health"] = max(health_values)
             if health_values[-1] and health_values[0]:
@@ -205,9 +238,11 @@ def get_health(db):
 
     result["recommendations"] = []
     if info.get("health_pct") and info["health_pct"] < 50:
-        result["recommendations"].append("Battery health below 50% — consider replacement")
+        result["recommendations"].append(
+            "Battery health below 50% — consider replacement")
     elif info.get("health_pct") and info["health_pct"] < 80:
-        result["recommendations"].append("Battery health declining — avoid full discharges")
+        result["recommendations"].append(
+            "Battery health declining — avoid full discharges")
 
     return result
 
@@ -234,8 +269,11 @@ def check_alerts(db):
 
     if info["battery_present"] and info["charge_pct"] is not None:
         if info["charge_pct"] <= ALERT_THRESHOLD:
-            alert_msg = f"Low battery: {info['charge_pct']}% (threshold: {ALERT_THRESHOLD}%)"
-            alerts.append({"type": "low_battery", "message": alert_msg, "charge": info["charge_pct"]})
+            alert_msg = f"Low battery: {
+                info['charge_pct']}% (threshold: {ALERT_THRESHOLD}%)"
+            alerts.append({"type": "low_battery",
+                           "message": alert_msg,
+                           "charge": info["charge_pct"]})
             db.execute(
                 "INSERT INTO alerts (alert_type, message, charge_pct) VALUES (?,?,?)",
                 ("low_battery", alert_msg, info["charge_pct"])
@@ -255,11 +293,12 @@ def check_alerts(db):
         "SELECT alert_type, message, charge_pct, ts FROM alerts ORDER BY id DESC LIMIT 10"
     ).fetchall()
 
-    return {
-        "current_alerts": alerts,
-        "past_alerts": [{"type": a[0], "message": a[1], "charge": a[2], "ts": a[3]} for a in past_alerts],
-        "alert_threshold": ALERT_THRESHOLD
-    }
+    return {"current_alerts": alerts,
+            "past_alerts": [{"type": a[0],
+                             "message": a[1],
+                             "charge": a[2],
+                             "ts": a[3]} for a in past_alerts],
+            "alert_threshold": ALERT_THRESHOLD}
 
 
 def do_status(db):
@@ -281,11 +320,24 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Windows Battery/PSU Monitor — health and alerts")
-    parser.add_argument("--status", action="store_true", help="Current battery/power status")
-    parser.add_argument("--health", action="store_true", help="Battery health analysis")
-    parser.add_argument("--history", action="store_true", help="Reading history")
-    parser.add_argument("--alert", action="store_true", help="Check for alerts")
+    parser = argparse.ArgumentParser(
+        description="Windows Battery/PSU Monitor — health and alerts")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Current battery/power status")
+    parser.add_argument(
+        "--health",
+        action="store_true",
+        help="Battery health analysis")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Reading history")
+    parser.add_argument(
+        "--alert",
+        action="store_true",
+        help="Check for alerts")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

@@ -7,7 +7,13 @@ Usage:
     python dev/jarvis_orchestrator_v3.py --benchmark
     python dev/jarvis_orchestrator_v3.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, urllib.request
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -17,10 +23,22 @@ DB_PATH = DATA_DIR / "orchestrator_v3.db"
 
 # Cluster node definitions
 CLUSTER_NODES = {
-    "M1": {"url": "http://127.0.0.1:1234/api/v1/models", "type": "lmstudio", "desc": "6 GPU 46GB qwen3-8b"},
-    "M2": {"url": "http://192.168.1.26:1234/api/v1/models", "type": "lmstudio", "desc": "3 GPU 24GB deepseek-coder"},
-    "M3": {"url": "http://192.168.1.113:1234/api/v1/models", "type": "lmstudio", "desc": "1 GPU 8GB mistral-7b"},
-    "OL1": {"url": "http://127.0.0.1:11434/api/tags", "type": "ollama", "desc": "Ollama local+cloud 12 models"},
+    "M1": {
+        "url": "http://127.0.0.1:1234/api/v1/models",
+        "type": "lmstudio",
+        "desc": "6 GPU 46GB qwen3-8b"},
+    "M2": {
+        "url": "http://192.168.1.26:1234/api/v1/models",
+        "type": "lmstudio",
+        "desc": "3 GPU 24GB deepseek-coder"},
+    "M3": {
+        "url": "http://192.168.1.113:1234/api/v1/models",
+        "type": "lmstudio",
+                "desc": "1 GPU 8GB mistral-7b"},
+    "OL1": {
+        "url": "http://127.0.0.1:11434/api/tags",
+        "type": "ollama",
+        "desc": "Ollama local+cloud 12 models"},
 }
 
 
@@ -115,16 +133,19 @@ def _check_databases():
             size = db_file.stat().st_size
             total_size += size
             conn = sqlite3.connect(str(db_file))
-            tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+            tables = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()
             rows = 0
             for (tname,) in tables:
                 try:
-                    rows += conn.execute(f"SELECT COUNT(*) FROM [{tname}]").fetchone()[0]
+                    rows += conn.execute(
+                        f"SELECT COUNT(*) FROM [{tname}]").fetchone()[0]
                 except Exception:
                     pass
             total_rows += rows
             conn.close()
-            dbs.append({"name": db_file.name, "size_kb": round(size/1024, 1), "rows": rows, "tables": len(tables)})
+            dbs.append({"name": db_file.name, "size_kb": round(
+                size / 1024, 1), "rows": rows, "tables": len(tables)})
         except Exception as e:
             dbs.append({"name": db_file.name, "error": str(e)})
     return {
@@ -141,9 +162,13 @@ def _check_scripts():
     total_size = sum(s.stat().st_size for s in scripts)
     return {
         "count": len(scripts),
-        "total_size_kb": round(total_size / 1024, 1),
-        "newest": sorted(scripts, key=lambda s: s.stat().st_mtime, reverse=True)[0].name if scripts else None
-    }
+        "total_size_kb": round(
+            total_size / 1024,
+            1),
+        "newest": sorted(
+            scripts,
+            key=lambda s: s.stat().st_mtime,
+            reverse=True)[0].name if scripts else None}
 
 
 def _check_crons():
@@ -155,7 +180,8 @@ def _check_crons():
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         )
         if result.returncode == 0:
-            lines = [l for l in result.stdout.strip().split("\n") if l.strip() and "python" in l.lower()]
+            lines = [l for l in result.stdout.strip().split(
+                "\n") if l.strip() and "python" in l.lower()]
             return {"running_python_processes": len(lines)}
     except Exception:
         pass
@@ -173,8 +199,13 @@ def start_check(db):
         nodes[name] = check
         db.execute(
             "INSERT INTO health_checks (node, status, latency_ms, models_loaded, details) VALUES (?,?,?,?,?)",
-            (name, check["status"], check.get("latency_ms"), check.get("models_loaded", 0), json.dumps(check))
-        )
+            (name,
+             check["status"],
+                check.get("latency_ms"),
+                check.get(
+                 "models_loaded",
+                 0),
+                json.dumps(check)))
     results["subsystems"]["cluster"] = {
         "nodes": nodes,
         "online": sum(1 for n in nodes.values() if n["status"] == "online"),
@@ -215,7 +246,8 @@ def start_check(db):
     # Overall health score
     online = results["subsystems"]["cluster"]["online"]
     total_nodes = results["subsystems"]["cluster"]["total"]
-    score = int((online / total_nodes) * 60 + (40 if db_check["count"] > 0 else 0))
+    score = int((online / total_nodes) * 60 +
+                (40 if db_check["count"] > 0 else 0))
     results["health_score"] = min(100, score)
     results["grade"] = "A" if score >= 90 else "B" if score >= 75 else "C" if score >= 60 else "D" if score >= 40 else "F"
 
@@ -259,7 +291,11 @@ def get_system_status(db):
             (node,)
         ).fetchone()
         if row:
-            latest_checks[node] = {"status": row[0], "latency_ms": row[1], "models": row[2], "ts": row[3]}
+            latest_checks[node] = {
+                "status": row[0],
+                "latency_ms": row[1],
+                "models": row[2],
+                "ts": row[3]}
         else:
             latest_checks[node] = {"status": "never_checked"}
 
@@ -298,7 +334,9 @@ def run_benchmark(db):
                     "store": False
                 }).encode()
                 url = config["url"].replace("/models", "/chat")
-                req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+                req = urllib.request.Request(
+                    url, data=body, headers={
+                        "Content-Type": "application/json"})
             elif config["type"] == "ollama":
                 body = json.dumps({
                     "model": "qwen3:1.7b",
@@ -306,7 +344,9 @@ def run_benchmark(db):
                     "stream": False
                 }).encode()
                 url = "http://127.0.0.1:11434/api/chat"
-                req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+                req = urllib.request.Request(
+                    url, data=body, headers={
+                        "Content-Type": "application/json"})
             else:
                 continue
 
@@ -319,7 +359,8 @@ def run_benchmark(db):
                 output = data.get("message", {}).get("content", "")
                 eval_count = data.get("eval_count", len(output) // 4)
                 eval_duration = data.get("eval_duration", latency * 1e6)
-                tps = eval_count / (eval_duration / 1e9) if eval_duration else 0
+                tps = eval_count / \
+                    (eval_duration / 1e9) if eval_duration else 0
             else:
                 outputs = data.get("output", [])
                 output = ""
@@ -327,8 +368,10 @@ def run_benchmark(db):
                     if o.get("type") == "message":
                         content = o.get("content", [])
                         if isinstance(content, list):
-                            output = "".join(c.get("text", "") for c in content)
-                tps = len(output) / (latency / 1000) * 0.25 if latency > 0 else 0  # rough estimate
+                            output = "".join(c.get("text", "")
+                                             for c in content)
+                tps = len(output) / (latency / 1000) * \
+                    0.25 if latency > 0 else 0  # rough estimate
 
             results[node] = {
                 "status": "ok",
@@ -338,12 +381,25 @@ def run_benchmark(db):
             }
             db.execute(
                 "INSERT INTO benchmarks (node, test_type, latency_ms, tokens_per_sec, success) VALUES (?,?,?,?,?)",
-                (node, "quick", round(latency, 1), round(tps, 1), 1)
-            )
+                (node,
+                 "quick",
+                 round(
+                     latency,
+                     1),
+                    round(
+                     tps,
+                     1),
+                    1))
 
         except Exception as e:
             latency = (time.perf_counter() - start) * 1000
-            results[node] = {"status": "failed", "latency_ms": round(latency, 1), "error": str(e)[:200]}
+            results[node] = {
+                "status": "failed",
+                "latency_ms": round(
+                    latency,
+                    1),
+                "error": str(e)[
+                    :200]}
             db.execute(
                 "INSERT INTO benchmarks (node, test_type, latency_ms, success) VALUES (?,?,?,?)",
                 (node, "quick", round(latency, 1), 0)
@@ -357,17 +413,21 @@ def run_benchmark(db):
         key=lambda x: x[1].get("latency_ms", 99999)
     )
 
-    return {
-        "benchmark": results,
-        "ranking": [{"rank": i+1, "node": r[0], "latency_ms": r[1]["latency_ms"],
-                      "tps": r[1].get("tokens_per_sec", 0)} for i, r in enumerate(ranked)],
-        "fastest": ranked[0][0] if ranked else "none"
-    }
+    return {"benchmark": results,
+            "ranking": [{"rank": i + 1,
+                         "node": r[0],
+                         "latency_ms": r[1]["latency_ms"],
+                         "tps": r[1].get("tokens_per_sec",
+                                         0)} for i,
+                        r in enumerate(ranked)],
+            "fastest": ranked[0][0] if ranked else "none"}
 
 
 def do_status(db):
-    total_checks = db.execute("SELECT COUNT(*) FROM health_checks").fetchone()[0]
-    total_benchmarks = db.execute("SELECT COUNT(*) FROM benchmarks").fetchone()[0]
+    total_checks = db.execute(
+        "SELECT COUNT(*) FROM health_checks").fetchone()[0]
+    total_benchmarks = db.execute(
+        "SELECT COUNT(*) FROM benchmarks").fetchone()[0]
     return {
         "script": "jarvis_orchestrator_v3.py",
         "id": 216,
@@ -382,11 +442,21 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Orchestrator v3 — unified system dashboard")
-    parser.add_argument("--start", action="store_true", help="Full system check")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Orchestrator v3 — unified system dashboard")
+    parser.add_argument(
+        "--start",
+        action="store_true",
+        help="Full system check")
     parser.add_argument("--status", action="store_true", help="Quick status")
-    parser.add_argument("--config", action="store_true", help="Show configuration")
-    parser.add_argument("--benchmark", action="store_true", help="Quick cluster benchmark")
+    parser.add_argument(
+        "--config",
+        action="store_true",
+        help="Show configuration")
+    parser.add_argument(
+        "--benchmark",
+        action="store_true",
+        help="Quick cluster benchmark")
     parser.add_argument("--once", action="store_true", help="Status overview")
     args = parser.parse_args()
 

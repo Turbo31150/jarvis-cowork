@@ -139,9 +139,19 @@ def do_generate_single(script_name):
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Test Generator")
-    parser.add_argument("--once", "--generate-all", action="store_true", help="Test all scripts")
-    parser.add_argument("--generate", metavar="SCRIPT", help="Test single script")
-    parser.add_argument("--run", action="store_true", help="Run existing tests")
+    parser.add_argument(
+        "--once",
+        "--generate-all",
+        action="store_true",
+        help="Test all scripts")
+    parser.add_argument(
+        "--generate",
+        metavar="SCRIPT",
+        help="Test single script")
+    parser.add_argument(
+        "--run",
+        action="store_true",
+        help="Run existing tests")
     parser.add_argument("--report", action="store_true", help="History")
     args = parser.parse_args()
 

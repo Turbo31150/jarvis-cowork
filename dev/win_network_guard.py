@@ -22,7 +22,14 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "network_guard.db"
 
-WHITELIST_IPS = {"127.0.0.1", "192.168.1.26", "192.168.1.113", "10.5.0.2", "0.0.0.0", "::1", "::"}
+WHITELIST_IPS = {
+    "127.0.0.1",
+    "192.168.1.26",
+    "192.168.1.113",
+    "10.5.0.2",
+    "0.0.0.0",
+    "::1",
+    "::"}
 KNOWN_PORTS = {
     1234: "LM Studio", 11434: "Ollama", 18789: "OpenClaw",
     9742: "FastAPI WS", 8080: "Dashboard", 18800: "Direct Proxy",
@@ -55,8 +62,11 @@ def get_connections():
                 local = parts[1]
                 remote = parts[2]
                 state = parts[3]
-                local_ip, local_port = local.rsplit(":", 1) if ":" in local else (local, "0")
-                remote_ip, remote_port = remote.rsplit(":", 1) if ":" in remote else (remote, "0")
+                local_ip, local_port = local.rsplit(
+                    ":", 1) if ":" in local else (
+                    local, "0")
+                remote_ip, remote_port = remote.rsplit(
+                    ":", 1) if ":" in remote else (remote, "0")
                 try:
                     connections.append({
                         "local_ip": local_ip, "local_port": int(local_port),
@@ -87,7 +97,8 @@ def analyze_connections(connections):
         # Check if remote IP is in whitelist
         if remote_ip not in WHITELIST_IPS and conn["state"] == "ESTABLISHED":
             # External connection — flag if on unusual port
-            if local_port not in KNOWN_PORTS and conn["remote_port"] not in {80, 443, 53}:
+            if local_port not in KNOWN_PORTS and conn["remote_port"] not in {
+                    80, 443, 53}:
                 suspicious.append({
                     **conn,
                     "reason": f"External connection on port {local_port}",
@@ -116,8 +127,11 @@ def do_scan():
 
     db.execute(
         "INSERT INTO scans (ts, total_connections, suspicious, known_services, report) VALUES (?,?,?,?,?)",
-        (time.time(), len(connections), len(suspicious), len(known), json.dumps(report))
-    )
+        (time.time(),
+         len(connections),
+         len(suspicious),
+         len(known),
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -125,13 +139,21 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Network Guard")
-    parser.add_argument("--once", "--scan", action="store_true", help="Full scan")
-    parser.add_argument("--whitelist", action="store_true", help="Show whitelist")
+    parser.add_argument(
+        "--once",
+        "--scan",
+        action="store_true",
+        help="Full scan")
+    parser.add_argument(
+        "--whitelist",
+        action="store_true",
+        help="Show whitelist")
     parser.add_argument("--report", action="store_true", help="History")
     args = parser.parse_args()
 
     if args.whitelist:
-        print(json.dumps({"ips": sorted(WHITELIST_IPS), "ports": KNOWN_PORTS}, indent=2))
+        print(json.dumps({"ips": sorted(WHITELIST_IPS),
+              "ports": KNOWN_PORTS}, indent=2))
     else:
         result = do_scan()
         print(json.dumps(result, ensure_ascii=False, indent=2))

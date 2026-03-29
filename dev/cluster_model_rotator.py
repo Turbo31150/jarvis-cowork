@@ -56,7 +56,8 @@ def get_loaded_lmstudio():
         with urllib.request.urlopen(req, timeout=5) as r:
             data = json.loads(r.read().decode())
             models = data.get("data", data.get("models", []))
-            return [m.get("id", "") for m in models if m.get("loaded_instances")]
+            return [m.get("id", "")
+                    for m in models if m.get("loaded_instances")]
     except Exception:
         return []
 
@@ -69,7 +70,8 @@ def get_gpu_temp():
             capture_output=True, text=True, timeout=5
         )
         if result.returncode == 0:
-            temps = [int(t.strip()) for t in result.stdout.strip().split("\n") if t.strip()]
+            temps = [int(t.strip())
+                     for t in result.stdout.strip().split("\n") if t.strip()]
             return max(temps) if temps else 0
     except Exception:
         pass
@@ -117,8 +119,15 @@ def do_rotate():
     for a in actions:
         db.execute(
             "INSERT INTO rotations (ts, action, model, node, reason) VALUES (?,?,?,?,?)",
-            (time.time(), a["action"], a.get("model", ""), a.get("node", ""), a["reason"])
-        )
+            (time.time(),
+             a["action"],
+                a.get(
+                "model",
+                ""),
+                a.get(
+                "node",
+                ""),
+                a["reason"]))
 
     db.commit()
     db.close()
@@ -134,10 +143,20 @@ def do_rotate():
 
 def main():
     parser = argparse.ArgumentParser(description="Cluster Model Rotator")
-    parser.add_argument("--once", "--rotate", action="store_true", help="Run rotation")
-    parser.add_argument("--schedule", action="store_true", help="Show schedule")
+    parser.add_argument(
+        "--once",
+        "--rotate",
+        action="store_true",
+        help="Run rotation")
+    parser.add_argument(
+        "--schedule",
+        action="store_true",
+        help="Show schedule")
     parser.add_argument("--status", action="store_true", help="Current models")
-    parser.add_argument("--history", action="store_true", help="Rotation history")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Rotation history")
     args = parser.parse_args()
 
     result = do_rotate()

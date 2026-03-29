@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 """JARVIS AI Conversation — Agent conversationnel multi-tours avec M1."""
-import json, sys, os, sqlite3, urllib.request, subprocess
+import json
+import sys
+import os
+import sqlite3
+import urllib.request
+import subprocess
 from datetime import datetime
+import argparse
 
 DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/conversation.db"
 M1_URL = "http://127.0.0.1:1234/api/v1/chat"
 M1_MODEL = "qwen3-8b"
 SYSTEM_PROMPT = "Tu es JARVIS, assistant IA de Franck. Reponds en francais, de maniere concise et utile. Tu peux executer des commandes systeme si demande."
+
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -18,16 +25,22 @@ def init_db():
     conn.commit()
     return conn
 
+
 def get_history(conn, session="default", limit=20):
     c = conn.cursor()
-    c.execute("SELECT role, content FROM messages WHERE session=? ORDER BY id DESC LIMIT ?", (session, limit))
+    c.execute(
+        "SELECT role, content FROM messages WHERE session=? ORDER BY id DESC LIMIT ?",
+        (session,
+         limit))
     return [{"role": r[0], "content": r[1]} for r in c.fetchall()][::-1]
+
 
 def save_message(conn, role, content, session="default"):
     c = conn.cursor()
     c.execute("INSERT INTO messages (ts, role, content, session) VALUES (?,?,?,?)",
               (datetime.now().isoformat(), role, content[:5000], session))
     conn.commit()
+
 
 def query_m1(messages):
     # Build conversation with system prompt
@@ -40,7 +53,9 @@ def query_m1(messages):
         "stream": False,
         "store": False,
     }).encode()
-    req = urllib.request.Request(M1_URL, data=payload, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        M1_URL, data=payload, headers={
+            "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             data = json.loads(r.read())
@@ -54,6 +69,7 @@ def query_m1(messages):
     except Exception as e:
         return f"Erreur M1: {e}"
 
+
 def check_exec_request(response):
     """Detecte si la reponse contient une commande a executer."""
     if "```" in response:
@@ -63,6 +79,7 @@ def check_exec_request(response):
             if code.startswith(("bash\n", "powershell\n", "python\n")):
                 return code.split("\n", 1)[1] if "\n" in code else None
     return None
+
 
 def interactive_chat(conn):
     print("[JARVIS AI] Mode chat interactif. Tapez 'quit' pour sortir.\n")
@@ -80,6 +97,7 @@ def interactive_chat(conn):
         save_message(conn, "assistant", response, session)
         print(f"\nJARVIS > {response}\n")
 
+
 def single_ask(conn, question):
     save_message(conn, "user", question)
     history = get_history(conn, limit=5)
@@ -87,13 +105,14 @@ def single_ask(conn, question):
     save_message(conn, "assistant", response)
     print(f"JARVIS > {response}")
 
+
 if __name__ == "__main__":
     conn = init_db()
     if "--chat" in sys.argv:
         interactive_chat(conn)
     elif "--ask" in sys.argv:
         idx = sys.argv.index("--ask")
-        question = " ".join(sys.argv[idx+1:])
+        question = " ".join(sys.argv[idx + 1:])
         if question:
             single_ask(conn, question)
         else:

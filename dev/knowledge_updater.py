@@ -17,13 +17,57 @@ import os
 # Constants
 DB_PATH = Path("dev/data/knowledge.db")
 KEYWORDS = {
-    "system": ["windows", "gpu", "thermal", "process", "cpu", "ram", "disk", "registry", "service"],
-    "code": ["python", "javascript", "typescript", "bash", "sql", "api", "function", "class", "module"],
-    "trading": ["mexc", "futures", "btc", "eth", "signal", "strategy", "tp", "sl", "position"],
-    "cluster": ["m1", "m2", "m3", "ol1", "gemini", "claude", "agent", "node", "orchestrator", "latency"],
-    "windows": ["powershell", "batch", "cmd", "registry", "user", "admin", "permission", "wsl"],
-    "general": []
-}
+    "system": [
+        "windows",
+        "gpu",
+        "thermal",
+        "process",
+        "cpu",
+        "ram",
+        "disk",
+        "registry",
+        "service"],
+    "code": [
+        "python",
+        "javascript",
+        "typescript",
+        "bash",
+        "sql",
+        "api",
+        "function",
+        "class",
+        "module"],
+    "trading": [
+        "mexc",
+        "futures",
+        "btc",
+        "eth",
+        "signal",
+        "strategy",
+        "tp",
+        "sl",
+        "position"],
+    "cluster": [
+        "m1",
+        "m2",
+        "m3",
+        "ol1",
+        "gemini",
+        "claude",
+        "agent",
+        "node",
+        "orchestrator",
+        "latency"],
+    "windows": [
+        "powershell",
+        "batch",
+        "cmd",
+        "registry",
+        "user",
+        "admin",
+        "permission",
+        "wsl"],
+    "general": []}
 
 
 def init_db():
@@ -153,8 +197,10 @@ def update_entry(entry_id, new_content):
         return {"status": "error", "message": f"Entry ID {entry_id} not found"}
 
     old_content = row["content"]
-    old_preview = old_content[:100] + "..." if len(old_content) > 100 else old_content
-    new_preview = new_content[:100] + "..." if len(new_content) > 100 else new_content
+    old_preview = old_content[:100] + \
+        "..." if len(old_content) > 100 else old_content
+    new_preview = new_content[:100] + \
+        "..." if len(new_content) > 100 else new_content
 
     now = datetime.now().isoformat()
 
@@ -220,7 +266,8 @@ def list_categories():
         ORDER BY count DESC
     """)
 
-    results = [{"category": row[0], "count": row[1]} for row in cursor.fetchall()]
+    results = [{"category": row[0], "count": row[1]}
+               for row in cursor.fetchall()]
     conn.close()
 
     return {
@@ -275,7 +322,9 @@ def import_from_file(file_path):
         return {"status": "error", "message": f"Failed to read file: {e}"}
 
     if not isinstance(data, dict) or "entries" not in data:
-        return {"status": "error", "message": "Invalid JSON format. Expected 'entries' key."}
+        return {
+            "status": "error",
+            "message": "Invalid JSON format. Expected 'entries' key."}
 
     init_db()
     conn = sqlite3.connect(str(DB_PATH))
@@ -346,7 +395,7 @@ def get_stats():
     # Get database file size
     try:
         db_size = os.path.getsize(str(DB_PATH))
-    except:
+    except BaseException:
         db_size = 0
 
     conn.close()
@@ -426,8 +475,13 @@ Examples:
                         help="Import entries from JSON file")
     parser.add_argument("--stats", action="store_true",
                         help="Show knowledge base statistics")
-    parser.add_argument("--recent", type=int, nargs="?", const=20, metavar="LIMIT",
-                        help="Show recent entries (default: 20)")
+    parser.add_argument(
+        "--recent",
+        type=int,
+        nargs="?",
+        const=20,
+        metavar="LIMIT",
+        help="Show recent entries (default: 20)")
 
     args = parser.parse_args()
 
@@ -443,7 +497,10 @@ Examples:
             entry_id = int(args.update[0])
             result = update_entry(entry_id, args.update[1])
         except ValueError:
-            result = {"status": "error", "message": f"Invalid entry ID: {args.update[0]}"}
+            result = {
+                "status": "error",
+                "message": f"Invalid entry ID: {
+                    args.update[0]}"}
     elif args.list:
         result = list_entries()
     elif args.categories:

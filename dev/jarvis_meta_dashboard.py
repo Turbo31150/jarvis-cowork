@@ -61,7 +61,8 @@ def _scan_databases():
             ).fetchall()
             for (tname,) in tables:
                 try:
-                    count = conn.execute(f"SELECT COUNT(*) FROM [{tname}]").fetchone()[0]
+                    count = conn.execute(
+                        f"SELECT COUNT(*) FROM [{tname}]").fetchone()[0]
                     info["tables"].append({"name": tname, "rows": count})
                     info["total_rows"] += count
                 except Exception:
@@ -149,7 +150,7 @@ def _generate_html(db_stats):
             <div class="label">Total Rows</div>
         </div>
         <div class="card">
-            <div class="value">{round(total_size / (1024*1024), 1)}</div>
+            <div class="value">{round(total_size / (1024 * 1024), 1)}</div>
             <div class="label">Total Size (MB)</div>
         </div>
     </div>
@@ -175,15 +176,21 @@ def do_generate():
     """Generate the HTML dashboard."""
     db = init_db()
     db_stats = _scan_databases()
-    html, total_dbs, total_tables, total_rows, total_size = _generate_html(db_stats)
+    html, total_dbs, total_tables, total_rows, total_size = _generate_html(
+        db_stats)
 
     HTML_PATH.write_text(html, encoding="utf-8")
     html_size = HTML_PATH.stat().st_size
 
     db.execute(
         "INSERT INTO generations (ts, total_dbs, total_tables, total_rows, total_size_bytes, html_size_bytes, output_path) VALUES (?,?,?,?,?,?,?)",
-        (time.time(), total_dbs, total_tables, total_rows, total_size, html_size, str(HTML_PATH))
-    )
+        (time.time(),
+         total_dbs,
+         total_tables,
+         total_rows,
+         total_size,
+         html_size,
+         str(HTML_PATH)))
     db.commit()
 
     result = {
@@ -216,8 +223,7 @@ def do_serve(port=8888):
         "url": f"http://127.0.0.1:{port}/meta_dashboard.html",
         "file": str(HTML_PATH),
         "note": f"Run: python -m http.server {port} --directory \"{DATA_DIR}\" to serve",
-        "status": "info"
-    }
+        "status": "info"}
     db.execute("INSERT INTO checks (ts, action, report) VALUES (?,?,?)",
                (time.time(), "serve", json.dumps(result)))
     db.commit()
@@ -234,7 +240,8 @@ def do_export():
     """Export dashboard data as JSON."""
     db = init_db()
     db_stats = _scan_databases()
-    export_path = DATA_DIR / f"meta_dashboard_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    export_path = DATA_DIR / \
+        f"meta_dashboard_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
     export_data = {
         "generated": datetime.now().isoformat(),
@@ -246,7 +253,12 @@ def do_export():
             "total_size_mb": round(sum(d["size_bytes"] for d in db_stats) / (1024 * 1024), 2)
         }
     }
-    export_path.write_text(json.dumps(export_data, ensure_ascii=False, indent=2), encoding="utf-8")
+    export_path.write_text(
+        json.dumps(
+            export_data,
+            ensure_ascii=False,
+            indent=2),
+        encoding="utf-8")
 
     result = {
         "ts": datetime.now().isoformat(),
@@ -263,12 +275,28 @@ def do_export():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Meta dashboard generator for all dev/data/*.db")
-    parser.add_argument("--generate", action="store_true", help="Generate HTML dashboard")
-    parser.add_argument("--serve", action="store_true", help="Show serve instructions")
-    parser.add_argument("--update", action="store_true", help="Update dashboard with fresh data")
-    parser.add_argument("--export", action="store_true", help="Export data as JSON")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="Meta dashboard generator for all dev/data/*.db")
+    parser.add_argument(
+        "--generate",
+        action="store_true",
+        help="Generate HTML dashboard")
+    parser.add_argument(
+        "--serve",
+        action="store_true",
+        help="Show serve instructions")
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Update dashboard with fresh data")
+    parser.add_argument(
+        "--export",
+        action="store_true",
+        help="Export data as JSON")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.generate:

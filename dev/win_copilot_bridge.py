@@ -47,7 +47,8 @@ def check_copilot_status():
             if isinstance(data, dict):
                 data = [data]
             for p in data:
-                details.append({"name": p.get("Name"), "pid": p.get("Id"), "mem_mb": p.get("MemMB", 0)})
+                details.append({"name": p.get("Name"), "pid": p.get(
+                    "Id"), "mem_mb": p.get("MemMB", 0)})
             running = len(data) > 0
     except Exception:
         pass
@@ -69,7 +70,8 @@ def check_ai_services():
             data = json.loads(out.stdout)
             if isinstance(data, dict):
                 data = [data]
-            services = [{"name": p.get("Name"), "pid": p.get("Id")} for p in data]
+            services = [{"name": p.get("Name"), "pid": p.get("Id")}
+                        for p in data]
     except Exception:
         pass
     return services
@@ -91,8 +93,12 @@ def do_status():
         "recommendation": "JARVIS cluster active — Copilot optional" if ai_services else "No AI services detected",
     }
 
-    db.execute("INSERT INTO copilot_activity (ts, copilot_running, ai_coexist, report) VALUES (?,?,?,?)",
-               (time.time(), int(copilot_running), coexist, json.dumps(report)))
+    db.execute(
+        "INSERT INTO copilot_activity (ts, copilot_running, ai_coexist, report) VALUES (?,?,?,?)",
+        (time.time(),
+         int(copilot_running),
+         coexist,
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -100,9 +106,19 @@ def do_status():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Copilot Bridge")
-    parser.add_argument("--once", "--status", action="store_true", help="Check status")
-    parser.add_argument("--intercept", action="store_true", help="Intercept mode")
-    parser.add_argument("--enhance", action="store_true", help="Enhance responses")
+    parser.add_argument(
+        "--once",
+        "--status",
+        action="store_true",
+        help="Check status")
+    parser.add_argument(
+        "--intercept",
+        action="store_true",
+        help="Intercept mode")
+    parser.add_argument(
+        "--enhance",
+        action="store_true",
+        help="Enhance responses")
     parser.add_argument("--log", action="store_true", help="Show log")
     args = parser.parse_args()
     print(json.dumps(do_status(), ensure_ascii=False, indent=2))

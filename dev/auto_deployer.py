@@ -15,6 +15,7 @@ from pathlib import Path
 DB_PATH = Path(__file__).parent / "deployer.db"
 TURBO = Path("F:/BUREAU/turbo")
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS deployments (
@@ -26,6 +27,7 @@ def init_db():
         status TEXT, details TEXT)""")
     db.commit()
     return db
+
 
 def get_current_commit():
     """Get current git commit hash and message."""
@@ -40,6 +42,7 @@ def get_current_commit():
         pass
     return "", ""
 
+
 def check_uncommitted():
     """Check for uncommitted changes."""
     try:
@@ -52,6 +55,7 @@ def check_uncommitted():
     except (subprocess.TimeoutExpired, OSError):
         pass
     return -1
+
 
 def run_quick_tests():
     """Run quick syntax + import tests."""
@@ -78,13 +82,24 @@ def run_quick_tests():
             results["failed"] += 1
     return results
 
+
 def run_full_tests():
     """Run pytest test suites."""
     try:
-        r = subprocess.run(
-            ["python", "-m", "pytest", str(TURBO / "tests"), "-q", "--tb=line", "--no-header", "-x"],
-            capture_output=True, text=True, timeout=120,
-            cwd=str(TURBO), env={**os.environ, "PYTHONPATH": str(TURBO)})
+        r = subprocess.run(["python",
+                            "-m",
+                            "pytest",
+                            str(TURBO / "tests"),
+                            "-q",
+                            "--tb=line",
+                            "--no-header",
+                            "-x"],
+                           capture_output=True,
+                           text=True,
+                           timeout=120,
+                           cwd=str(TURBO),
+                           env={**os.environ,
+                                "PYTHONPATH": str(TURBO)})
         output = r.stdout + r.stderr
         import re
         p = re.search(r"(\d+) passed", output)
@@ -94,6 +109,7 @@ def run_full_tests():
         return passed, failed, output[-300:]
     except (subprocess.TimeoutExpired, OSError) as e:
         return 0, 1, str(e)
+
 
 def check_services():
     """Check if key services are running."""
@@ -113,6 +129,7 @@ def check_services():
             results[name] = "DOWN"
     return results
 
+
 def deploy_pipeline(db, full_tests=False):
     """Full deployment pipeline."""
     start = time.time()
@@ -131,7 +148,7 @@ def deploy_pipeline(db, full_tests=False):
     if quick["failed"] > 0:
         db.execute(
             "INSERT INTO deployments (ts, commit_hash, commit_msg, tests_passed, tests_failed, status, duration_s) VALUES (?,?,?,?,?,?,?)",
-            (time.time(), commit_hash, commit_msg[:200], quick["passed"], quick["failed"], "failed_syntax", time.time()-start))
+            (time.time(), commit_hash, commit_msg[:200], quick["passed"], quick["failed"], "failed_syntax", time.time() - start))
         db.commit()
         return False
 
@@ -143,7 +160,7 @@ def deploy_pipeline(db, full_tests=False):
             print(f"    {output[:200]}")
             db.execute(
                 "INSERT INTO deployments (ts, commit_hash, commit_msg, tests_passed, tests_failed, status, duration_s) VALUES (?,?,?,?,?,?,?)",
-                (time.time(), commit_hash, commit_msg[:200], passed, failed, "failed_tests", time.time()-start))
+                (time.time(), commit_hash, commit_msg[:200], passed, failed, "failed_tests", time.time() - start))
             db.commit()
             return False
 
@@ -160,10 +177,14 @@ def deploy_pipeline(db, full_tests=False):
     print(f"  Deploy OK ({duration:.1f}s)")
     return True
 
+
 def main():
     parser = argparse.ArgumentParser(description="Auto Deployer")
     parser.add_argument("--once", action="store_true")
-    parser.add_argument("--full", action="store_true", help="Run full test suite")
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Run full test suite")
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--interval", type=int, default=3600)
     parser.add_argument("--stats", action="store_true")
@@ -173,8 +194,10 @@ def main():
 
     if args.stats:
         total = db.execute("SELECT COUNT(*) FROM deployments").fetchone()[0]
-        success = db.execute("SELECT COUNT(*) FROM deployments WHERE status='success'").fetchone()[0]
-        print(f"Deployments: {success}/{total} success ({success/max(total,1)*100:.0f}%)")
+        success = db.execute(
+            "SELECT COUNT(*) FROM deployments WHERE status='success'").fetchone()[0]
+        print(
+            f"Deployments: {success}/{total} success ({success / max(total, 1) * 100:.0f}%)")
         return
 
     if args.once or not args.loop:
@@ -188,12 +211,14 @@ def main():
             try:
                 h, _ = get_current_commit()
                 if h != last_hash:
-                    print(f"\n[{time.strftime('%H:%M')}] New commit detected: {h}")
+                    print(
+                        f"\n[{time.strftime('%H:%M')}] New commit detected: {h}")
                     deploy_pipeline(db, args.full)
                     last_hash = h
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

@@ -87,7 +87,8 @@ def get_processes():
                 if len(parts) >= 4:
                     name = parts[1]
                     pid = int(parts[2]) if parts[2].isdigit() else 0
-                    ram = int(parts[3]) / 1024 / 1024 if parts[3].isdigit() else 0
+                    ram = int(parts[3]) / 1024 / \
+                        1024 if parts[3].isdigit() else 0
                     processes.append({
                         "name": name, "pid": pid, "cpu": 0,
                         "ram_mb": round(ram, 1),
@@ -104,21 +105,31 @@ def do_scan():
     db = init_db()
     processes = get_processes()
 
-    high_cpu = [p for p in processes if p["cpu"] > CPU_THRESHOLD and not p["whitelisted"]]
-    high_ram = [p for p in processes if p["ram_mb"] > RAM_THRESHOLD_MB and not p["whitelisted"]]
+    high_cpu = [p for p in processes if p["cpu"]
+                > CPU_THRESHOLD and not p["whitelisted"]]
+    high_ram = [p for p in processes if p["ram_mb"]
+                > RAM_THRESHOLD_MB and not p["whitelisted"]]
     total_ram = sum(p["ram_mb"] for p in processes) / 1024  # GB
 
     # Log alerts
     for p in high_cpu:
         db.execute(
             "INSERT INTO alerts (ts, process_name, pid, cpu_pct, ram_mb, action) VALUES (?,?,?,?,?,?)",
-            (time.time(), p["name"], p["pid"], p["cpu"], p["ram_mb"], "high_cpu_detected")
-        )
+            (time.time(),
+             p["name"],
+                p["pid"],
+                p["cpu"],
+                p["ram_mb"],
+                "high_cpu_detected"))
     for p in high_ram:
         db.execute(
             "INSERT INTO alerts (ts, process_name, pid, cpu_pct, ram_mb, action) VALUES (?,?,?,?,?,?)",
-            (time.time(), p["name"], p["pid"], p["cpu"], p["ram_mb"], "high_ram_detected")
-        )
+            (time.time(),
+             p["name"],
+                p["pid"],
+                p["cpu"],
+                p["ram_mb"],
+                "high_ram_detected"))
 
     # Top consumers
     by_ram = sorted(processes, key=lambda x: x["ram_mb"], reverse=True)[:10]
@@ -126,8 +137,13 @@ def do_scan():
 
     db.execute(
         "INSERT INTO snapshots (ts, total_processes, high_cpu, high_ram, total_ram_gb) VALUES (?,?,?,?,?)",
-        (time.time(), len(processes), len(high_cpu), len(high_ram), round(total_ram, 2))
-    )
+        (time.time(),
+         len(processes),
+         len(high_cpu),
+         len(high_ram),
+         round(
+            total_ram,
+            2)))
     db.commit()
     db.close()
 
@@ -148,8 +164,15 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Process Guardian")
-    parser.add_argument("--once", "--watch", action="store_true", help="Scan processes")
-    parser.add_argument("--whitelist", action="store_true", help="Show whitelist")
+    parser.add_argument(
+        "--once",
+        "--watch",
+        action="store_true",
+        help="Scan processes")
+    parser.add_argument(
+        "--whitelist",
+        action="store_true",
+        help="Show whitelist")
     parser.add_argument("--kill", metavar="PID", type=int, help="Kill process")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()
@@ -157,7 +180,8 @@ def main():
     if args.whitelist:
         print(json.dumps(WHITELIST, indent=2))
     elif args.kill:
-        print(json.dumps({"error": "Manual kill disabled for safety"}, indent=2))
+        print(json.dumps(
+            {"error": "Manual kill disabled for safety"}, indent=2))
     else:
         result = do_scan()
         print(json.dumps(result, ensure_ascii=False, indent=2))

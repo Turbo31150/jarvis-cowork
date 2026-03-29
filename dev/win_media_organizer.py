@@ -9,7 +9,13 @@ Usage:
     python dev/win_media_organizer.py --stats
     python dev/win_media_organizer.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, hashlib
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import hashlib
 from datetime import datetime
 from pathlib import Path
 
@@ -17,11 +23,50 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "media_organizer.db"
 
 MEDIA_TYPES = {
-    "images": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".ico", ".tiff", ".raw", ".heic"],
-    "videos": [".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".mpg", ".mpeg"],
-    "audio": [".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a", ".opus"],
-    "documents": [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".csv"],
+    "images": [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".bmp",
+        ".webp",
+        ".svg",
+        ".ico",
+        ".tiff",
+        ".raw",
+        ".heic"],
+    "videos": [
+        ".mp4",
+        ".avi",
+        ".mkv",
+        ".mov",
+        ".wmv",
+        ".flv",
+        ".webm",
+        ".m4v",
+        ".mpg",
+        ".mpeg"],
+    "audio": [
+        ".mp3",
+        ".wav",
+        ".flac",
+        ".aac",
+        ".ogg",
+        ".wma",
+        ".m4a",
+        ".opus"],
+    "documents": [
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".xls",
+        ".xlsx",
+        ".ppt",
+        ".pptx",
+        ".txt",
+        ".csv"],
 }
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -66,12 +111,14 @@ def init_db():
     db.commit()
     return db
 
+
 def get_media_type(ext):
     ext_lower = ext.lower()
     for mtype, extensions in MEDIA_TYPES.items():
         if ext_lower in extensions:
             return mtype
     return "other"
+
 
 def file_md5(filepath, chunk_size=8192):
     """Calculate MD5 hash of a file (first 1MB for speed)."""
@@ -84,6 +131,7 @@ def file_md5(filepath, chunk_size=8192):
         return h.hexdigest()
     except Exception:
         return None
+
 
 def do_scan(directory):
     db = init_db()
@@ -148,31 +196,53 @@ def do_scan(directory):
 
     elapsed = int((time.time() - start) * 1000)
 
-    cursor = db.execute("""INSERT INTO scans (ts, directory, total_files, total_size_mb, images, videos, audio, documents, other, duplicates_found, duration_ms)
+    cursor = db.execute(
+        """INSERT INTO scans (ts, directory, total_files, total_size_mb, images, videos, audio, documents, other, duplicates_found, duration_ms)
                           VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                        (datetime.now().isoformat(), str(scan_dir), len(file_list), round(total_size / (1024*1024), 2),
-                         counts["images"], counts["videos"], counts["audio"], counts["documents"], counts["other"],
-                         duplicates, elapsed))
+        (datetime.now().isoformat(),
+         str(scan_dir),
+         len(file_list),
+         round(
+            total_size / (
+                1024 * 1024),
+            2),
+            counts["images"],
+            counts["videos"],
+            counts["audio"],
+            counts["documents"],
+            counts["other"],
+            duplicates,
+            elapsed))
     scan_id = cursor.lastrowid
 
     # Store files (batch insert)
     for f in file_list[:5000]:  # Limit DB entries
-        db.execute("""INSERT INTO files (scan_id, path, filename, extension, media_type, size_bytes, md5_hash, modified_date, year, month, is_duplicate)
+        db.execute(
+            """INSERT INTO files (scan_id, path, filename, extension, media_type, size_bytes, md5_hash, modified_date, year, month, is_duplicate)
                       VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                   (scan_id, f["path"], f["filename"], f["extension"], f["media_type"],
-                    f["size_bytes"], f["md5_hash"], f["modified"], f["year"], f["month"], f["is_duplicate"]))
+            (scan_id,
+             f["path"],
+                f["filename"],
+                f["extension"],
+                f["media_type"],
+                f["size_bytes"],
+                f["md5_hash"],
+                f["modified"],
+                f["year"],
+                f["month"],
+                f["is_duplicate"]))
     db.commit()
 
     result = {
         "action": "scan",
         "directory": str(scan_dir),
         "total_files": len(file_list),
-        "total_size_mb": round(total_size / (1024*1024), 2),
+        "total_size_mb": round(total_size / (1024 * 1024), 2),
         "by_type": counts,
         "duplicates_found": duplicates,
         "duration_ms": elapsed,
         "top_10_largest": sorted(
-            [{"file": f["filename"], "size_mb": round(f["size_bytes"] / (1024*1024), 2), "type": f["media_type"]}
+            [{"file": f["filename"], "size_mb": round(f["size_bytes"] / (1024 * 1024), 2), "type": f["media_type"]}
              for f in file_list], key=lambda x: x["size_mb"], reverse=True
         )[:10],
         "ts": datetime.now().isoformat()
@@ -180,16 +250,20 @@ def do_scan(directory):
     db.close()
     return result
 
+
 def do_organize():
     """Show organization plan (dry run — does not move files)."""
     db = init_db()
-    scan = db.execute("SELECT id, directory FROM scans ORDER BY id DESC LIMIT 1").fetchone()
+    scan = db.execute(
+        "SELECT id, directory FROM scans ORDER BY id DESC LIMIT 1").fetchone()
     if not scan:
         db.close()
         return {"error": "No scans found. Use --scan first."}
 
-    files = db.execute("SELECT filename, media_type, year, month, size_bytes FROM files WHERE scan_id=? ORDER BY year, month",
-                       (scan[0],)).fetchall()
+    files = db.execute(
+        "SELECT filename, media_type, year, month, size_bytes FROM files WHERE scan_id=? ORDER BY year, month",
+        (scan[0],
+         )).fetchall()
 
     plan = {}
     for f in files:
@@ -197,7 +271,8 @@ def do_organize():
         if dest not in plan:
             plan[dest] = {"count": 0, "size_mb": 0}
         plan[dest]["count"] += 1
-        plan[dest]["size_mb"] = round(plan[dest]["size_mb"] + (f[4] or 0) / (1024*1024), 2)
+        plan[dest]["size_mb"] = round(
+            plan[dest]["size_mb"] + (f[4] or 0) / (1024 * 1024), 2)
 
     result = {
         "action": "organize_plan",
@@ -206,36 +281,43 @@ def do_organize():
         "destination_folders": plan,
         "total_folders": len(plan),
         "note": "Dry run — files not moved. Folders follow pattern: type/YYYY/MM",
-        "ts": datetime.now().isoformat()
-    }
+        "ts": datetime.now().isoformat()}
     db.close()
     return result
 
+
 def do_duplicates():
     db = init_db()
-    scan = db.execute("SELECT id FROM scans ORDER BY id DESC LIMIT 1").fetchone()
+    scan = db.execute(
+        "SELECT id FROM scans ORDER BY id DESC LIMIT 1").fetchone()
     if not scan:
         db.close()
         return {"error": "No scans found"}
 
-    dups = db.execute("""SELECT f1.filename, f1.path, f1.size_bytes, f1.md5_hash
+    dups = db.execute(
+        """SELECT f1.filename, f1.path, f1.size_bytes, f1.md5_hash
                         FROM files f1 WHERE f1.scan_id=? AND f1.is_duplicate=1 ORDER BY f1.size_bytes DESC LIMIT 50""",
-                      (scan[0],)).fetchall()
+        (scan[0],
+         )).fetchall()
 
     # Group by hash
     hash_groups = {}
-    all_hashed = db.execute("SELECT md5_hash, path, size_bytes FROM files WHERE scan_id=? AND md5_hash IS NOT NULL",
-                            (scan[0],)).fetchall()
+    all_hashed = db.execute(
+        "SELECT md5_hash, path, size_bytes FROM files WHERE scan_id=? AND md5_hash IS NOT NULL",
+        (scan[0],
+         )).fetchall()
     for h, p, s in all_hashed:
         if h not in hash_groups:
             hash_groups[h] = []
         hash_groups[h].append({"path": p, "size_bytes": s})
 
-    duplicate_groups = {h: files for h, files in hash_groups.items() if len(files) > 1}
+    duplicate_groups = {
+        h: files for h,
+        files in hash_groups.items() if len(files) > 1}
     wasted_mb = sum(
         sum(f["size_bytes"] for f in files[1:])
         for files in duplicate_groups.values()
-    ) / (1024*1024)
+    ) / (1024 * 1024)
 
     result = {
         "action": "duplicates",
@@ -244,7 +326,7 @@ def do_duplicates():
         "wasted_space_mb": round(wasted_mb, 2),
         "top_duplicates": [
             {"hash": h, "count": len(files), "files": [f["path"] for f in files[:3]],
-             "size_each_mb": round(files[0]["size_bytes"] / (1024*1024), 2)}
+             "size_each_mb": round(files[0]["size_bytes"] / (1024 * 1024), 2)}
             for h, files in sorted(duplicate_groups.items(),
                                    key=lambda x: x[1][0]["size_bytes"], reverse=True)[:10]
         ],
@@ -253,13 +335,17 @@ def do_duplicates():
     db.close()
     return result
 
+
 def do_stats():
     db = init_db()
     total_scans = db.execute("SELECT COUNT(*) FROM scans").fetchone()[0]
     total_files = db.execute("SELECT COUNT(*) FROM files").fetchone()[0]
-    total_size = db.execute("SELECT SUM(total_size_mb) FROM scans").fetchone()[0] or 0
-    type_dist = db.execute("SELECT media_type, COUNT(*) FROM files GROUP BY media_type ORDER BY COUNT(*) DESC").fetchall()
-    recent = db.execute("SELECT ts, directory, total_files, duplicates_found FROM scans ORDER BY id DESC LIMIT 5").fetchall()
+    total_size = db.execute(
+        "SELECT SUM(total_size_mb) FROM scans").fetchone()[0] or 0
+    type_dist = db.execute(
+        "SELECT media_type, COUNT(*) FROM files GROUP BY media_type ORDER BY COUNT(*) DESC").fetchall()
+    recent = db.execute(
+        "SELECT ts, directory, total_files, duplicates_found FROM scans ORDER BY id DESC LIMIT 5").fetchall()
 
     result = {
         "action": "stats",
@@ -272,6 +358,7 @@ def do_stats():
     }
     db.close()
     return result
+
 
 def do_once():
     db = init_db()
@@ -287,13 +374,25 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Media File Organizer — COWORK #238")
-    parser.add_argument("--scan", type=str, metavar="DIR", help="Scan directory for media files")
-    parser.add_argument("--organize", action="store_true", help="Show organization plan")
-    parser.add_argument("--duplicates", action="store_true", help="Show duplicate files")
+    parser = argparse.ArgumentParser(
+        description="Media File Organizer — COWORK #238")
+    parser.add_argument("--scan", type=str, metavar="DIR",
+                        help="Scan directory for media files")
+    parser.add_argument(
+        "--organize",
+        action="store_true",
+        help="Show organization plan")
+    parser.add_argument(
+        "--duplicates",
+        action="store_true",
+        help="Show duplicate files")
     parser.add_argument("--stats", action="store_true", help="Show statistics")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.scan:
@@ -306,6 +405,7 @@ def main():
         print(json.dumps(do_stats(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

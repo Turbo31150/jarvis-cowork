@@ -42,11 +42,16 @@ def init_db():
 def query_m1(prompt, timeout=20):
     """Query M1."""
     try:
-        data = json.dumps({
-            "model": "qwen3-8b", "input": f"/nothink\n{prompt}",
-            "temperature": 0.3, "max_output_tokens": 512, "stream": False, "store": False,
-        }).encode()
-        req = urllib.request.Request(M1_URL, data=data, headers={"Content-Type": "application/json"})
+        data = json.dumps({"model": "qwen3-8b",
+                           "input": f"/nothink\n{prompt}",
+                           "temperature": 0.3,
+                           "max_output_tokens": 512,
+                           "stream": False,
+                           "store": False,
+                           }).encode()
+        req = urllib.request.Request(
+            M1_URL, data=data, headers={
+                "Content-Type": "application/json"})
         start = time.time()
         with urllib.request.urlopen(req, timeout=timeout) as r:
             result = json.loads(r.read().decode())
@@ -67,7 +72,11 @@ def generate_variants(prompt):
 
     # Variant 1: Shorter
     shorter = prompt
-    for filler in ["s'il te plait ", "please ", "je voudrais que tu ", "peux-tu "]:
+    for filler in [
+        "s'il te plait ",
+        "please ",
+        "je voudrais que tu ",
+            "peux-tu "]:
         shorter = shorter.replace(filler, "")
     if shorter != prompt:
         variants.append({"type": "shorter", "prompt": shorter.strip()})
@@ -106,7 +115,8 @@ def score_response(response, prompt):
     score += min(overlap * 0.3, 0.3)
 
     # No error indicators
-    if not any(err in response.lower() for err in ["error", "erreur", "sorry", "cannot"]):
+    if not any(err in response.lower()
+               for err in ["error", "erreur", "sorry", "cannot"]):
         score += 0.2
 
     return min(round(score, 3), 1.0)
@@ -155,9 +165,9 @@ def do_optimize(prompt=None):
             )
 
             variant_result = {
-                "type": v["type"], "score": v_score,
-                "latency_ms": round(lat, 1), "delta": round(v_score - orig_score, 3),
-            }
+                "type": v["type"], "score": v_score, "latency_ms": round(
+                    lat, 1), "delta": round(
+                    v_score - orig_score, 3), }
             experiment["variants"].append(variant_result)
 
             if v_score > best_score:
@@ -181,8 +191,15 @@ def do_optimize(prompt=None):
 
 def main():
     parser = argparse.ArgumentParser(description="IA Prompt Optimizer")
-    parser.add_argument("--once", "--analyze", action="store_true", help="Run optimization")
-    parser.add_argument("--optimize", metavar="PROMPT", help="Optimize specific prompt")
+    parser.add_argument(
+        "--once",
+        "--analyze",
+        action="store_true",
+        help="Run optimization")
+    parser.add_argument(
+        "--optimize",
+        metavar="PROMPT",
+        help="Optimize specific prompt")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()
 

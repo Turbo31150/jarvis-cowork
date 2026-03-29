@@ -23,18 +23,30 @@ from typing import Dict, Any, List
 DB_PATH = Path(__file__).parent.parent / "data" / "dispatcher.db"
 DEFAULT_CONFIG = {
     "nodes": {
-        "M1": {"endpoint": "http://10.5.0.2:1234/v1/chat/completions", "thermal_limit": 85},
-        "M2": {"endpoint": "http://192.168.1.26:1234/v1/chat/completions", "thermal_limit": 80},
-        "OL1": {"endpoint": "http://127.0.0.1:11434/api/chat", "thermal_limit": 90},
-        "M3": {"endpoint": "http://192.168.1.113:1234/v1/chat/completions", "thermal_limit": 80},
+        "M1": {
+            "endpoint": "http://10.5.0.2:1234/v1/chat/completions",
+            "thermal_limit": 85},
+        "M2": {
+            "endpoint": "http://192.168.1.26:1234/v1/chat/completions",
+            "thermal_limit": 80},
+        "OL1": {
+            "endpoint": "http://127.0.0.1:11434/api/chat",
+            "thermal_limit": 90},
+        "M3": {
+            "endpoint": "http://192.168.1.113:1234/v1/chat/completions",
+                        "thermal_limit": 80},
     },
-    "priority": ["M1", "M2", "OL1", "M3"]
-}
+    "priority": [
+        "M1",
+        "M2",
+        "OL1",
+        "M3"]}
 
 log = logging.getLogger("auto_dispatcher")
 log.setLevel(logging.INFO)
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s %(message)s"))
+handler.setFormatter(logging.Formatter(
+    "[%(asctime)s] %(levelname)s %(message)s"))
 log.addHandler(handler)
 
 
@@ -128,7 +140,8 @@ def process_queue(stop_event: threading.Event, cfg: Dict[str, Any]) -> None:
     while not stop_event.is_set():
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
-        cur.execute("SELECT id, intent, payload FROM tasks WHERE status='queued' ORDER BY created_at LIMIT 1")
+        cur.execute(
+            "SELECT id, intent, payload FROM tasks WHERE status='queued' ORDER BY created_at LIMIT 1")
         row = cur.fetchone()
         if not row:
             conn.close()
@@ -162,7 +175,8 @@ def process_queue(stop_event: threading.Event, cfg: Dict[str, Any]) -> None:
                 "UPDATE runs SET finished_at=CURRENT_TIMESTAMP, success=1 WHERE id=?",
                 (run_id,),
             )
-            cur.execute("UPDATE tasks SET status='done' WHERE id=?", (task_id,))
+            cur.execute(
+                "UPDATE tasks SET status='done' WHERE id=?", (task_id,))
             conn.commit()
             conn.close()
             log.info("Task %s completed on %s", task_id, node)
@@ -179,7 +193,8 @@ def process_queue(stop_event: threading.Event, cfg: Dict[str, Any]) -> None:
                 conn.close()
             conn = sqlite3.connect(DB_PATH)
             cur = conn.cursor()
-            cur.execute("UPDATE tasks SET status='error' WHERE id=?", (task_id,))
+            cur.execute(
+                "UPDATE tasks SET status='error' WHERE id=?", (task_id,))
             conn.commit()
             conn.close()
         time.sleep(0.5)
@@ -189,7 +204,9 @@ def start_service(cfg_path: Path) -> None:
     cfg = load_config(cfg_path)
     init_db()
     stop_event = threading.Event()
-    worker = threading.Thread(target=process_queue, args=(stop_event, cfg), daemon=True)
+    worker = threading.Thread(
+        target=process_queue, args=(
+            stop_event, cfg), daemon=True)
     worker.start()
     log.info("Dispatcher started. Press Ctrl+C to stop.")
     try:
@@ -203,7 +220,8 @@ def start_service(cfg_path: Path) -> None:
 
 
 def stop_service() -> None:
-    # Placeholder: in real system we would signal the running thread via pid file.
+    # Placeholder: in real system we would signal the running thread via pid
+    # file.
     log.info("Stop command received. Implement external signalling as needed.")
 
 
@@ -217,15 +235,35 @@ def status_service() -> None:
     cur.execute("SELECT COUNT(*) FROM tasks WHERE status='done'")
     done = cur.fetchone()[0]
     conn.close()
-    log.info("Dispatcher status: %s queued, %s running, %s completed.", queued, running, done)
+    log.info(
+        "Dispatcher status: %s queued, %s running, %s completed.",
+        queued,
+        running,
+        done)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Auto Dispatcher for COWORK batch tasks")
-    parser.add_argument("--start", action="store_true", help="Start the dispatcher service")
-    parser.add_argument("--stop", action="store_true", help="Stop the dispatcher service")
-    parser.add_argument("--status", action="store_true", help="Show current dispatcher status")
-    parser.add_argument("--config", type=str, default=str(Path(__file__).parent / "dispatcher_config.json"), help="Path to config JSON")
+    parser = argparse.ArgumentParser(
+        description="Auto Dispatcher for COWORK batch tasks")
+    parser.add_argument(
+        "--start",
+        action="store_true",
+        help="Start the dispatcher service")
+    parser.add_argument(
+        "--stop",
+        action="store_true",
+        help="Stop the dispatcher service")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Show current dispatcher status")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=str(
+            Path(__file__).parent /
+            "dispatcher_config.json"),
+        help="Path to config JSON")
     args = parser.parse_args()
     cfg_path = Path(args.config)
     if args.start:
@@ -236,6 +274,7 @@ def main() -> None:
         status_service()
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

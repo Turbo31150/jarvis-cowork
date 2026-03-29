@@ -50,7 +50,8 @@ def scan_error_databases():
     for db_file in sorted(data_dir.glob("*.db")):
         try:
             db = sqlite3.connect(str(db_file))
-            tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            tables = [t[0] for t in db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
 
             for table in tables:
                 # Get column info
@@ -58,7 +59,8 @@ def scan_error_databases():
                 col_names = [c[1] for c in cols]
 
                 # Look for error-related columns
-                error_cols = [c for c in col_names if "error" in c.lower() or "status" in c.lower()]
+                error_cols = [
+                    c for c in col_names if "error" in c.lower() or "status" in c.lower()]
                 for ecol in error_cols:
                     try:
                         rows = db.execute(
@@ -183,8 +185,11 @@ def do_analyze():
 
     db.execute(
         "INSERT INTO analyses (ts, errors_found, fixes_suggested, fixes_applied, report) VALUES (?,?,?,?,?)",
-        (time.time(), len(errors), len(suggestions), 0, json.dumps(report))
-    )
+        (time.time(),
+         len(errors),
+         len(suggestions),
+         0,
+         json.dumps(report)))
     db.commit()
     db.close()
 
@@ -193,9 +198,19 @@ def do_analyze():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Self Improver")
-    parser.add_argument("--once", "--analyze", action="store_true", help="Analyze and suggest")
-    parser.add_argument("--suggest", action="store_true", help="Show suggestions")
-    parser.add_argument("--apply", action="store_true", help="Apply safe fixes")
+    parser.add_argument(
+        "--once",
+        "--analyze",
+        action="store_true",
+        help="Analyze and suggest")
+    parser.add_argument(
+        "--suggest",
+        action="store_true",
+        help="Show suggestions")
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Apply safe fixes")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()
 

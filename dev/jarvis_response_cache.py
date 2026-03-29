@@ -42,7 +42,8 @@ def init_db():
     )""")
     # Recreate cache_stats if schema changed (migration-safe)
     try:
-        db.execute("SELECT total_hits, total_misses, total_evictions, total_invalidations, total_puts FROM cache_stats LIMIT 1")
+        db.execute(
+            "SELECT total_hits, total_misses, total_evictions, total_invalidations, total_puts FROM cache_stats LIMIT 1")
     except sqlite3.OperationalError:
         db.execute("DROP TABLE IF EXISTS cache_stats")
     db.execute("""CREATE TABLE IF NOT EXISTS cache_stats (
@@ -92,8 +93,9 @@ def enforce_lru(db):
         )
     """, (excess,))
     db.execute(
-        "UPDATE cache_stats SET total_evictions=total_evictions+? WHERE id=1", (excess,)
-    )
+        "UPDATE cache_stats SET total_evictions=total_evictions+? WHERE id=1",
+        (excess,
+         ))
     db.commit()
     return excess
 
@@ -130,7 +132,8 @@ def cache_get(db, prompt):
         }
     else:
         # Cache MISS
-        db.execute("UPDATE cache_stats SET total_misses=total_misses+1 WHERE id=1")
+        db.execute(
+            "UPDATE cache_stats SET total_misses=total_misses+1 WHERE id=1")
         db.commit()
 
         return {
@@ -178,17 +181,22 @@ def get_stats(db):
     hits, misses, evictions, invalidations, puts = row
 
     total_requests = hits + misses
-    hit_rate = round(hits / total_requests * 100, 1) if total_requests > 0 else 0
+    hit_rate = round(
+        hits / total_requests * 100,
+        1) if total_requests > 0 else 0
 
     entry_count = db.execute("SELECT COUNT(*) FROM cache").fetchone()[0]
-    total_size = db.execute("SELECT COALESCE(SUM(size_bytes), 0) FROM cache").fetchone()[0]
-    avg_accesses = db.execute("SELECT COALESCE(AVG(access_count), 0) FROM cache").fetchone()[0]
+    total_size = db.execute(
+        "SELECT COALESCE(SUM(size_bytes), 0) FROM cache").fetchone()[0]
+    avg_accesses = db.execute(
+        "SELECT COALESCE(AVG(access_count), 0) FROM cache").fetchone()[0]
 
     # Top accessed entries
     top = db.execute(
         "SELECT prompt, access_count, model FROM cache ORDER BY access_count DESC LIMIT 5"
     ).fetchall()
-    top_entries = [{"prompt": t[0][:80], "accesses": t[1], "model": t[2]} for t in top]
+    top_entries = [{"prompt": t[0][:80],
+                    "accesses": t[1], "model": t[2]} for t in top]
 
     return {
         "status": "ok",
@@ -250,13 +258,29 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Response Cache (#199) — SHA256 prompt caching")
-    parser.add_argument("--get", type=str, help="Get cached response for prompt")
-    parser.add_argument("--put", nargs=2, metavar=("PROMPT", "RESPONSE"), help="Store prompt/response pair")
-    parser.add_argument("--stats", action="store_true", help="Show cache statistics")
+    parser = argparse.ArgumentParser(
+        description="Response Cache (#199) — SHA256 prompt caching")
+    parser.add_argument(
+        "--get",
+        type=str,
+        help="Get cached response for prompt")
+    parser.add_argument(
+        "--put",
+        nargs=2,
+        metavar=(
+            "PROMPT",
+            "RESPONSE"),
+        help="Store prompt/response pair")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show cache statistics")
     parser.add_argument("--invalidate", type=str, nargs="?", const="",
                         help="Invalidate cache (optional pattern)")
-    parser.add_argument("--once", action="store_true", help="Run once with demo")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once with demo")
     args = parser.parse_args()
 
     db = init_db()
@@ -268,7 +292,8 @@ def main():
     elif args.stats:
         result = get_stats(db)
     elif args.invalidate is not None:
-        result = invalidate_cache(db, args.invalidate if args.invalidate else None)
+        result = invalidate_cache(
+            db, args.invalidate if args.invalidate else None)
     elif args.once:
         result = once(db)
     else:

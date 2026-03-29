@@ -30,10 +30,19 @@ M1_URL = "http://127.0.0.1:1234"
 TELEGRAM_PROXY = "http://127.0.0.1:18800"
 
 EXPECTED_TASKS = [
-    "health_check", "gpu_monitor", "drift_reroute", "budget_alert",
-    "auto_tune_sample", "self_heal", "proactive_suggest",
-    "db_backup", "weekly_cleanup",
-    "brain_auto_learn", "improve_cycle", "predict_next_actions", "auto_develop",
+    "health_check",
+    "gpu_monitor",
+    "drift_reroute",
+    "budget_alert",
+    "auto_tune_sample",
+    "self_heal",
+    "proactive_suggest",
+    "db_backup",
+    "weekly_cleanup",
+    "brain_auto_learn",
+    "improve_cycle",
+    "predict_next_actions",
+    "auto_develop",
 ]
 
 
@@ -122,7 +131,8 @@ def do_check():
             elif t.get("fail_count", 0) > 3 and t.get("run_count", 0) > 0:
                 fail_rate = t["fail_count"] / max(t["run_count"], 1)
                 if fail_rate > 0.5:
-                    alerts.append(f"Task '{name}' failing ({t['fail_count']}/{t['run_count']})")
+                    alerts.append(
+                        f"Task '{name}' failing ({t['fail_count']}/{t['run_count']})")
                     tasks_fail += 1
                 else:
                     tasks_ok += 1
@@ -152,21 +162,27 @@ def do_check():
         with urllib.request.urlopen(req, timeout=5) as r:
             pred_stats = json.loads(r.read().decode())
             if pred_stats.get("total_patterns", 0) == 0:
-                alerts.append("Prediction engine has 0 patterns — may need data")
+                alerts.append(
+                    "Prediction engine has 0 patterns — may need data")
     except Exception:
         pass
 
     # 4. Record + alert
     db.execute(
         "INSERT INTO checks (ts, tasks_ok, tasks_fail, nodes_online, alerts, actions_taken) VALUES (?,?,?,?,?,?)",
-        (now, tasks_ok, tasks_fail, json.dumps(nodes_online), json.dumps(alerts), json.dumps(actions))
-    )
+        (now,
+         tasks_ok,
+         tasks_fail,
+         json.dumps(nodes_online),
+         json.dumps(alerts),
+         json.dumps(actions)))
     db.commit()
     db.close()
 
     # Alert if critical
     if tasks_fail >= 5 or len(alerts) >= 3:
-        msg = f"[JARVIS MONITOR] {tasks_fail} tasks en echec, {len(nodes_online)} nodes online\n" + "\n".join(alerts[:5])
+        msg = f"[JARVIS MONITOR] {tasks_fail} tasks en echec, {len(nodes_online)} nodes online\n" + "\n".join(
+            alerts[:5])
         send_telegram_alert(msg)
 
     return {
@@ -182,7 +198,8 @@ def do_check():
 def get_report():
     """Get monitoring report."""
     db = init_db()
-    rows = db.execute("SELECT * FROM checks ORDER BY ts DESC LIMIT 20").fetchall()
+    rows = db.execute(
+        "SELECT * FROM checks ORDER BY ts DESC LIMIT 20").fetchall()
     db.close()
     report = []
     for r in rows:
@@ -198,10 +215,20 @@ def get_report():
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Autonomy Monitor")
     parser.add_argument("--once", action="store_true", help="Single check")
-    parser.add_argument("--loop", action="store_true", help="Continuous monitoring")
-    parser.add_argument("--interval", type=int, default=60, help="Loop interval (seconds)")
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Continuous monitoring")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=60,
+        help="Loop interval (seconds)")
     parser.add_argument("--status", action="store_true", help="Current status")
-    parser.add_argument("--report", action="store_true", help="Historical report")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Historical report")
     args = parser.parse_args()
 
     if args.status:
@@ -211,12 +238,16 @@ def main():
         report = get_report()
         print(json.dumps(report, ensure_ascii=False, indent=2))
     elif args.loop:
-        print(f"[MONITOR] Starting continuous monitoring (interval={args.interval}s)")
+        print(
+            f"[MONITOR] Starting continuous monitoring (interval={
+                args.interval}s)")
         while True:
             try:
                 result = do_check()
-                status = "OK" if result["tasks_fail"] == 0 else f"WARN ({result['tasks_fail']} fail)"
-                print(f"[{result['ts']}] {status} — {result['tasks_ok']}/{len(EXPECTED_TASKS)} tasks OK, nodes={result['nodes_online']}")
+                status = "OK" if result["tasks_fail"] == 0 else f"WARN ({
+                    result['tasks_fail']} fail)"
+                print(
+                    f"[{result['ts']}] {status} — {result['tasks_ok']}/{len(EXPECTED_TASKS)} tasks OK, nodes={result['nodes_online']}")
                 if result["alerts"]:
                     for a in result["alerts"][:3]:
                         print(f"  ALERT: {a}")

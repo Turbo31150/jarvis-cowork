@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ia_test_generator.py — Auto test generation (#250).
 
@@ -64,7 +65,11 @@ def init_db():
 
 def scan_python_file(filepath):
     """Scan a Python file for public functions and classes."""
-    info = {"filepath": str(filepath), "functions": [], "classes": [], "errors": []}
+    info = {
+        "filepath": str(filepath),
+        "functions": [],
+        "classes": [],
+        "errors": []}
     try:
         source = filepath.read_text(encoding="utf-8", errors="replace")
         tree = ast.parse(source)
@@ -83,10 +88,8 @@ def scan_python_file(filepath):
                         ) if node.body else False,
                     })
             elif isinstance(node, ast.ClassDef):
-                methods = [
-                    item.name for item in node.body
-                    if isinstance(item, ast.FunctionDef) and not item.name.startswith("_")
-                ]
+                methods = [item.name for item in node.body if isinstance(
+                    item, ast.FunctionDef) and not item.name.startswith("_")]
                 info["classes"].append({
                     "name": node.name, "methods": methods, "lineno": node.lineno,
                 })
@@ -110,7 +113,10 @@ def generate_test_code(source_file, file_info):
         'sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))',
         '',
         '',
-        f'class Test{module_name.title().replace("_", "")}(unittest.TestCase):',
+        f'class Test{
+            module_name.title().replace(
+                "_",
+                "")}(unittest.TestCase):',
         f'    """Tests for {module_name}."""',
         '',
     ]
@@ -124,19 +130,22 @@ def generate_test_code(source_file, file_info):
         lines.append(f'            from {module_name} import {fname}')
         lines.append(f'            self.assertTrue(callable({fname}))')
         lines.append(f'        except ImportError:')
-        lines.append(f'            self.skipTest("{module_name} not importable")')
+        lines.append(
+            f'            self.skipTest("{module_name} not importable")')
         lines.append('')
         test_count += 1
 
         if not func["args"]:
             lines.append(f'    def test_{fname}_runs(self):')
-            lines.append(f'        """Test that {fname}() runs without error."""')
+            lines.append(
+                f'        """Test that {fname}() runs without error."""')
             lines.append(f'        try:')
             lines.append(f'            from {module_name} import {fname}')
             lines.append(f'            result = {fname}()')
             lines.append(f'            self.assertIsNotNone(result)')
             lines.append(f'        except ImportError:')
-            lines.append(f'            self.skipTest("{module_name} not importable")')
+            lines.append(
+                f'            self.skipTest("{module_name} not importable")')
             lines.append(f'        except Exception:')
             lines.append(f'            pass')
             lines.append('')
@@ -150,18 +159,23 @@ def generate_test_code(source_file, file_info):
         lines.append(f'            from {module_name} import {cname}')
         lines.append(f'            self.assertTrue(isinstance({cname}, type))')
         lines.append(f'        except ImportError:')
-        lines.append(f'            self.skipTest("{module_name} not importable")')
+        lines.append(
+            f'            self.skipTest("{module_name} not importable")')
         lines.append('')
         test_count += 1
 
         for method in cls["methods"]:
-            lines.append(f'    def test_{cname.lower()}_{method}_exists(self):')
+            lines.append(
+                f'    def test_{
+                    cname.lower()}_{method}_exists(self):')
             lines.append(f'        """Test that {cname}.{method} exists."""')
             lines.append(f'        try:')
             lines.append(f'            from {module_name} import {cname}')
-            lines.append(f'            self.assertTrue(hasattr({cname}, "{method}"))')
+            lines.append(
+                f'            self.assertTrue(hasattr({cname}, "{method}"))')
             lines.append(f'        except ImportError:')
-            lines.append(f'            self.skipTest("{module_name} not importable")')
+            lines.append(
+                f'            self.skipTest("{module_name} not importable")')
             lines.append('')
             test_count += 1
 
@@ -171,7 +185,8 @@ def generate_test_code(source_file, file_info):
         lines.append(f'        try:')
         lines.append(f'            import {module_name}')
         lines.append(f'        except ImportError:')
-        lines.append(f'            self.skipTest("{module_name} not importable")')
+        lines.append(
+            f'            self.skipTest("{module_name} not importable")')
         lines.append('')
         test_count = 1
 
@@ -184,7 +199,8 @@ def do_scan():
     db = init_db()
     now = datetime.now()
     py_files = sorted(DEV.glob("*.py"))
-    py_files = [f for f in py_files if not f.name.startswith("test_") and f.name != "ia_test_generator.py"]
+    py_files = [f for f in py_files if not f.name.startswith(
+        "test_") and f.name != "ia_test_generator.py"]
 
     scanned = []
     for f in py_files:
@@ -222,7 +238,10 @@ def do_generate(filepath):
         source_path = DEV / filepath
     if not source_path.exists():
         db.close()
-        return {"ts": now.isoformat(), "action": "generate", "error": f"File not found: {source_path}"}
+        return {
+            "ts": now.isoformat(),
+            "action": "generate",
+            "error": f"File not found: {source_path}"}
 
     info = scan_python_file(source_path)
     test_code, test_count = generate_test_code(str(source_path), info)
@@ -233,13 +252,22 @@ def do_generate(filepath):
     funcs_covered = [f["name"] for f in info["functions"]]
     db.execute(
         "INSERT INTO generated_tests (ts, source_file, test_file, test_count, functions_covered) VALUES (?,?,?,?,?)",
-        (now.isoformat(), str(source_path), str(test_path), test_count, json.dumps(funcs_covered)),
+        (now.isoformat(),
+         str(source_path),
+         str(test_path),
+         test_count,
+         json.dumps(funcs_covered)),
     )
     db.commit()
     result = {
-        "ts": now.isoformat(), "action": "generate", "source_file": str(source_path),
-        "test_file": str(test_path), "test_count": test_count,
-        "functions_covered": funcs_covered, "classes_found": len(info["classes"]),
+        "ts": now.isoformat(),
+        "action": "generate",
+        "source_file": str(source_path),
+        "test_file": str(test_path),
+        "test_count": test_count,
+        "functions_covered": funcs_covered,
+        "classes_found": len(
+            info["classes"]),
     }
     db.close()
     return result
@@ -274,7 +302,8 @@ def do_run():
             "INSERT INTO test_runs (ts, test_file, passed, failed, errors, output) VALUES (?,?,?,?,?,?)",
             (now.isoformat(), tf.name, passed, failed, errors, out[:2000]),
         )
-        results_list.append({"test_file": tf.name, "passed": passed, "failed": failed, "errors": errors})
+        results_list.append(
+            {"test_file": tf.name, "passed": passed, "failed": failed, "errors": errors})
 
     db.commit()
     result = {
@@ -291,7 +320,8 @@ def do_run():
 def do_coverage():
     """Show test coverage statistics."""
     db = init_db()
-    all_py = [f for f in sorted(DEV.glob("*.py")) if not f.name.startswith("test_")]
+    all_py = [f for f in sorted(DEV.glob("*.py"))
+              if not f.name.startswith("test_")]
     test_files = sorted(TESTS_DIR.glob("test_*.py"))
     covered_stems = {f.stem.replace("test_", "") for f in test_files}
     covered = [f.name for f in all_py if f.stem in covered_stems]
@@ -311,8 +341,11 @@ def do_coverage():
 def do_status():
     db = init_db()
     result = {
-        "ts": datetime.now().isoformat(), "script": "ia_test_generator.py", "script_id": 250,
-        "db": str(DB_PATH), "tests_dir": str(TESTS_DIR),
+        "ts": datetime.now().isoformat(),
+        "script": "ia_test_generator.py",
+        "script_id": 250,
+        "db": str(DB_PATH),
+        "tests_dir": str(TESTS_DIR),
         "generated_tests": db.execute("SELECT COUNT(*) FROM generated_tests").fetchone()[0],
         "test_runs": db.execute("SELECT COUNT(*) FROM test_runs").fetchone()[0],
         "scanned_files": db.execute("SELECT COUNT(*) FROM scanned_files").fetchone()[0],
@@ -323,12 +356,29 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ia_test_generator.py — Auto test generation (#250)")
-    parser.add_argument("--scan", action="store_true", help="Scan Python files for testable functions")
-    parser.add_argument("--generate", type=str, metavar="FILE", help="Generate tests for a file")
-    parser.add_argument("--run", action="store_true", help="Run generated tests")
-    parser.add_argument("--coverage", action="store_true", help="Show test coverage")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="ia_test_generator.py — Auto test generation (#250)")
+    parser.add_argument(
+        "--scan",
+        action="store_true",
+        help="Scan Python files for testable functions")
+    parser.add_argument(
+        "--generate",
+        type=str,
+        metavar="FILE",
+        help="Generate tests for a file")
+    parser.add_argument(
+        "--run",
+        action="store_true",
+        help="Run generated tests")
+    parser.add_argument(
+        "--coverage",
+        action="store_true",
+        help="Show test coverage")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.scan:

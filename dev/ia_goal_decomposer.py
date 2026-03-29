@@ -42,11 +42,16 @@ def init_db():
 def query_m1(prompt, timeout=30):
     """Query M1 for decomposition."""
     try:
-        data = json.dumps({
-            "model": "qwen3-8b", "input": f"/nothink\n{prompt}",
-            "temperature": 0.2, "max_output_tokens": 1024, "stream": False, "store": False,
-        }).encode()
-        req = urllib.request.Request(M1_URL, data=data, headers={"Content-Type": "application/json"})
+        data = json.dumps({"model": "qwen3-8b",
+                           "input": f"/nothink\n{prompt}",
+                           "temperature": 0.2,
+                           "max_output_tokens": 1024,
+                           "stream": False,
+                           "store": False,
+                           }).encode()
+        req = urllib.request.Request(
+            M1_URL, data=data, headers={
+                "Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             result = json.loads(r.read().decode())
             for item in reversed(result.get("output", [])):
@@ -90,12 +95,23 @@ Regles:
     # Fallback: simple decomposition
     if not steps:
         words = goal.split()
-        steps = [
-            {"step": 1, "description": f"Analyser: {goal}", "estimated_minutes": 10, "dependencies": []},
-            {"step": 2, "description": f"Planifier l'implementation", "estimated_minutes": 15, "dependencies": [1]},
-            {"step": 3, "description": f"Executer: {goal}", "estimated_minutes": 30, "dependencies": [2]},
-            {"step": 4, "description": "Verifier le resultat", "estimated_minutes": 10, "dependencies": [3]},
-        ]
+        steps = [{"step": 1,
+                  "description": f"Analyser: {goal}",
+                  "estimated_minutes": 10,
+                  "dependencies": []},
+                 {"step": 2,
+                  "description": f"Planifier l'implementation",
+                  "estimated_minutes": 15,
+                  "dependencies": [1]},
+                 {"step": 3,
+                  "description": f"Executer: {goal}",
+                  "estimated_minutes": 30,
+                  "dependencies": [2]},
+                 {"step": 4,
+                  "description": "Verifier le resultat",
+                  "estimated_minutes": 10,
+                  "dependencies": [3]},
+                 ]
 
     return steps
 
@@ -149,7 +165,10 @@ def show_plans():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Goal Decomposer")
-    parser.add_argument("--once", action="store_true", help="Demo decomposition")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Demo decomposition")
     parser.add_argument("--decompose", metavar="GOAL", help="Decompose a goal")
     parser.add_argument("--plan", action="store_true", help="Show plans")
     parser.add_argument("--status", action="store_true", help="Status")

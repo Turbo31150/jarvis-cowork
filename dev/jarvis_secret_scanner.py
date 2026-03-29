@@ -85,7 +85,14 @@ def do_scan():
     for scan_dir in SCAN_DIRS:
         if not scan_dir.exists():
             continue
-        for ext in ("*.py", "*.js", "*.json", "*.yaml", "*.yml", "*.env", "*.toml"):
+        for ext in (
+            "*.py",
+            "*.js",
+            "*.json",
+            "*.yaml",
+            "*.yml",
+            "*.env",
+                "*.toml"):
             for f in scan_dir.glob(ext):
                 if f.stat().st_size > 500000:  # Skip >500KB
                     continue
@@ -111,8 +118,7 @@ def do_scan():
         severity = "MEDIUM"
 
     db.execute("INSERT INTO scans (ts, files_scanned, secrets_found, severity, report) VALUES (?,?,?,?,?)",
-               (time.time(), files_scanned, len(all_findings), severity,
-                json.dumps(all_findings[:50])))
+               (time.time(), files_scanned, len(all_findings), severity, json.dumps(all_findings[:50])))
     db.commit()
     db.close()
 
@@ -129,8 +135,15 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Secret Scanner")
-    parser.add_argument("--once", "--scan", action="store_true", help="Scan for secrets")
-    parser.add_argument("--files", action="store_true", help="List affected files")
+    parser.add_argument(
+        "--once",
+        "--scan",
+        action="store_true",
+        help="Scan for secrets")
+    parser.add_argument(
+        "--files",
+        action="store_true",
+        help="List affected files")
     parser.add_argument("--env", action="store_true", help="Check .env files")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()

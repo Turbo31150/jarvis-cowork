@@ -81,7 +81,14 @@ def detect_temporal_patterns(patterns):
                 "total": sum(hourly[hour].values()),
             })
 
-    days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+    days = [
+        "lundi",
+        "mardi",
+        "mercredi",
+        "jeudi",
+        "vendredi",
+        "samedi",
+        "dimanche"]
     for wd in sorted(daily.keys()):
         top = daily[wd].most_common(3)
         if top and top[0][1] >= 2:
@@ -107,10 +114,10 @@ def detect_sequences(patterns, min_sequence=2):
     # Find 2-grams and 3-grams
     sequences = Counter()
     for i in range(len(actions) - 1):
-        seq2 = f"{actions[i]} → {actions[i+1]}"
+        seq2 = f"{actions[i]} → {actions[i + 1]}"
         sequences[seq2] += 1
         if i < len(actions) - 2:
-            seq3 = f"{actions[i]} → {actions[i+1]} → {actions[i+2]}"
+            seq3 = f"{actions[i]} → {actions[i + 1]} → {actions[i + 2]}"
             sequences[seq3] += 1
 
     return [{"sequence": seq, "count": cnt}
@@ -167,17 +174,28 @@ def do_detect():
 
     db.execute(
         "INSERT INTO detections (ts, patterns_found, sequences_found, predictions, report) VALUES (?,?,?,?,?)",
-        (time.time(), len(temporal), len(sequences), json.dumps(predictions), json.dumps(report))
-    )
+        (time.time(),
+         len(temporal),
+         len(sequences),
+         json.dumps(predictions),
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
 
 
 def main():
-    parser = argparse.ArgumentParser(description="IA Pattern Detector — Find usage patterns")
-    parser.add_argument("--once", "--detect", action="store_true", help="Full detection")
-    parser.add_argument("--predict", action="store_true", help="Predict next actions")
+    parser = argparse.ArgumentParser(
+        description="IA Pattern Detector — Find usage patterns")
+    parser.add_argument(
+        "--once",
+        "--detect",
+        action="store_true",
+        help="Full detection")
+    parser.add_argument(
+        "--predict",
+        action="store_true",
+        help="Predict next actions")
     parser.add_argument("--report", action="store_true", help="History")
     args = parser.parse_args()
 

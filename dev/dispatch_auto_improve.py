@@ -42,7 +42,8 @@ async def run_improvement_cycle():
             "ok": "error" not in tune_result,
         })
     except Exception as e:
-        results["steps"].append({"step": "quality_gate_auto_tune", "error": str(e), "ok": False})
+        results["steps"].append(
+            {"step": "quality_gate_auto_tune", "error": str(e), "ok": False})
 
     # Step 2: Self-improvement analysis + auto-apply
     try:
@@ -58,7 +59,8 @@ async def run_improvement_cycle():
             "ok": True,
         })
     except Exception as e:
-        results["steps"].append({"step": "self_improvement", "error": str(e), "ok": False})
+        results["steps"].append(
+            {"step": "self_improvement", "error": str(e), "ok": False})
 
     # Step 3: Strategy auto-optimize
     try:
@@ -71,7 +73,8 @@ async def run_improvement_cycle():
             "ok": "error" not in changes,
         })
     except Exception as e:
-        results["steps"].append({"step": "strategy_auto_optimize", "error": str(e), "ok": False})
+        results["steps"].append(
+            {"step": "strategy_auto_optimize", "error": str(e), "ok": False})
 
     # Step 4: Quick benchmark (5 critical patterns)
     try:
@@ -92,26 +95,31 @@ async def run_improvement_cycle():
                 if agent:
                     try:
                         r = await agent.execute(client, prompt)
-                        bench_results.append({"pattern": pat, "ok": r.ok, "node": r.node, "ms": round(r.latency_ms)})
+                        bench_results.append(
+                            {"pattern": pat, "ok": r.ok, "node": r.node, "ms": round(r.latency_ms)})
                     except Exception as e:
-                        bench_results.append({"pattern": pat, "ok": False, "error": str(e)[:80]})
+                        bench_results.append(
+                            {"pattern": pat, "ok": False, "error": str(e)[:80]})
 
         ok = sum(1 for r in bench_results if r.get("ok"))
         results["steps"].append({
             "step": "quick_benchmark",
             "ok_count": ok,
             "total": len(bench_results),
-            "rate": f"{ok/max(1,len(bench_results))*100:.0f}%",
+            "rate": f"{ok / max(1, len(bench_results)) * 100:.0f}%",
             "results": bench_results,
             "ok": ok == len(bench_results),
         })
     except Exception as e:
-        results["steps"].append({"step": "quick_benchmark", "error": str(e), "ok": False})
+        results["steps"].append(
+            {"step": "quick_benchmark", "error": str(e), "ok": False})
 
     # Summary
     all_ok = all(s.get("ok", False) for s in results["steps"])
     results["overall_ok"] = all_ok
-    results["steps_ok"] = sum(1 for s in results["steps"] if s.get("ok", False))
+    results["steps_ok"] = sum(
+        1 for s in results["steps"] if s.get(
+            "ok", False))
     results["steps_total"] = len(results["steps"])
 
     print(json.dumps(results, ensure_ascii=False, indent=2))
@@ -119,8 +127,12 @@ async def run_improvement_cycle():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Dispatch auto-improvement cycle")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="Dispatch auto-improvement cycle")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     parser.add_argument("--json", action="store_true", help="JSON output only")
     args = parser.parse_args()
 

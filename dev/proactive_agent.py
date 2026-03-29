@@ -29,6 +29,8 @@ DEV = Path(__file__).parent
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -45,14 +47,46 @@ def init_db():
 
     # Regles par defaut
     defaults = [
-        ("rapport_matinal", "time", "08:00", "python dev/pipeline_orchestrator.py --run morning_check", 82800),
-        ("gpu_chaud", "gpu_temp", "80", "python dev/gpu_optimizer.py --thermal 2>/dev/null || nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader", 600),
-        ("disk_plein", "disk_free_gb", "10", "python dev/desktop_organizer.py --scan", 3600),
-        ("gateway_down", "port_down", "18789", "python dev/openclaw_watchdog.py --restart", 300),
-        ("rapport_soir", "time", "22:00", "python dev/pipeline_orchestrator.py --run full_diagnostic", 82800),
-        ("trading_matin", "time", "09:30", "python dev/domino_executor.py --run trading_pipeline", 82800),
-        ("dev_review", "time", "14:00", "python dev/self_feeding_engine.py --review", 82800),
-        ("cleanup_hebdo", "weekday_time", "0-02:00", "python dev/desktop_organizer.py --organize", 604800),
+        ("rapport_matinal",
+         "time",
+         "08:00",
+         "python dev/pipeline_orchestrator.py --run morning_check",
+         82800),
+        ("gpu_chaud",
+         "gpu_temp",
+         "80",
+         "python dev/gpu_optimizer.py --thermal 2>/dev/null || nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader",
+         600),
+        ("disk_plein",
+         "disk_free_gb",
+         "10",
+         "python dev/desktop_organizer.py --scan",
+         3600),
+        ("gateway_down",
+         "port_down",
+         "18789",
+         "python dev/openclaw_watchdog.py --restart",
+         300),
+        ("rapport_soir",
+         "time",
+         "22:00",
+         "python dev/pipeline_orchestrator.py --run full_diagnostic",
+         82800),
+        ("trading_matin",
+         "time",
+         "09:30",
+         "python dev/domino_executor.py --run trading_pipeline",
+         82800),
+        ("dev_review",
+         "time",
+         "14:00",
+         "python dev/self_feeding_engine.py --review",
+         82800),
+        ("cleanup_hebdo",
+         "weekday_time",
+         "0-02:00",
+         "python dev/desktop_organizer.py --organize",
+         604800),
     ]
     for name, ttype, tval, action, cooldown in defaults:
         db.execute(
@@ -65,6 +99,8 @@ def init_db():
 # ---------------------------------------------------------------------------
 # Trigger evaluation
 # ---------------------------------------------------------------------------
+
+
 def check_trigger(trigger_type: str, trigger_value: str) -> dict:
     """Evalue si un trigger est actif."""
     now = datetime.now()
@@ -80,8 +116,12 @@ def check_trigger(trigger_type: str, trigger_value: str) -> dict:
         parts = trigger_value.split("-")
         target_day = int(parts[0])
         target_h, target_m = map(int, parts[1].split(":"))
-        if now.weekday() == target_day and now.hour == target_h and abs(now.minute - target_m) <= 2:
-            return {"matched": True, "reason": f"Jour {target_day} heure {parts[1]}"}
+        if now.weekday() == target_day and now.hour == target_h and abs(
+                now.minute - target_m) <= 2:
+            return {
+                "matched": True,
+                "reason": f"Jour {target_day} heure {
+                    parts[1]}"}
         return {"matched": False}
 
     elif trigger_type == "gpu_temp":
@@ -90,11 +130,14 @@ def check_trigger(trigger_type: str, trigger_value: str) -> dict:
                 ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader"],
                 capture_output=True, text=True, timeout=5
             )
-            temps = [int(t.strip()) for t in result.stdout.strip().split("\n") if t.strip().isdigit()]
+            temps = [int(t.strip()) for t in result.stdout.strip().split(
+                "\n") if t.strip().isdigit()]
             max_temp = max(temps) if temps else 0
             threshold = int(trigger_value)
             if max_temp > threshold:
-                return {"matched": True, "reason": f"GPU {max_temp}C > {threshold}C"}
+                return {
+                    "matched": True,
+                    "reason": f"GPU {max_temp}C > {threshold}C"}
         except Exception:
             pass
         return {"matched": False}
@@ -105,7 +148,9 @@ def check_trigger(trigger_type: str, trigger_value: str) -> dict:
             free_gb = usage.free // (1024**3)
             threshold = int(trigger_value)
             if free_gb < threshold:
-                return {"matched": True, "reason": f"C: {free_gb}GB libre < {threshold}GB"}
+                return {
+                    "matched": True,
+                    "reason": f"C: {free_gb}GB libre < {threshold}GB"}
         except Exception:
             pass
         return {"matched": False}
@@ -128,6 +173,8 @@ def check_trigger(trigger_type: str, trigger_value: str) -> dict:
 # ---------------------------------------------------------------------------
 # Execute action
 # ---------------------------------------------------------------------------
+
+
 def execute_action(db, rule_name: str, action: str, reason: str) -> dict:
     start = time.time()
     try:
@@ -147,8 +194,12 @@ def execute_action(db, rule_name: str, action: str, reason: str) -> dict:
 
     db.execute(
         "INSERT INTO actions (ts, rule_name, trigger_matched, action, success, output) VALUES (?,?,?,?,?,?)",
-        (time.time(), rule_name, reason, action, int(success), output)
-    )
+        (time.time(),
+         rule_name,
+         reason,
+         action,
+         int(success),
+         output))
     db.execute(
         "UPDATE rules SET last_fired = ?, fire_count = fire_count + 1 WHERE name = ?",
         (time.time(), rule_name)
@@ -167,6 +218,8 @@ def execute_action(db, rule_name: str, action: str, reason: str) -> dict:
 # ---------------------------------------------------------------------------
 # Check all rules
 # ---------------------------------------------------------------------------
+
+
 def check_all(db) -> dict:
     rules = db.execute(
         "SELECT name, trigger_type, trigger_value, action, cooldown_s, last_fired, enabled FROM rules"
@@ -183,7 +236,8 @@ def check_all(db) -> dict:
 
         if now - last_fired < cooldown:
             remaining = int(cooldown - (now - last_fired))
-            skipped.append({"name": name, "reason": f"cooldown ({remaining}s restant)"})
+            skipped.append(
+                {"name": name, "reason": f"cooldown ({remaining}s restant)"})
             continue
 
         trigger = check_trigger(ttype, tval)
@@ -204,6 +258,8 @@ def check_all(db) -> dict:
 # ---------------------------------------------------------------------------
 # Watch loop
 # ---------------------------------------------------------------------------
+
+
 def watch_loop(db, interval: int = 60):
     print(f"[proactive] Agent demarre (interval={interval}s)")
     while True:
@@ -212,7 +268,10 @@ def watch_loop(db, interval: int = 60):
             if result["actions_fired"] > 0:
                 for a in result["fired"]:
                     status = "OK" if a["success"] else "FAIL"
-                    print(f"[proactive] {a['rule']} → {status} ({a['reason']})")
+                    print(
+                        f"[proactive] {
+                            a['rule']} → {status} ({
+                            a['reason']})")
             time.sleep(interval)
         except KeyboardInterrupt:
             print("\n[proactive] Arrete.")
@@ -224,17 +283,45 @@ def watch_loop(db, interval: int = 60):
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Proactive Agent — Anticipe les besoins")
-    parser.add_argument("--start", action="store_true", help="Demarrer la boucle proactive")
-    parser.add_argument("--check", action="store_true", help="Verifier une fois toutes les regles")
-    parser.add_argument("--rules", action="store_true", help="Lister les regles")
-    parser.add_argument("--history", nargs="?", const=20, type=int, help="Historique actions (N dernieres)")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Proactive Agent — Anticipe les besoins")
+    parser.add_argument(
+        "--start",
+        action="store_true",
+        help="Demarrer la boucle proactive")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Verifier une fois toutes les regles")
+    parser.add_argument(
+        "--rules",
+        action="store_true",
+        help="Lister les regles")
+    parser.add_argument(
+        "--history",
+        nargs="?",
+        const=20,
+        type=int,
+        help="Historique actions (N dernieres)")
     parser.add_argument("--add", type=str, help="Ajouter une regle (nom)")
-    parser.add_argument("--trigger", type=str, help="Condition trigger (type:value)")
+    parser.add_argument(
+        "--trigger",
+        type=str,
+        help="Condition trigger (type:value)")
     parser.add_argument("--action", type=str, help="Commande a executer")
-    parser.add_argument("--cooldown", type=int, default=3600, help="Cooldown en secondes (defaut: 3600)")
-    parser.add_argument("--interval", type=int, default=60, help="Intervalle loop en secondes (defaut: 60)")
+    parser.add_argument(
+        "--cooldown",
+        type=int,
+        default=3600,
+        help="Cooldown en secondes (defaut: 3600)")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=60,
+        help="Intervalle loop en secondes (defaut: 60)")
     parser.add_argument("--enable", type=str, help="Activer une regle")
     parser.add_argument("--disable", type=str, help="Desactiver une regle")
     args = parser.parse_args()
@@ -273,20 +360,25 @@ def main():
     elif args.add and args.trigger and args.action:
         parts = args.trigger.split(":", 1)
         if len(parts) != 2:
-            print(json.dumps({"error": "Format trigger: type:value (ex: time:08:00, gpu_temp:80, port_down:18789)"}))
+            print(json.dumps(
+                {"error": "Format trigger: type:value (ex: time:08:00, gpu_temp:80, port_down:18789)"}))
             sys.exit(1)
         db.execute(
             "INSERT OR REPLACE INTO rules (name, trigger_type, trigger_value, action, cooldown_s) VALUES (?,?,?,?,?)",
             (args.add, parts[0], parts[1], args.action, args.cooldown)
         )
         db.commit()
-        print(json.dumps({"added": args.add, "trigger": args.trigger, "action": args.action}))
+        print(json.dumps({"added": args.add,
+                          "trigger": args.trigger,
+                          "action": args.action}))
     elif args.enable:
-        db.execute("UPDATE rules SET enabled = 1 WHERE name = ?", (args.enable,))
+        db.execute(
+            "UPDATE rules SET enabled = 1 WHERE name = ?", (args.enable,))
         db.commit()
         print(json.dumps({"enabled": args.enable}))
     elif args.disable:
-        db.execute("UPDATE rules SET enabled = 0 WHERE name = ?", (args.disable,))
+        db.execute(
+            "UPDATE rules SET enabled = 0 WHERE name = ?", (args.disable,))
         db.commit()
         print(json.dumps({"disabled": args.disable}))
     elif args.start:
@@ -295,6 +387,7 @@ def main():
         parser.print_help()
 
     db.close()
+
 
 if __name__ == "__main__":
     main()

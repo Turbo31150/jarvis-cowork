@@ -9,12 +9,18 @@ Usage:
     python dev/win_defrag_scheduler.py --history
     python dev/win_defrag_scheduler.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "defrag_scheduler.db"
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -52,6 +58,7 @@ def init_db():
     db.commit()
     return db
 
+
 def get_drive_info(drive_letter):
     """Get drive information including SSD detection."""
     drive = drive_letter.rstrip(":").upper()
@@ -60,7 +67,12 @@ def get_drive_info(drive_letter):
     # Get disk type (SSD vs HDD)
     try:
         cmd = f'powershell -NoProfile -Command "Get-PhysicalDisk | Select-Object MediaType, BusType, Size, FriendlyName | ConvertTo-Json"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            shell=True)
         if r.stdout.strip():
             disks = json.loads(r.stdout)
             if isinstance(disks, dict):
@@ -80,7 +92,12 @@ def get_drive_info(drive_letter):
     # Get drive space
     try:
         cmd = f'powershell -NoProfile -Command "Get-PSDrive {drive} | Select-Object Used, Free | ConvertTo-Json"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         if r.stdout.strip():
             data = json.loads(r.stdout)
             used = data.get("Used", 0)
@@ -88,18 +105,25 @@ def get_drive_info(drive_letter):
             total = used + free
             info["total_gb"] = round(total / (1024**3), 2)
             info["free_gb"] = round(free / (1024**3), 2)
-            info["used_pct"] = round((used / total) * 100, 1) if total > 0 else 0
+            info["used_pct"] = round(
+                (used / total) * 100, 1) if total > 0 else 0
     except Exception:
         pass
 
     return info
+
 
 def analyze_fragmentation(drive_letter):
     """Analyze drive fragmentation using defrag /A."""
     drive = drive_letter.rstrip(":").upper()
     try:
         cmd = f'defrag {drive}: /A /V 2>&1'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            shell=True)
         output = r.stdout + r.stderr
         # Parse fragmentation percentage
         frag_pct = None
@@ -119,6 +143,7 @@ def analyze_fragmentation(drive_letter):
     except Exception as e:
         return {"error": str(e), "fragmentation_pct": None}
 
+
 def do_analyze(drive_letter):
     db = init_db()
     info = get_drive_info(drive_letter)
@@ -137,11 +162,14 @@ def do_analyze(drive_letter):
     elif frag_pct is not None:
         recommendation = f"Fragmentation at {frag_pct}% — no defrag needed"
 
-    db.execute("""INSERT INTO drive_analysis (ts, drive, media_type, total_gb, free_gb, fragmentation_pct, needs_defrag, is_ssd, details)
-                  VALUES (?,?,?,?,?,?,?,?,?)""",
-               (datetime.now().isoformat(), f"{drive_letter.upper()}:", info.get("media_type"),
-                info.get("total_gb"), info.get("free_gb"), frag_pct, int(needs_defrag),
-                int(info.get("is_ssd", False)), frag.get("output_preview", "")[:500]))
+    db.execute(
+        """INSERT INTO drive_analysis (ts, drive, media_type, total_gb, free_gb, fragmentation_pct, needs_defrag, is_ssd, details)
+                  VALUES (?,?,?,?,?,?,?,?,?)""", (datetime.now().isoformat(), f"{
+            drive_letter.upper()}:", info.get("media_type"), info.get("total_gb"), info.get("free_gb"), frag_pct, int(needs_defrag), int(
+            info.get(
+                "is_ssd", False)), frag.get(
+                    "output_preview", "")[
+                        :500]))
     db.commit()
 
     result = {
@@ -155,6 +183,7 @@ def do_analyze(drive_letter):
     }
     db.close()
     return result
+
 
 def do_optimize(drive_letter):
     db = init_db()
@@ -171,7 +200,12 @@ def do_optimize(drive_letter):
 
     start = time.time()
     try:
-        r = subprocess.run(opt_cmd, capture_output=True, text=True, timeout=600, shell=True)
+        r = subprocess.run(
+            opt_cmd,
+            capture_output=True,
+            text=True,
+            timeout=600,
+            shell=True)
         duration = int(time.time() - start)
         output = r.stdout + r.stderr
         success = r.returncode == 0
@@ -191,70 +225,126 @@ def do_optimize(drive_letter):
             "ts": datetime.now().isoformat()
         }
     except subprocess.TimeoutExpired:
-        result = {"action": "optimize", "drive": f"{drive}:", "error": "Timeout (>10min)", "ts": datetime.now().isoformat()}
+        result = {
+            "action": "optimize",
+            "drive": f"{drive}:",
+            "error": "Timeout (>10min)",
+            "ts": datetime.now().isoformat()}
 
     db.close()
     return result
+
 
 def do_schedule():
     db = init_db()
-    rows = db.execute("SELECT drive, day_of_week, hour, optimize_type, active, last_run FROM defrag_schedule ORDER BY drive").fetchall()
-    schedules = [{"drive": r[0], "day": r[1], "hour": r[2], "type": r[3], "active": bool(r[4]), "last_run": r[5]} for r in rows]
+    rows = db.execute(
+        "SELECT drive, day_of_week, hour, optimize_type, active, last_run FROM defrag_schedule ORDER BY drive").fetchall()
+    schedules = [{"drive": r[0],
+                  "day": r[1],
+                  "hour": r[2],
+                  "type": r[3],
+                  "active": bool(r[4]),
+                  "last_run": r[5]} for r in rows]
     if not schedules:
         # Show Windows default schedule
-        schedules = [{"note": "No custom schedules. Windows auto-optimizes drives weekly by default."}]
-    result = {"action": "schedule", "schedules": schedules, "ts": datetime.now().isoformat()}
+        schedules = [
+            {"note": "No custom schedules. Windows auto-optimizes drives weekly by default."}]
+    result = {
+        "action": "schedule",
+        "schedules": schedules,
+        "ts": datetime.now().isoformat()}
     db.close()
     return result
 
+
 def do_history():
     db = init_db()
-    rows = db.execute("SELECT ts, drive, action, duration_seconds, success FROM defrag_history ORDER BY id DESC LIMIT 20").fetchall()
-    history = [{"ts": r[0], "drive": r[1], "action": r[2], "duration_s": r[3], "success": bool(r[4])} for r in rows]
-    analyses = db.execute("SELECT ts, drive, media_type, fragmentation_pct, needs_defrag FROM drive_analysis ORDER BY id DESC LIMIT 10").fetchall()
-    result = {
-        "action": "history",
-        "optimization_history": history,
-        "recent_analyses": [{"ts": r[0], "drive": r[1], "type": r[2], "frag_pct": r[3], "needs_defrag": bool(r[4])} for r in analyses],
-        "ts": datetime.now().isoformat()
-    }
+    rows = db.execute(
+        "SELECT ts, drive, action, duration_seconds, success FROM defrag_history ORDER BY id DESC LIMIT 20").fetchall()
+    history = [{"ts": r[0], "drive": r[1], "action": r[2],
+                "duration_s": r[3], "success": bool(r[4])} for r in rows]
+    analyses = db.execute(
+        "SELECT ts, drive, media_type, fragmentation_pct, needs_defrag FROM drive_analysis ORDER BY id DESC LIMIT 10").fetchall()
+    result = {"action": "history",
+              "optimization_history": history,
+              "recent_analyses": [{"ts": r[0],
+                                   "drive": r[1],
+                                   "type": r[2],
+                                   "frag_pct": r[3],
+                                   "needs_defrag": bool(r[4])} for r in analyses],
+              "ts": datetime.now().isoformat()}
     db.close()
     return result
+
 
 def do_once():
     db = init_db()
     analyses = db.execute("SELECT COUNT(*) FROM drive_analysis").fetchone()[0]
-    optimizations = db.execute("SELECT COUNT(*) FROM defrag_history").fetchone()[0]
-    last = db.execute("SELECT ts, drive, fragmentation_pct FROM drive_analysis ORDER BY id DESC LIMIT 1").fetchone()
+    optimizations = db.execute(
+        "SELECT COUNT(*) FROM defrag_history").fetchone()[0]
+    last = db.execute(
+        "SELECT ts, drive, fragmentation_pct FROM drive_analysis ORDER BY id DESC LIMIT 1").fetchone()
     result = {
         "status": "ok",
         "total_analyses": analyses,
         "total_optimizations": optimizations,
-        "last_analysis": {"ts": last[0], "drive": last[1], "frag_pct": last[2]} if last else None,
-        "ts": datetime.now().isoformat()
-    }
+        "last_analysis": {
+            "ts": last[0],
+            "drive": last[1],
+            "frag_pct": last[2]} if last else None,
+        "ts": datetime.now().isoformat()}
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Drive Defrag Scheduler — COWORK #228")
-    parser.add_argument("--analyze", type=str, metavar="DRIVE", help="Analyze drive (e.g. C)")
-    parser.add_argument("--optimize", type=str, metavar="DRIVE", help="Optimize drive")
-    parser.add_argument("--schedule", action="store_true", help="Show defrag schedule")
-    parser.add_argument("--history", action="store_true", help="Show defrag history")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="Drive Defrag Scheduler — COWORK #228")
+    parser.add_argument(
+        "--analyze",
+        type=str,
+        metavar="DRIVE",
+        help="Analyze drive (e.g. C)")
+    parser.add_argument(
+        "--optimize",
+        type=str,
+        metavar="DRIVE",
+        help="Optimize drive")
+    parser.add_argument(
+        "--schedule",
+        action="store_true",
+        help="Show defrag schedule")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show defrag history")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.analyze:
-        print(json.dumps(do_analyze(args.analyze), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_analyze(
+                    args.analyze),
+                ensure_ascii=False,
+                indent=2))
     elif args.optimize:
-        print(json.dumps(do_optimize(args.optimize), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_optimize(
+                    args.optimize),
+                ensure_ascii=False,
+                indent=2))
     elif args.schedule:
         print(json.dumps(do_schedule(), ensure_ascii=False, indent=2))
     elif args.history:
         print(json.dumps(do_history(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

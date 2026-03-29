@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """MCP Tool Tester — Continuously test all 186+ MCP tools for regressions.
 
@@ -16,6 +17,7 @@ DB_PATH = Path(__file__).parent / "mcp_tests.db"
 TURBO = Path("F:/BUREAU/turbo")
 MCP_SERVER = TURBO / "src" / "mcp_server.py"
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS test_results (
@@ -26,6 +28,7 @@ def init_db():
         passed INTEGER, failed INTEGER, skipped INTEGER, duration_s REAL)""")
     db.commit()
     return db
+
 
 def extract_tool_names():
     """Extract tool names from TOOL_DEFINITIONS in mcp_server.py."""
@@ -51,18 +54,21 @@ def extract_tool_names():
         print(f"Erreur extraction: {e}")
     return tools
 
+
 def test_tool_importable():
     """Check if mcp_server module is importable."""
     try:
         # Add src to path
         sys.path.insert(0, str(TURBO))
         sys.path.insert(0, str(TURBO / "src"))
-        spec = importlib.util.spec_from_file_location("mcp_server", str(MCP_SERVER))
+        spec = importlib.util.spec_from_file_location(
+            "mcp_server", str(MCP_SERVER))
         if spec and spec.loader:
             return True, "Module importable"
     except Exception as e:
         return False, str(e)
     return False, "spec not found"
+
 
 def smoke_test_tools(db, tools):
     """Run basic smoke tests on tool definitions."""
@@ -85,23 +91,46 @@ def smoke_test_tools(db, tools):
             if handler_name not in content and alt_handler not in content:
                 # Some handlers have different naming
                 skipped += 1
-                db.execute("INSERT INTO test_results (ts, tool_name, status, error, duration_ms) VALUES (?,?,?,?,?)",
-                           (time.time(), tool_name, "skip", "handler not found by name", (time.time()-t0)*1000))
+                db.execute(
+                    "INSERT INTO test_results (ts, tool_name, status, error, duration_ms) VALUES (?,?,?,?,?)",
+                    (time.time(),
+                     tool_name,
+                     "skip",
+                     "handler not found by name",
+                     (time.time() - t0) * 1000))
                 continue
 
             passed += 1
-            db.execute("INSERT INTO test_results (ts, tool_name, status, error, duration_ms) VALUES (?,?,?,?,?)",
-                       (time.time(), tool_name, "pass", None, (time.time()-t0)*1000))
+            db.execute(
+                "INSERT INTO test_results (ts, tool_name, status, error, duration_ms) VALUES (?,?,?,?,?)",
+                (time.time(),
+                 tool_name,
+                 "pass",
+                 None,
+                 (time.time() - t0) * 1000))
         except Exception as e:
             failed += 1
-            db.execute("INSERT INTO test_results (ts, tool_name, status, error, duration_ms) VALUES (?,?,?,?,?)",
-                       (time.time(), tool_name, "fail", str(e)[:200], (time.time()-t0)*1000))
+            db.execute(
+                "INSERT INTO test_results (ts, tool_name, status, error, duration_ms) VALUES (?,?,?,?,?)",
+                (time.time(),
+                 tool_name,
+                 "fail",
+                 str(e)[
+                    :200],
+                    (time.time() - t0) * 1000))
 
     duration = time.time() - start
-    db.execute("INSERT INTO test_runs (ts, total_tools, passed, failed, skipped, duration_s) VALUES (?,?,?,?,?,?)",
-               (time.time(), len(tools), passed, failed, skipped, duration))
+    db.execute(
+        "INSERT INTO test_runs (ts, total_tools, passed, failed, skipped, duration_s) VALUES (?,?,?,?,?,?)",
+        (time.time(),
+         len(tools),
+         passed,
+         failed,
+         skipped,
+         duration))
     db.commit()
     return passed, failed, skipped, duration
+
 
 def check_regressions(db):
     """Compare latest run with previous runs to detect regressions."""
@@ -117,11 +146,16 @@ def check_regressions(db):
         return f"WARNING: {current[0]} passed (was {previous[0]})"
     return None
 
+
 def main():
     parser = argparse.ArgumentParser(description="MCP Tool Tester")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
-    parser.add_argument("--interval", type=int, default=21600, help="Seconds between test runs")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=21600,
+        help="Seconds between test runs")
     args = parser.parse_args()
 
     db = init_db()
@@ -158,6 +192,7 @@ def main():
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

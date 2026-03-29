@@ -37,6 +37,7 @@ CRITICAL_SERVICES = {
     "nsi": "Network Store Interface",
 }
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS service_snapshots (
@@ -48,6 +49,7 @@ def init_db():
         critical_ok INTEGER, critical_fail INTEGER, recommendations TEXT)""")
     db.commit()
     return db
+
 
 def get_services():
     """Get all Windows services via PowerShell."""
@@ -68,6 +70,7 @@ def get_services():
         print(f"Erreur PowerShell: {e}")
     return []
 
+
 def get_service_memory(name):
     """Get memory usage for a running service."""
     ps = f"(Get-Process -Id (Get-WmiObject Win32_Service -Filter \"Name='{name}'\").ProcessId -ErrorAction SilentlyContinue).WorkingSet64 / 1MB"
@@ -80,6 +83,7 @@ def get_service_memory(name):
     except (subprocess.TimeoutExpired, ValueError, OSError):
         pass
     return 0.0
+
 
 def audit_services(db):
     """Full service audit."""
@@ -118,7 +122,8 @@ def audit_services(db):
         # Check disable candidates
         if name in DISABLE_CANDIDATES and status == "Running":
             disable_candidates += 1
-            recommendations.append(f"DISABLE: {name} ({DISABLE_CANDIDATES[name]})")
+            recommendations.append(
+                f"DISABLE: {name} ({DISABLE_CANDIDATES[name]})")
 
         # Check critical
         if name in CRITICAL_SERVICES:
@@ -126,7 +131,9 @@ def audit_services(db):
                 critical_ok += 1
             else:
                 critical_fail += 1
-                recommendations.append(f"CRITICAL DOWN: {name} ({CRITICAL_SERVICES[name]})")
+                recommendations.append(
+                    f"CRITICAL DOWN: {name} ({
+                        CRITICAL_SERVICES[name]})")
 
     db.execute(
         "INSERT INTO audit_runs (ts, total_services, running, stopped, disabled_candidates, critical_ok, critical_fail, recommendations) "
@@ -141,16 +148,24 @@ def audit_services(db):
         "recommendations": recommendations[:10],
     }
 
+
 def generate_report(result):
     """Generate audit report."""
     REPORT_DIR.mkdir(exist_ok=True)
     lines = [
         "# Windows Services Audit",
-        f"Date: {time.strftime('%Y-%m-%d %H:%M')}",
-        f"Total: {result['total']} | Running: {result['running']} | Stopped: {result['stopped']}",
-        f"Critical: {result['critical']}",
-        f"Disable candidates actifs: {result['disable_candidates']}",
-        "", "## Recommendations",
+        f"Date: {
+            time.strftime('%Y-%m-%d %H:%M')}",
+        f"Total: {
+            result['total']} | Running: {
+                result['running']} | Stopped: {
+                    result['stopped']}",
+        f"Critical: {
+            result['critical']}",
+        f"Disable candidates actifs: {
+            result['disable_candidates']}",
+        "",
+        "## Recommendations",
     ]
     for r in result.get("recommendations", []):
         lines.append(f"- {r}")
@@ -158,18 +173,26 @@ def generate_report(result):
     rpath.write_text("\n".join(lines), encoding="utf-8")
     return rpath
 
+
 def main():
     parser = argparse.ArgumentParser(description="Windows Service Hardener")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
-    parser.add_argument("--interval", type=int, default=14400, help="Seconds between audits")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=14400,
+        help="Seconds between audits")
     args = parser.parse_args()
 
     db = init_db()
     if args.once or not args.loop:
         result = audit_services(db)
         if isinstance(result, dict):
-            print(f"Services: {result['total']} total, {result['running']} running")
+            print(
+                f"Services: {
+                    result['total']} total, {
+                    result['running']} running")
             print(f"Critical: {result['critical']}")
             print(f"Disable candidates actifs: {result['disable_candidates']}")
             for r in result.get("recommendations", []):
@@ -183,11 +206,13 @@ def main():
             try:
                 result = audit_services(db)
                 if isinstance(result, dict):
-                    print(f"[{time.strftime('%H:%M')}] {result['running']} running | Critical: {result['critical']}")
+                    print(
+                        f"[{time.strftime('%H:%M')}] {result['running']} running | Critical: {result['critical']}")
                     generate_report(result)
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

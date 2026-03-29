@@ -107,8 +107,12 @@ def do_status():
 
     db.execute(
         "INSERT INTO scans (ts, protection_enabled, realtime_enabled, definitions_age_days, threats_found, report) VALUES (?,?,?,?,?,?)",
-        (time.time(), int(av_enabled), int(rt_enabled), sig_age, len(threats), json.dumps(report))
-    )
+        (time.time(),
+         int(av_enabled),
+         int(rt_enabled),
+         sig_age,
+         len(threats),
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -116,10 +120,23 @@ def do_status():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Defender Monitor")
-    parser.add_argument("--once", "--status", action="store_true", help="Check status")
-    parser.add_argument("--scan-history", action="store_true", help="Scan history")
-    parser.add_argument("--threats", action="store_true", help="Threat history")
-    parser.add_argument("--exclusions", action="store_true", help="Show exclusions")
+    parser.add_argument(
+        "--once",
+        "--status",
+        action="store_true",
+        help="Check status")
+    parser.add_argument(
+        "--scan-history",
+        action="store_true",
+        help="Scan history")
+    parser.add_argument(
+        "--threats",
+        action="store_true",
+        help="Threat history")
+    parser.add_argument(
+        "--exclusions",
+        action="store_true",
+        help="Show exclusions")
     args = parser.parse_args()
 
     result = do_status()

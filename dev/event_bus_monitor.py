@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """event_bus_monitor.py — Surveille le event_bus JARVIS en continu.
 
@@ -18,15 +19,27 @@ import urllib.request
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
+import sys
 
 DEV = Path(__file__).parent
+PROJECT_ROOT = DEV.parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+try:
+    from core.unified.services import get_service_registry
+    _services = get_service_registry()
+except Exception:
+    _services = None
+
 DB_PATH = DEV / "data" / "event_bus_monitor.db"
-WS_URL = "http://127.0.0.1:9742"
-TELEGRAM_PROXY = "http://127.0.0.1:18800"
+WS_URL = _services.base_url("jarvis_ws") if _services else "http://127.0.0.1:9742"
+TELEGRAM_PROXY = _services.base_url("canvas_proxy") if _services else "http://127.0.0.1:18800"
 
 # Thresholds
 MAX_EVENTS_PER_MIN = 100  # Alert if more events per minute
-MAX_SAME_EVENT_PER_MIN = 50  # Alert if same event fires too often (loop detection)
+# Alert if same event fires too often (loop detection)
+MAX_SAME_EVENT_PER_MIN = 50
 CRITICAL_EVENTS = [
     "autonomous.task_failed",
     "brain.skill_created",
@@ -60,7 +73,7 @@ def get_event_stats():
         pass
 
     # Fallback: try to read from etoile.db event_log if it exists
-    etoile = Path("F:/BUREAU/turbo/data/etoile.db")
+    etoile = PROJECT_ROOT / "data" / "etoile.db"
     if etoile.exists():
         try:
             conn = sqlite3.connect(str(etoile))
@@ -157,35 +170,50 @@ def do_check():
             # Loop detection: same event fired too many times
             if count > MAX_SAME_EVENT_PER_MIN:
                 loops_detected += 1
-                alerts.append(f"LOOP DETECTED: '{name}' fired {count} times in 5min")
+                alerts.append(
+                    f"LOOP DETECTED: '{name}' fired {count} times in 5min")
 
         # Total throughput check
         if total_events > MAX_EVENTS_PER_MIN * 5:  # 5-min window
-            alerts.append(f"HIGH EVENT RATE: {total_events} events in 5min (threshold: {MAX_EVENTS_PER_MIN * 5})")
+            alerts.append(
+                f"HIGH EVENT RATE: {total_events} events in 5min (threshold: {
+                    MAX_EVENTS_PER_MIN * 5})")
 
         top_events.sort(key=lambda x: x["count"], reverse=True)
         top_events = top_events[:10]
 
     elif "error" in stats:
-        alerts.append(f"Event bus unavailable: {stats.get('error', 'unknown')}")
+        alerts.append(
+            f"Event bus unavailable: {
+                stats.get(
+                    'error',
+                    'unknown')}")
 
     # Check autonomous task failure rates
     for name, info in auto_events.items():
         if info.get("rate", 0) > 0.5 and info.get("runs", 0) > 5:
-            alerts.append(f"HIGH FAIL RATE: {name} — {info['fails']}/{info['runs']} ({info['rate']*100:.0f}%)")
+            alerts.append(
+                f"HIGH FAIL RATE: {name} — {
+                    info['fails']}/{
+                    info['runs']} ({
+                    info['rate'] * 100:.0f}%)")
 
     # Store check result
     db.execute(
         "INSERT INTO checks (ts, total_events, unique_events, loops_detected, alerts, top_events) VALUES (?,?,?,?,?,?)",
-        (now, total_events, unique_events, loops_detected,
-         json.dumps(alerts), json.dumps(top_events))
-    )
+        (now,
+         total_events,
+         unique_events,
+         loops_detected,
+         json.dumps(alerts),
+         json.dumps(top_events)))
     db.commit()
     db.close()
 
     # Alert if critical
     if loops_detected > 0 or len(alerts) >= 3:
-        msg = f"[EVENT BUS MONITOR] {loops_detected} loops, {len(alerts)} alerts\n" + "\n".join(alerts[:5])
+        msg = f"[EVENT BUS MONITOR] {loops_detected} loops, {len(alerts)} alerts\n" + "\n".join(
+            alerts[:5])
         send_telegram_alert(msg)
 
     return {
@@ -202,7 +230,8 @@ def do_check():
 def get_report():
     """Get monitoring report."""
     db = init_db()
-    rows = db.execute("SELECT * FROM checks ORDER BY ts DESC LIMIT 20").fetchall()
+    rows = db.execute(
+        "SELECT * FROM checks ORDER BY ts DESC LIMIT 20").fetchall()
     db.close()
     report = []
     for r in rows:
@@ -216,23 +245,38 @@ def get_report():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Event Bus Monitor — Detect loops & anomalies")
+    parser = argparse.ArgumentParser(
+        description="Event Bus Monitor — Detect loops & anomalies")
     parser.add_argument("--once", action="store_true", help="Single check")
-    parser.add_argument("--loop", action="store_true", help="Continuous monitoring")
-    parser.add_argument("--interval", type=int, default=30, help="Loop interval (seconds)")
-    parser.add_argument("--report", action="store_true", help="Historical report")
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Continuous monitoring")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=30,
+        help="Loop interval (seconds)")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Historical report")
     args = parser.parse_args()
 
     if args.report:
         report = get_report()
         print(json.dumps(report, ensure_ascii=False, indent=2))
     elif args.loop:
-        print(f"[EVENT_BUS_MONITOR] Starting continuous monitoring (interval={args.interval}s)")
+        print(
+            f"[EVENT_BUS_MONITOR] Starting continuous monitoring (interval={
+                args.interval}s)")
         while True:
             try:
                 result = do_check()
-                status = "OK" if result["loops_detected"] == 0 else f"WARN ({result['loops_detected']} loops)"
-                print(f"[{result['ts']}] {status} — {result['total_events']} events, {result['unique_events']} unique")
+                status = "OK" if result["loops_detected"] == 0 else f"WARN ({
+                    result['loops_detected']} loops)"
+                print(
+                    f"[{result['ts']}] {status} — {result['total_events']} events, {result['unique_events']} unique")
                 if result["alerts"]:
                     for a in result["alerts"][:3]:
                         print(f"  ALERT: {a}")

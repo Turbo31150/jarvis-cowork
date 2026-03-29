@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """jarvis_sentiment_analyzer.py — Analyseur de sentiment JARVIS.
 
@@ -118,14 +119,23 @@ def do_analyze(text=None):
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Sentiment Analyzer")
-    parser.add_argument("--once", "--batch", action="store_true", help="Batch analyze")
+    parser.add_argument(
+        "--once",
+        "--batch",
+        action="store_true",
+        help="Batch analyze")
     parser.add_argument("--analyze", metavar="TEXT", help="Analyze text")
     parser.add_argument("--history", action="store_true", help="History")
     parser.add_argument("--trends", action="store_true", help="Trends")
     args = parser.parse_args()
 
     if args.analyze:
-        print(json.dumps(do_analyze(args.analyze), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_analyze(
+                    args.analyze),
+                ensure_ascii=False,
+                indent=2))
     else:
         print(json.dumps(do_analyze(), ensure_ascii=False, indent=2))
 

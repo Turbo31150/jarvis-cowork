@@ -180,8 +180,11 @@ def run_task(task_name, task_def, dry_run=False):
     start = time.time()
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout, cwd=str(SCRIPT_DIR)
-        )
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=str(SCRIPT_DIR))
         elapsed_ms = int((time.time() - start) * 1000)
         output = result.stdout[-500:] if result.stdout else ""
         error = result.stderr[-200:] if result.stderr else ""
@@ -240,7 +243,8 @@ def record_run(conn, task_name, result):
 
 
 def send_telegram(text):
-    import urllib.parse, urllib.request
+    import urllib.parse
+    import urllib.request
     data = urllib.parse.urlencode({
         "chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML"
     }).encode()
@@ -294,12 +298,31 @@ def get_schedule_status(conn):
 
 def main():
     parser = argparse.ArgumentParser(description="Autonomous Orchestrator")
-    parser.add_argument("--once", action="store_true", help="Run all due tasks once")
-    parser.add_argument("--watch", action="store_true", help="Continuous orchestration")
-    parser.add_argument("--status", action="store_true", help="Show schedule status")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would run")
-    parser.add_argument("--verbose", action="store_true", help="Verbose output")
-    parser.add_argument("--interval", type=int, default=1, help="Check interval (min)")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run all due tasks once")
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Continuous orchestration")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Show schedule status")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would run")
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Verbose output")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=1,
+        help="Check interval (min)")
     args = parser.parse_args()
 
     if not any([args.once, args.watch, args.status, args.dry_run]):
@@ -313,8 +336,14 @@ def main():
         for s in status:
             task_def = TASKS.get(s["task_name"], {})
             interval = task_def.get("interval_min", "?")
-            print(f"  {s['task_name']:25} runs={s['run_count']} fails={s['fail_count']} "
-                  f"interval={interval}m last={s.get('last_run', 'never')}")
+            print(
+                f"  {
+                    s['task_name']:25} runs={
+                    s['run_count']} fails={
+                    s['fail_count']} " f"interval={interval}m last={
+                    s.get(
+                        'last_run',
+                        'never')}")
         conn.close()
         return
 
@@ -354,7 +383,8 @@ def main():
 
     if args.watch:
         print(f"Autonomous orchestration (check every {args.interval}m)")
-        send_telegram(f"<b>Orchestrator Started</b>\n{len(TASKS)} tasks registered")
+        send_telegram(
+            f"<b>Orchestrator Started</b>\n{len(TASKS)} tasks registered")
         cycle = 0
         while True:
             try:

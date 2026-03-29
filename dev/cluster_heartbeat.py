@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """cluster_heartbeat.py — Continuous cluster health monitoring with auto-recovery.
 
@@ -35,10 +36,18 @@ TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT_ID = "2010747443"
 
 NODES = {
-    "M1": {"url": "http://127.0.0.1:1234/api/v1/models", "type": "lmstudio"},
-    "M2": {"url": "http://192.168.1.26:1234/api/v1/models", "type": "lmstudio"},
-    "M3": {"url": "http://192.168.1.113:1234/api/v1/models", "type": "lmstudio"},
-    "OL1": {"url": "http://127.0.0.1:11434/api/tags", "type": "ollama"},
+    "M1": {
+        "url": "http://127.0.0.1:1234/api/v1/models",
+        "type": "lmstudio"},
+    "M2": {
+        "url": "http://192.168.1.26:1234/api/v1/models",
+        "type": "lmstudio"},
+    "M3": {
+        "url": "http://192.168.1.113:1234/api/v1/models",
+        "type": "lmstudio"},
+    "OL1": {
+        "url": "http://127.0.0.1:11434/api/tags",
+        "type": "ollama"},
 }
 
 LATENCY_WARN_MS = 5000  # Warn if health check takes > 5s
@@ -73,7 +82,9 @@ def check_node(node_name):
     node = NODES[node_name]
     start = time.time()
     try:
-        req = urllib.request.Request(node["url"], headers={"User-Agent": "JARVIS/1.0"})
+        req = urllib.request.Request(
+            node["url"], headers={
+                "User-Agent": "JARVIS/1.0"})
         resp = urllib.request.urlopen(req, timeout=5)
         data = json.loads(resp.read())
         elapsed = int((time.time() - start) * 1000)
@@ -137,13 +148,16 @@ def check_all(conn, verbose=False):
         # Detect state transitions
         if prev_status and prev_status != r["status"]:
             if r["status"] == "offline":
-                alerts.append(f"<b>{node_name}</b> DOWN ({r.get('error', 'timeout')[:50]})")
+                alerts.append(
+                    f"<b>{node_name}</b> DOWN ({r.get('error', 'timeout')[:50]})")
             else:
-                alerts.append(f"<b>{node_name}</b> BACK ONLINE ({r['models_loaded']} models, {r['latency_ms']}ms)")
+                alerts.append(
+                    f"<b>{node_name}</b> BACK ONLINE ({r['models_loaded']} models, {r['latency_ms']}ms)")
 
         # Detect latency spike
         if r["status"] == "online" and r["latency_ms"] > LATENCY_WARN_MS:
-            alerts.append(f"<b>{node_name}</b> SLOW: {r['latency_ms']}ms (>{LATENCY_WARN_MS}ms)")
+            alerts.append(
+                f"<b>{node_name}</b> SLOW: {r['latency_ms']}ms (>{LATENCY_WARN_MS}ms)")
 
         # Update state
         new_fails = 0 if r["status"] == "online" else prev_fails + 1
@@ -163,7 +177,8 @@ def check_all(conn, verbose=False):
 
     # Send alerts
     if alerts:
-        msg = f"<b>Cluster Alert</b> <code>{datetime.now().strftime('%H:%M:%S')}</code>\n\n" + "\n".join(alerts)
+        msg = f"<b>Cluster Alert</b> <code>{
+            datetime.now().strftime('%H:%M:%S')}</code>\n\n" + "\n".join(alerts)
         send_telegram(msg)
 
     return results, alerts
@@ -181,10 +196,23 @@ def get_status_summary(conn):
 def main():
     parser = argparse.ArgumentParser(description="Cluster Heartbeat Monitor")
     parser.add_argument("--once", action="store_true", help="Single check")
-    parser.add_argument("--watch", action="store_true", help="Continuous monitoring")
-    parser.add_argument("--interval", type=int, default=2, help="Check interval (min)")
-    parser.add_argument("--verbose", action="store_true", help="Verbose output")
-    parser.add_argument("--status", action="store_true", help="Show current status")
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Continuous monitoring")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=2,
+        help="Check interval (min)")
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Verbose output")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Show current status")
     args = parser.parse_args()
 
     if not any([args.once, args.watch, args.status]):
@@ -206,7 +234,12 @@ def main():
         print(f"[{ts}] Cluster: {online}/{len(NODES)} online")
         for name, r in results.items():
             status = "OK" if r["status"] == "online" else "DOWN"
-            print(f"  {name:4} {status:4} {r['latency_ms']:5}ms  models={r['models_loaded']}")
+            print(
+                f"  {
+                    name:4} {
+                    status:4} {
+                    r['latency_ms']:5}ms  models={
+                    r['models_loaded']}")
         if alerts:
             print(f"  ALERTS: {len(alerts)}")
             for a in alerts:
@@ -225,7 +258,8 @@ def main():
         while True:
             results, alerts = check_all(conn, args.verbose)
             ts = datetime.now().strftime("%H:%M:%S")
-            online = sum(1 for r in results.values() if r["status"] == "online")
+            online = sum(1 for r in results.values()
+                         if r["status"] == "online")
             line = f"[{ts}] {online}/{len(NODES)} online"
             if alerts:
                 line += f" | {len(alerts)} alerts"

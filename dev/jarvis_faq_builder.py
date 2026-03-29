@@ -56,8 +56,13 @@ def build_faq():
             ("Quels sont les ports utilises?", "M1:1234, OL1:11434, Proxy:18800, API:9742, Dashboard:8080", "network"),
         ]
         for q, a, cat in defaults:
-            db.execute("INSERT INTO faqs (question, answer, category, frequency, ts) VALUES (?,?,?,?,?)",
-                       (q, a, cat, 1, time.time()))
+            db.execute(
+                "INSERT INTO faqs (question, answer, category, frequency, ts) VALUES (?,?,?,?,?)",
+                (q,
+                 a,
+                 cat,
+                 1,
+                 time.time()))
         db.commit()
 
     # Scan dev/data/*.db for common patterns
@@ -66,7 +71,8 @@ def build_faq():
 
     total = db.execute("SELECT COUNT(*) FROM faqs").fetchone()[0]
     cats = {}
-    for row in db.execute("SELECT category, COUNT(*) FROM faqs GROUP BY category").fetchall():
+    for row in db.execute(
+            "SELECT category, COUNT(*) FROM faqs GROUP BY category").fetchall():
         cats[row[0]] = row[1]
 
     db.close()
@@ -84,7 +90,8 @@ def search_faq(query):
     query_lower = query.lower()
     words = query_lower.split()
 
-    rows = db.execute("SELECT id, question, answer, category, frequency FROM faqs").fetchall()
+    rows = db.execute(
+        "SELECT id, question, answer, category, frequency FROM faqs").fetchall()
     results = []
     for row in rows:
         q_lower = row[1].lower()
@@ -97,8 +104,11 @@ def search_faq(query):
 
     results.sort(key=lambda x: (-x["relevance"], -x["frequency"]))
 
-    db.execute("INSERT INTO searches (query, results_count, ts) VALUES (?,?,?)",
-               (query, len(results), time.time()))
+    db.execute(
+        "INSERT INTO searches (query, results_count, ts) VALUES (?,?,?)",
+        (query,
+         len(results),
+         time.time()))
     db.commit()
     db.close()
 
@@ -129,7 +139,11 @@ def do_stats():
 
 def main():
     parser = argparse.ArgumentParser(description="FAQ Builder JARVIS")
-    parser.add_argument("--once", "--build", action="store_true", help="Build FAQ")
+    parser.add_argument(
+        "--once",
+        "--build",
+        action="store_true",
+        help="Build FAQ")
     parser.add_argument("--search", metavar="QUERY", help="Search FAQ")
     parser.add_argument("--add", action="store_true", help="Add FAQ entry")
     parser.add_argument("--stats", action="store_true", help="FAQ stats")

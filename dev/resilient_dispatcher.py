@@ -43,14 +43,29 @@ BASE_BACKOFF_S = 1.0      # Initial backoff
 BACKOFF_MULTIPLIER = 2.0  # Exponential factor
 
 NODES = {
-    "M1":  {"url": "http://127.0.0.1:1234/api/v1/chat", "model": "qwen3-8b",
-            "ollama": False, "prefix": "/nothink\n", "timeout": 30},
-    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b",
-            "ollama": True, "timeout": 20},
-    "M2":  {"url": "http://192.168.1.26:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
-            "ollama": False, "max_tokens": 2048, "timeout": 60},
-    "M3":  {"url": "http://192.168.1.113:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
-            "ollama": False, "max_tokens": 2048, "timeout": 60},
+    "M1": {
+        "url": "http://127.0.0.1:1234/api/v1/chat",
+        "model": "qwen3-8b",
+        "ollama": False,
+        "prefix": "/nothink\n",
+        "timeout": 30},
+    "OL1": {
+        "url": "http://127.0.0.1:11434/api/chat",
+        "model": "qwen3:1.7b",
+        "ollama": True,
+        "timeout": 20},
+    "M2": {
+        "url": "http://192.168.1.26:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "ollama": False,
+        "max_tokens": 2048,
+        "timeout": 60},
+    "M3": {
+        "url": "http://192.168.1.113:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "ollama": False,
+        "max_tokens": 2048,
+        "timeout": 60},
 }
 
 
@@ -203,10 +218,19 @@ def dispatch_to_node(node_name, prompt, timeout=None):
                         text = content
                     break
 
-        return {"success": True, "text": text, "latency_ms": elapsed_ms, "node": node_name}
+        return {
+            "success": True,
+            "text": text,
+            "latency_ms": elapsed_ms,
+            "node": node_name}
     except Exception as e:
         elapsed_ms = int((time.time() - start) * 1000)
-        return {"success": False, "error": str(e)[:200], "latency_ms": elapsed_ms, "node": node_name}
+        return {
+            "success": False,
+            "error": str(e)[
+                :200],
+            "latency_ms": elapsed_ms,
+            "node": node_name}
 
 
 def log_dispatch(edb, node, task_type, prompt, result, attempt=1):
@@ -264,7 +288,8 @@ def resilient_dispatch(task_type, prompt, route_chain=None):
         # Check circuit breaker
         cb = get_cb_state(gaps_db, node)
         if cb["state"] == "OPEN":
-            all_attempts.append({"node": node, "skipped": True, "reason": "circuit_open"})
+            all_attempts.append(
+                {"node": node, "skipped": True, "reason": "circuit_open"})
             continue
 
         # Compute adaptive timeout
@@ -295,7 +320,8 @@ def resilient_dispatch(task_type, prompt, route_chain=None):
 
             # Don't retry on last attempt for this node
             if attempt <= MAX_RETRIES:
-                backoff = BASE_BACKOFF_S * (BACKOFF_MULTIPLIER ** (attempt - 1))
+                backoff = BASE_BACKOFF_S * \
+                    (BACKOFF_MULTIPLIER ** (attempt - 1))
                 time.sleep(backoff)
 
         # All retries failed for this node
@@ -357,14 +383,17 @@ def run_test():
     ok = 0
     for t in tests:
         result = resilient_dispatch(t["type"], t["prompt"])
-        passed = result["success"] and t["expect"] in result.get("text", "").lower()
+        passed = result["success"] and t["expect"] in result.get(
+            "text", "").lower()
         status = "PASS" if passed else "FAIL"
         if passed:
             ok += 1
         attempts = result.get("total_attempts", 1)
         node = result.get("node", "?")
         lat = result.get("latency_ms", 0)
-        print(f"  {status} {t['type']:8} node={node} {lat}ms attempts={attempts}")
+        print(
+            f"  {status} {
+                t['type']:8} node={node} {lat}ms attempts={attempts}")
 
     print(f"\n  Result: {ok}/{len(tests)} passed")
 
@@ -375,7 +404,13 @@ def run_test():
 
 def main():
     parser = argparse.ArgumentParser(description="Resilient Dispatcher")
-    parser.add_argument("--dispatch", nargs=2, metavar=("TYPE", "PROMPT"), help="Dispatch")
+    parser.add_argument(
+        "--dispatch",
+        nargs=2,
+        metavar=(
+            "TYPE",
+            "PROMPT"),
+        help="Dispatch")
     parser.add_argument("--status", action="store_true", help="CB status")
     parser.add_argument("--reset", type=str, help="Reset CB for node")
     parser.add_argument("--test", action="store_true", help="Test suite")

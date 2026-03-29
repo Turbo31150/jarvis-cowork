@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """intent_classifier.py
 
@@ -69,6 +70,7 @@ INTENT_MAP = {
     }
 }
 
+
 def init_db():
     conn = sqlite3.connect(str(DB_PATH))
     conn.execute("""CREATE TABLE IF NOT EXISTS classifications (
@@ -82,6 +84,7 @@ def init_db():
     )""")
     conn.commit()
     return conn
+
 
 def classify_local(text: str) -> Tuple[str, str, float]:
     """Classification par keywords (rapide, pas d'IA)."""
@@ -116,6 +119,7 @@ def classify_local(text: str) -> Tuple[str, str, float]:
 
     return best_cat, action, confidence
 
+
 def classify_ai(text: str) -> Optional[Tuple[str, str, float]]:
     """Classification via OL1 (Ollama) pour plus de précision."""
     categories = ", ".join(INTENT_MAP.keys())
@@ -136,10 +140,14 @@ def classify_ai(text: str) -> Optional[Tuple[str, str, float]]:
         match = re.search(r'\{[^}]+\}', content)
         if match:
             parsed = json.loads(match.group())
-            return parsed.get("category", "general"), parsed.get("action", "help"), parsed.get("confidence", 0.7)
+            return parsed.get(
+                "category", "general"), parsed.get(
+                "action", "help"), parsed.get(
+                "confidence", 0.7)
     except Exception:
         pass
     return None
+
 
 def classify(text: str, use_ai: bool = False) -> Dict:
     cat, action, conf = classify_local(text)
@@ -161,13 +169,15 @@ def classify(text: str, use_ai: bool = False) -> Dict:
         "timestamp": datetime.now().isoformat()
     }
 
+
 def show_stats():
     if not DB_PATH.is_file():
         print("[intent_classifier] Aucune donnée.")
         return
     conn = sqlite3.connect(str(DB_PATH))
     total = conn.execute("SELECT COUNT(*) FROM classifications").fetchone()[0]
-    cats = conn.execute("SELECT category, COUNT(*), AVG(confidence) FROM classifications GROUP BY category ORDER BY COUNT(*) DESC").fetchall()
+    cats = conn.execute(
+        "SELECT category, COUNT(*), AVG(confidence) FROM classifications GROUP BY category ORDER BY COUNT(*) DESC").fetchall()
     conn.close()
 
     print(f"=== Statistiques Intent Classifier ===")
@@ -177,13 +187,21 @@ def show_stats():
         for cat, cnt, avg_conf in cats:
             print(f"  {cat:15} : {cnt:4} ({avg_conf:.2f} confiance moyenne)")
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Classificateur d'intentions JARVIS.")
+    parser = argparse.ArgumentParser(
+        description="Classificateur d'intentions JARVIS.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--classify", metavar="TEXT", help="Classifier une intention")
+    group.add_argument(
+        "--classify",
+        metavar="TEXT",
+        help="Classifier une intention")
     group.add_argument("--batch", metavar="FILE", help="Classifier un fichier")
     group.add_argument("--stats", action="store_true", help="Statistiques")
-    parser.add_argument("--ai", action="store_true", help="Utiliser OL1 pour classification avancée")
+    parser.add_argument(
+        "--ai",
+        action="store_true",
+        help="Utiliser OL1 pour classification avancée")
     args = parser.parse_args()
 
     if args.classify:
@@ -191,8 +209,14 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
         # Log
         conn = init_db()
-        conn.execute("INSERT INTO classifications (timestamp, input_text, category, action, confidence, model_used) VALUES (?,?,?,?,?,?)",
-                     (result["timestamp"], result["input"], result["category"], result["action"], result["confidence"], result["model"]))
+        conn.execute(
+            "INSERT INTO classifications (timestamp, input_text, category, action, confidence, model_used) VALUES (?,?,?,?,?,?)",
+            (result["timestamp"],
+             result["input"],
+                result["category"],
+                result["action"],
+                result["confidence"],
+                result["model"]))
         conn.commit()
         conn.close()
 
@@ -208,14 +232,22 @@ def main():
             if not line:
                 continue
             result = classify(line, use_ai=args.ai)
-            print(f"  [{result['category']:12}] {result['action']:15} ({result['confidence']:.2f}) — {line[:50]}")
-            conn.execute("INSERT INTO classifications (timestamp, input_text, category, action, confidence, model_used) VALUES (?,?,?,?,?,?)",
-                         (result["timestamp"], result["input"], result["category"], result["action"], result["confidence"], result["model"]))
+            print(
+                f"  [{result['category']:12}] {result['action']:15} ({result['confidence']:.2f}) — {line[:50]}")
+            conn.execute(
+                "INSERT INTO classifications (timestamp, input_text, category, action, confidence, model_used) VALUES (?,?,?,?,?,?)",
+                (result["timestamp"],
+                 result["input"],
+                    result["category"],
+                    result["action"],
+                    result["confidence"],
+                    result["model"]))
         conn.commit()
         conn.close()
 
     elif args.stats:
         show_stats()
+
 
 if __name__ == "__main__":
     main()

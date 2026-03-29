@@ -25,6 +25,7 @@ API_BASE = "http://127.0.0.1:1234/api/v1/models"
 DEFAULT_MODEL = "qwen3-8b"
 DEEP_MODEL = "qwen3-30b"
 
+
 def _run_nvidia_smi() -> str:
     """Execute `nvidia-smi --query-gpu=memory.total,memory.used --format=csv,noheader,nounits`.
     Retourne le texte brut de la sortie.
@@ -38,6 +39,7 @@ def _run_nvidia_smi() -> str:
     except Exception as e:
         print(f"[model_rotator] Erreur nvidia‑smi : {e}", file=sys.stderr)
         return ""
+
 
 def parse_vram(smi_output: str) -> Tuple[int, int]:
     """Parse la sortie de nvidia‑smi.
@@ -60,6 +62,7 @@ def parse_vram(smi_output: str) -> Tuple[int, int]:
             continue
     return (total, used)
 
+
 def vram_status() -> Tuple[int, int, int]:
     """Retourne (total_gb, used_gb, free_gb)."""
     total_mb, used_mb = parse_vram(_run_nvidia_smi())
@@ -67,6 +70,7 @@ def vram_status() -> Tuple[int, int, int]:
     used_gb = used_mb // 1024
     free_gb = max(total_gb - used_gb, 0)
     return (total_gb, used_gb, free_gb)
+
 
 def get_loaded_models() -> List[str]:
     """Interroge LM Studio pour récupérer la liste des modèles chargés.
@@ -76,13 +80,17 @@ def get_loaded_models() -> List[str]:
         req = urllib.request.Request(API_BASE, method="GET")
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.load(resp)
-        # On suppose que la réponse contient une clé "models" avec des dicts possédant "name" et "loaded"
+        # On suppose que la réponse contient une clé "models" avec des dicts
+        # possédant "name" et "loaded"
         models = data.get("models", [])
         loaded = [m.get("name") for m in models if m.get("loaded")]
         return [name for name in loaded if name]
     except Exception as e:
-        print(f"[model_rotator] Erreur lors de la lecture des modèles : {e}", file=sys.stderr)
+        print(
+            f"[model_rotator] Erreur lors de la lecture des modèles : {e}",
+            file=sys.stderr)
         return []
+
 
 def post_action(action: str, model: str) -> bool:
     """Envoie une requête POST à LM Studio.
@@ -98,27 +106,39 @@ def post_action(action: str, model: str) -> bool:
             if 200 <= resp.getcode() < 300:
                 return True
     except urllib.error.HTTPError as he:
-        print(f"[model_rotator] HTTP error {he.code} pour {action} {model}: {he.read().decode()}", file=sys.stderr)
+        print(
+            f"[model_rotator] HTTP error {
+                he.code} pour {action} {model}: {
+                he.read().decode()}",
+            file=sys.stderr)
     except Exception as e:
-        print(f"[model_rotator] Erreur POST {action} {model}: {e}", file=sys.stderr)
+        print(
+            f"[model_rotator] Erreur POST {action} {model}: {e}",
+            file=sys.stderr)
     return False
+
 
 def load_model(model: str) -> bool:
     return post_action("load", model)
 
+
 def unload_model(model: str) -> bool:
     return post_action("unload", model)
+
 
 def show_status():
     total_gb, used_gb, free_gb = vram_status()
     loaded = get_loaded_models()
     print("[model_rotator] VRAM - Total: {} GB, Used: {} GB, Free: {} GB".format(total_gb, used_gb, free_gb))
-    print("[model_rotator] Modèles chargés : {}".format(", ".join(loaded) if loaded else "(aucun)"))
+    print("[model_rotator] Modèles chargés : {}".format(
+        ", ".join(loaded) if loaded else "(aucun)"))
+
 
 def auto_rotate():
     total_gb, used_gb, free_gb = vram_status()
     loaded = set(get_loaded_models())
-    # Décision basée sur la VRAM libre : si >=30 GB, charger le modèle deep, sinon le léger.
+    # Décision basée sur la VRAM libre : si >=30 GB, charger le modèle deep,
+    # sinon le léger.
     if free_gb >= 30:
         target, other = DEEP_MODEL, DEFAULT_MODEL
     else:
@@ -129,20 +149,37 @@ def auto_rotate():
     if other in loaded:
         actions.append(("unload", other))
     if not actions:
-        print(f"[model_rotator] Aucun changement nécessaire (cible = {target}).")
+        print(
+            f"[model_rotator] Aucun changement nécessaire (cible = {target}).")
         return
-    print(f"[model_rotator] Rotation automatique - VRAM libre {free_gb} GB, cible = {target}")
+    print(
+        f"[model_rotator] Rotation automatique - VRAM libre {free_gb} GB, cible = {target}")
     for act, mdl in actions:
         ok = load_model(mdl) if act == "load" else unload_model(mdl)
-        print(f"[model_rotator] {act.upper()} {mdl} -> {'OK' if ok else 'ÉCHEC'}")
+        print(
+            f"[model_rotator] {act.upper()} {mdl} -> {'OK' if ok else 'ÉCHEC'}")
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Rotation automatique des modèles LM Studio.")
+    parser = argparse.ArgumentParser(
+        description="Rotation automatique des modèles LM Studio.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--status", action="store_true", help="Affiche VRAM + modèles chargés")
-    group.add_argument("--load", metavar="MODEL", help="Charge le modèle indiqué")
-    group.add_argument("--unload", metavar="MODEL", help="Décharge le modèle indiqué")
-    group.add_argument("--auto", action="store_true", help="Rotation intelligente selon la VRAM disponible")
+    group.add_argument(
+        "--status",
+        action="store_true",
+        help="Affiche VRAM + modèles chargés")
+    group.add_argument(
+        "--load",
+        metavar="MODEL",
+        help="Charge le modèle indiqué")
+    group.add_argument(
+        "--unload",
+        metavar="MODEL",
+        help="Décharge le modèle indiqué")
+    group.add_argument(
+        "--auto",
+        action="store_true",
+        help="Rotation intelligente selon la VRAM disponible")
     args = parser.parse_args()
 
     if args.status:
@@ -152,9 +189,13 @@ def main():
         print(f"[model_rotator] LOAD {args.load} → {'OK' if ok else 'ÉCHEC'}")
     elif args.unload:
         ok = unload_model(args.unload)
-        print(f"[model_rotator] UNLOAD {args.unload} → {'OK' if ok else 'ÉCHEC'}")
+        print(
+            f"[model_rotator] UNLOAD {
+                args.unload} → {
+                'OK' if ok else 'ÉCHEC'}")
     elif args.auto:
         auto_rotate()
+
 
 if __name__ == "__main__":
     main()

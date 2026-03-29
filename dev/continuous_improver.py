@@ -64,7 +64,14 @@ def run_step(step):
             "error": result.stderr[-200:] if result.stderr else "",
         }
     except subprocess.TimeoutExpired:
-        return {"success": False, "error": "timeout", "duration_ms": int(step.get("timeout", 120) * 1000)}
+        return {
+            "success": False,
+            "error": "timeout",
+            "duration_ms": int(
+                step.get(
+                    "timeout",
+                    120) *
+                1000)}
     except Exception as e:
         return {"success": False, "error": str(e)[:200]}
 
@@ -137,7 +144,11 @@ def main():
     parser = argparse.ArgumentParser(description="Continuous Improver")
     parser.add_argument("--once", action="store_true", help="Single cycle")
     parser.add_argument("--watch", action="store_true", help="Continuous")
-    parser.add_argument("--interval", type=int, default=30, help="Interval (min)")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=30,
+        help="Interval (min)")
     parser.add_argument("--fast", action="store_true", help="Quick cycle")
     args = parser.parse_args()
 

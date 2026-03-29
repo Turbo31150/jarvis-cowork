@@ -73,7 +73,8 @@ def get_firewall_rules():
 def scan_open_ports(start=1, end=1024):
     """Quick scan for open TCP ports."""
     open_ports = []
-    for port in list(range(start, min(end, 100))) + list(KNOWN_SAFE_PORTS.keys()):
+    for port in list(range(start, min(end, 100))) + \
+            list(KNOWN_SAFE_PORTS.keys()):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(0.1)
@@ -96,8 +97,14 @@ def do_audit():
     open_ports = scan_open_ports()
 
     # Analyze rules
-    enabled_inbound = [r for r in rules if r.get("enabled", "").lower() == "yes"]
-    allow_rules = [r for r in enabled_inbound if r.get("action", "").lower() == "allow"]
+    enabled_inbound = [
+        r for r in rules if r.get(
+            "enabled",
+            "").lower() == "yes"]
+    allow_rules = [
+        r for r in enabled_inbound if r.get(
+            "action",
+            "").lower() == "allow"]
 
     # Detect suspicious
     suspicious = [p for p in open_ports if not p["known"]]
@@ -105,11 +112,15 @@ def do_audit():
     # Suggestions
     suggestions = []
     if len(allow_rules) > 50:
-        suggestions.append("Trop de regles Allow inbound — reviser les regles inutiles")
+        suggestions.append(
+            "Trop de regles Allow inbound — reviser les regles inutiles")
     if suspicious:
-        suggestions.append(f"{len(suspicious)} ports ouverts non-reconnus — verifier")
-    if not any(r.get("name", "").lower().find("block") >= 0 for r in rules[:100]):
-        suggestions.append("Peu de regles Block explicites — ajouter des blocages")
+        suggestions.append(
+            f"{len(suspicious)} ports ouverts non-reconnus — verifier")
+    if not any(r.get("name", "").lower().find(
+            "block") >= 0 for r in rules[:100]):
+        suggestions.append(
+            "Peu de regles Block explicites — ajouter des blocages")
 
     report = {
         "ts": datetime.now().isoformat(),
@@ -125,8 +136,11 @@ def do_audit():
 
     db.execute(
         "INSERT INTO scans (ts, rules_count, open_ports, suspicious_count, report) VALUES (?,?,?,?,?)",
-        (time.time(), len(rules), len(open_ports), len(suspicious), json.dumps(report))
-    )
+        (time.time(),
+         len(rules),
+         len(open_ports),
+         len(suspicious),
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -134,7 +148,11 @@ def do_audit():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Firewall Analyzer")
-    parser.add_argument("--once", "--audit", action="store_true", help="Full audit")
+    parser.add_argument(
+        "--once",
+        "--audit",
+        action="store_true",
+        help="Full audit")
     parser.add_argument("--rules", action="store_true", help="List rules")
     parser.add_argument("--suggest", action="store_true", help="Suggestions")
     args = parser.parse_args()

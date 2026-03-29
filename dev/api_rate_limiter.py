@@ -64,6 +64,8 @@ NODES = {
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db(conn: sqlite3.Connection):
     conn.execute("""
         CREATE TABLE IF NOT EXISTS rate_limit_buckets (
@@ -107,6 +109,8 @@ def get_db() -> sqlite3.Connection:
 # ---------------------------------------------------------------------------
 # Token Bucket Logic
 # ---------------------------------------------------------------------------
+
+
 def ensure_bucket(conn: sqlite3.Connection, node: str):
     """Create bucket row if it doesn't exist."""
     row = conn.execute(
@@ -176,11 +180,15 @@ def consume_token(conn: sqlite3.Connection, node: str) -> dict:
 
     state["tokens_remaining"] = round(new_tokens, 2)
     state["allowed"] = allowed
-    state["usage_pct"] = round((1.0 - new_tokens / state["bucket_capacity"]) * 100, 1)
+    state["usage_pct"] = round(
+        (1.0 - new_tokens / state["bucket_capacity"]) * 100, 1)
     return state
 
 
-def check_alerts(conn: sqlite3.Connection, node: str, state: dict) -> list[str]:
+def check_alerts(
+        conn: sqlite3.Connection,
+        node: str,
+        state: dict) -> list[str]:
     """Check if node is approaching its rate limit."""
     alerts = []
     cfg = NODES.get(node, {})
@@ -188,10 +196,13 @@ def check_alerts(conn: sqlite3.Connection, node: str, state: dict) -> list[str]:
     usage = state["usage_pct"] / 100.0
 
     if usage >= 0.95:
-        msg = f"CRITICAL: {node} at {state['usage_pct']}% capacity — {state['tokens_remaining']} tokens left"
+        msg = f"CRITICAL: {node} at {
+            state['usage_pct']}% capacity — {
+            state['tokens_remaining']} tokens left"
         alerts.append(msg)
     elif usage >= threshold:
-        msg = f"WARNING: {node} at {state['usage_pct']}% capacity — approaching limit"
+        msg = f"WARNING: {node} at {
+            state['usage_pct']}% capacity — approaching limit"
         alerts.append(msg)
 
     for alert_msg in alerts:
@@ -206,6 +217,8 @@ def check_alerts(conn: sqlite3.Connection, node: str, state: dict) -> list[str]:
 # ---------------------------------------------------------------------------
 # Actions
 # ---------------------------------------------------------------------------
+
+
 def action_once() -> dict:
     """Show current bucket states and any alerts."""
     conn = get_db()
@@ -309,16 +322,18 @@ def action_reset() -> dict:
         "timestamp": datetime.now().isoformat(),
         "action": "reset",
         "message": "All buckets reset to full capacity, logs and alerts cleared",
-        "nodes_reset": list(NODES.keys()),
+        "nodes_reset": list(
+            NODES.keys()),
     }
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Rate limiting for cluster API calls using token bucket algorithm."
-    )
+        description="Rate limiting for cluster API calls using token bucket algorithm.")
     parser.add_argument("--once", action="store_true",
                         help="Show current bucket states and alerts as JSON")
     parser.add_argument("--stats", action="store_true",

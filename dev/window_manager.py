@@ -45,23 +45,32 @@ kernel32 = ctypes.windll.kernel32
 # ---------------------------------------------------------------------------
 # Structures
 # ---------------------------------------------------------------------------
+
+
 class RECT(ctypes.Structure):
     _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long),
                 ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
+
 
 class MONITORINFO(ctypes.Structure):
     _fields_ = [("cbSize", ctypes.c_ulong),
                 ("rcMonitor", RECT), ("rcWork", RECT),
                 ("dwFlags", ctypes.c_ulong)]
 
+
 # ---------------------------------------------------------------------------
 # Window enumeration
 # ---------------------------------------------------------------------------
-WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
+WNDENUMPROC = ctypes.WINFUNCTYPE(
+    ctypes.c_bool, ctypes.POINTER(
+        ctypes.c_int), ctypes.POINTER(
+            ctypes.c_int))
+
 
 def get_all_windows():
     """Liste toutes les fenetres visibles avec titre."""
     windows = []
+
     def callback(hwnd, lParam):
         if user32.IsWindowVisible(hwnd):
             length = user32.GetWindowTextLengthW(hwnd)
@@ -76,7 +85,8 @@ def get_all_windows():
                         user32.GetWindowRect(hwnd, ctypes.byref(rect))
                         # Get process name
                         pid = ctypes.c_ulong()
-                        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+                        user32.GetWindowThreadProcessId(
+                            hwnd, ctypes.byref(pid))
                         windows.append({
                             "hwnd": hwnd,
                             "title": title,
@@ -86,9 +96,14 @@ def get_all_windows():
                             "h": rect.bottom - rect.top,
                         })
         return True
-    CMPFUNC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_int, ctypes.POINTER(ctypes.c_int))
+    CMPFUNC = ctypes.WINFUNCTYPE(
+        ctypes.c_bool,
+        ctypes.c_int,
+        ctypes.POINTER(
+            ctypes.c_int))
     user32.EnumWindows(CMPFUNC(callback), 0)
     return windows
+
 
 def find_window(name: str):
     """Trouve une fenetre par nom (recherche partielle, insensible a la casse)."""
@@ -107,9 +122,12 @@ def find_window(name: str):
 # ---------------------------------------------------------------------------
 # Monitor enumeration
 # ---------------------------------------------------------------------------
+
+
 def get_monitors():
     """Liste tous les ecrans avec leurs dimensions."""
     monitors = []
+
     def callback(hMonitor, hdcMonitor, lprcMonitor, dwData):
         info = MONITORINFO()
         info.cbSize = ctypes.sizeof(MONITORINFO)
@@ -125,13 +143,19 @@ def get_monitors():
             "full_h": info.rcMonitor.bottom - info.rcMonitor.top,
         })
         return True
-    MONITORENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_ulong, ctypes.c_ulong, ctypes.POINTER(RECT), ctypes.c_double)
+    MONITORENUMPROC = ctypes.WINFUNCTYPE(
+        ctypes.c_int,
+        ctypes.c_ulong,
+        ctypes.c_ulong,
+        ctypes.POINTER(RECT),
+        ctypes.c_double)
     user32.EnumDisplayMonitors(None, None, MONITORENUMPROC(callback), 0)
     # Sort: primary first, then by x position
     monitors.sort(key=lambda m: (not m["primary"], m["x"]))
     for i, m in enumerate(monitors):
         m["index"] = i + 1
     return monitors
+
 
 def get_window_monitor(hwnd):
     """Retourne l'index de l'ecran ou se trouve la fenetre."""
@@ -148,17 +172,22 @@ def get_window_monitor(hwnd):
 # ---------------------------------------------------------------------------
 # Window actions
 # ---------------------------------------------------------------------------
+
+
 def focus_window(hwnd):
     """Met une fenetre au premier plan."""
     user32.ShowWindow(hwnd, SW_RESTORE)
     user32.SetForegroundWindow(hwnd)
     return True
 
+
 def move_to_screen(hwnd, screen_index: int):
     """Deplace une fenetre vers un ecran specifique."""
     monitors = get_monitors()
     if screen_index < 1 or screen_index > len(monitors):
-        return {"error": f"Ecran {screen_index} inexistant. {len(monitors)} ecrans disponibles."}
+        return {
+            "error": f"Ecran {screen_index} inexistant. {
+                len(monitors)} ecrans disponibles."}
 
     target = monitors[screen_index - 1]
     rect = RECT()
@@ -171,8 +200,16 @@ def move_to_screen(hwnd, screen_index: int):
     new_y = target["y"] + (target["h"] - h) // 2
 
     user32.ShowWindow(hwnd, SW_RESTORE)
-    user32.SetWindowPos(hwnd, 0, new_x, new_y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW)
+    user32.SetWindowPos(
+        hwnd,
+        0,
+        new_x,
+        new_y,
+        0,
+        0,
+        SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW)
     return {"moved": True, "screen": screen_index, "x": new_x, "y": new_y}
+
 
 def move_to_other_screen(hwnd):
     """Deplace une fenetre vers l'autre ecran (toggle)."""
@@ -183,19 +220,23 @@ def move_to_other_screen(hwnd):
     target = 2 if current == 1 else 1
     return move_to_screen(hwnd, target)
 
+
 def close_window(hwnd):
     """Ferme une fenetre."""
     WM_CLOSE = 0x0010
     user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
     return True
 
+
 def minimize_window(hwnd):
     user32.ShowWindow(hwnd, SW_MINIMIZE)
     return True
 
+
 def maximize_window(hwnd):
     user32.ShowWindow(hwnd, SW_MAXIMIZE)
     return True
+
 
 def tile_windows():
     """Carrele toutes les fenetres visibles sur l'ecran principal."""
@@ -221,9 +262,17 @@ def tile_windows():
         x = primary["x"] + col * tile_w
         y = primary["y"] + row * tile_h
         user32.ShowWindow(w["hwnd"], SW_RESTORE)
-        user32.SetWindowPos(w["hwnd"], 0, x, y, tile_w, tile_h, SWP_NOZORDER | SWP_SHOWWINDOW)
+        user32.SetWindowPos(
+            w["hwnd"],
+            0,
+            x,
+            y,
+            tile_w,
+            tile_h,
+            SWP_NOZORDER | SWP_SHOWWINDOW)
 
     return {"tiled": n, "grid": f"{cols}x{rows}"}
+
 
 def snap_window(hwnd, position: str):
     """Snap une fenetre a gauche/droite/haut/bas de l'ecran."""
@@ -232,15 +281,38 @@ def snap_window(hwnd, position: str):
     screen = monitors[screen_idx - 1]
 
     positions = {
-        "left":   (screen["x"], screen["y"], screen["w"] // 2, screen["h"]),
-        "right":  (screen["x"] + screen["w"] // 2, screen["y"], screen["w"] // 2, screen["h"]),
-        "top":    (screen["x"], screen["y"], screen["w"], screen["h"] // 2),
-        "bottom": (screen["x"], screen["y"] + screen["h"] // 2, screen["w"], screen["h"] // 2),
-        "full":   (screen["x"], screen["y"], screen["w"], screen["h"]),
+        "left": (
+            screen["x"],
+            screen["y"],
+            screen["w"] // 2,
+            screen["h"]),
+        "right": (
+            screen["x"] + screen["w"] // 2,
+            screen["y"],
+            screen["w"] // 2,
+            screen["h"]),
+        "top": (
+            screen["x"],
+            screen["y"],
+            screen["w"],
+            screen["h"] // 2),
+        "bottom": (
+            screen["x"],
+            screen["y"] + screen["h"] // 2,
+            screen["w"],
+            screen["h"] // 2),
+        "full": (
+            screen["x"],
+            screen["y"],
+            screen["w"],
+            screen["h"]),
     }
 
     if position not in positions:
-        return {"error": f"Position inconnue: {position}. Options: {list(positions.keys())}"}
+        return {
+            "error": f"Position inconnue: {position}. Options: {
+                list(
+                    positions.keys())}"}
 
     x, y, w, h = positions[position]
     user32.ShowWindow(hwnd, SW_RESTORE)
@@ -250,20 +322,48 @@ def snap_window(hwnd, position: str):
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Window Manager — Gestion fenetres multi-ecran")
-    parser.add_argument("--list", action="store_true", help="Lister les fenetres visibles")
-    parser.add_argument("--screens", action="store_true", help="Info sur les ecrans")
-    parser.add_argument("--focus", type=str, help="Focus sur une fenetre (nom partiel)")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Window Manager — Gestion fenetres multi-ecran")
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="Lister les fenetres visibles")
+    parser.add_argument(
+        "--screens",
+        action="store_true",
+        help="Info sur les ecrans")
+    parser.add_argument(
+        "--focus",
+        type=str,
+        help="Focus sur une fenetre (nom partiel)")
     parser.add_argument("--move", type=str, help="Deplacer une fenetre")
-    parser.add_argument("--screen", type=int, default=0, help="Ecran cible (1, 2, ...)")
-    parser.add_argument("--other-screen", type=str, help="Deplacer vers l'autre ecran")
+    parser.add_argument(
+        "--screen",
+        type=int,
+        default=0,
+        help="Ecran cible (1, 2, ...)")
+    parser.add_argument(
+        "--other-screen",
+        type=str,
+        help="Deplacer vers l'autre ecran")
     parser.add_argument("--close", type=str, help="Fermer une fenetre")
     parser.add_argument("--minimize", type=str, help="Minimiser une fenetre")
     parser.add_argument("--maximize", type=str, help="Maximiser une fenetre")
-    parser.add_argument("--tile", action="store_true", help="Carreler toutes les fenetres")
-    parser.add_argument("--snap", type=str, help="Snap une fenetre (left/right/top/bottom/full)")
-    parser.add_argument("--snap-target", type=str, help="Fenetre cible pour snap")
+    parser.add_argument(
+        "--tile",
+        action="store_true",
+        help="Carreler toutes les fenetres")
+    parser.add_argument(
+        "--snap",
+        type=str,
+        help="Snap une fenetre (left/right/top/bottom/full)")
+    parser.add_argument(
+        "--snap-target",
+        type=str,
+        help="Fenetre cible pour snap")
     args = parser.parse_args()
 
     if args.screens:
@@ -304,7 +404,8 @@ def main():
     if target_name:
         win = find_window(target_name)
         if not win:
-            print(json.dumps({"error": f"Fenetre '{target_name}' non trouvee"}, ensure_ascii=False))
+            print(json.dumps(
+                {"error": f"Fenetre '{target_name}' non trouvee"}, ensure_ascii=False))
             sys.exit(1)
 
         result = {"window": win["title"][:60]}
@@ -339,6 +440,7 @@ def main():
             result["action"] = "snapped"
 
         print(json.dumps(result, indent=2, ensure_ascii=False))
+
 
 if __name__ == "__main__":
     main()

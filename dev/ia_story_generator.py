@@ -9,7 +9,12 @@ Usage:
     python dev/ia_story_generator.py --export story.md
     python dev/ia_story_generator.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -17,14 +22,29 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "story_generator.db"
 
 STYLES = {
-    "sf": {"prompt_prefix": "Ecris une histoire de science-fiction.", "tone": "technologique, futuriste"},
-    "fantasy": {"prompt_prefix": "Ecris une histoire de fantasy.", "tone": "magique, epique"},
-    "thriller": {"prompt_prefix": "Ecris un thriller haletant.", "tone": "suspense, tension"},
-    "romance": {"prompt_prefix": "Ecris une histoire romantique.", "tone": "emotionnel, tendre"},
-    "horreur": {"prompt_prefix": "Ecris une histoire d'horreur.", "tone": "sombre, effrayant"},
-    "humour": {"prompt_prefix": "Ecris une histoire humoristique.", "tone": "drole, leger"},
-    "policier": {"prompt_prefix": "Ecris un polar.", "tone": "enquete, mystere"},
+    "sf": {
+        "prompt_prefix": "Ecris une histoire de science-fiction.",
+        "tone": "technologique, futuriste"},
+    "fantasy": {
+        "prompt_prefix": "Ecris une histoire de fantasy.",
+        "tone": "magique, epique"},
+    "thriller": {
+        "prompt_prefix": "Ecris un thriller haletant.",
+        "tone": "suspense, tension"},
+    "romance": {
+        "prompt_prefix": "Ecris une histoire romantique.",
+        "tone": "emotionnel, tendre"},
+    "horreur": {
+        "prompt_prefix": "Ecris une histoire d'horreur.",
+        "tone": "sombre, effrayant"},
+    "humour": {
+        "prompt_prefix": "Ecris une histoire humoristique.",
+        "tone": "drole, leger"},
+    "policier": {
+        "prompt_prefix": "Ecris un polar.",
+        "tone": "enquete, mystere"},
 }
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -64,6 +84,7 @@ def init_db():
     db.commit()
     return db
 
+
 def query_m1(prompt):
     payload = json.dumps({
         "model": "qwen3-8b",
@@ -74,9 +95,15 @@ def query_m1(prompt):
         "store": False
     })
     try:
-        cmd = f'curl -s --max-time 60 http://127.0.0.1:1234/api/v1/chat -H "Content-Type: application/json" -d {json.dumps(payload)}'
+        cmd = f'curl -s --max-time 60 http://127.0.0.1:1234/api/v1/chat -H "Content-Type: application/json" -d {
+            json.dumps(payload)}'
         start = time.time()
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=65, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=65,
+            shell=True)
         elapsed = int((time.time() - start) * 1000)
         if r.stdout.strip():
             data = json.loads(r.stdout)
@@ -89,6 +116,7 @@ def query_m1(prompt):
     except Exception:
         return None, 0
 
+
 def extract_entities(text):
     """Extract character names and places from story text."""
     import re
@@ -99,6 +127,7 @@ def extract_entities(text):
         word_freq[w] = word_freq.get(w, 0) + 1
     characters = [w for w, c in word_freq.items() if c >= 2][:10]
     return characters
+
 
 def do_generate(theme, style="sf"):
     db = init_db()
@@ -128,12 +157,27 @@ CHAPITRE 1: [contenu]"""
     word_count = len(content.split())
     characters = extract_entities(content)
 
-    cursor = db.execute("INSERT INTO stories (created_at, updated_at, theme, style, title, chapters, total_words, characters) VALUES (?,?,?,?,?,?,?,?)",
-                        (now, now, theme, style, title, 1, word_count, json.dumps(characters)))
+    cursor = db.execute(
+        "INSERT INTO stories (created_at, updated_at, theme, style, title, chapters, total_words, characters) VALUES (?,?,?,?,?,?,?,?)",
+        (now,
+         now,
+         theme,
+         style,
+         title,
+         1,
+         word_count,
+         json.dumps(characters)))
     story_id = cursor.lastrowid
 
-    db.execute("INSERT INTO story_chapters (story_id, chapter_num, ts, content, word_count, model, duration_ms) VALUES (?,?,?,?,?,?,?)",
-               (story_id, 1, now, content, word_count, "M1", elapsed))
+    db.execute(
+        "INSERT INTO story_chapters (story_id, chapter_num, ts, content, word_count, model, duration_ms) VALUES (?,?,?,?,?,?,?)",
+        (story_id,
+         1,
+         now,
+         content,
+         word_count,
+         "M1",
+         elapsed))
     db.commit()
 
     result = {
@@ -152,9 +196,11 @@ CHAPITRE 1: [contenu]"""
     db.close()
     return result
 
+
 def do_continue():
     db = init_db()
-    story = db.execute("SELECT id, theme, style, title, chapters, characters FROM stories WHERE status='in_progress' ORDER BY id DESC LIMIT 1").fetchone()
+    story = db.execute(
+        "SELECT id, theme, style, title, chapters, characters FROM stories WHERE status='in_progress' ORDER BY id DESC LIMIT 1").fetchone()
     if not story:
         db.close()
         return {"error": "No active story. Use --generate first."}
@@ -164,7 +210,10 @@ def do_continue():
     characters = json.loads(chars) if chars else []
 
     # Get last chapter for context
-    last = db.execute("SELECT content FROM story_chapters WHERE story_id=? ORDER BY chapter_num DESC LIMIT 1", (story_id,)).fetchone()
+    last = db.execute(
+        "SELECT content FROM story_chapters WHERE story_id=? ORDER BY chapter_num DESC LIMIT 1",
+        (story_id,
+         )).fetchone()
     last_content = last[0][:500] if last else ""
 
     style_info = STYLES.get(style, STYLES["sf"])
@@ -183,26 +232,39 @@ CHAPITRE {next_chapter}:"""
     all_chars = list(set(characters + new_chars))
 
     now = datetime.now().isoformat()
-    db.execute("INSERT INTO story_chapters (story_id, chapter_num, ts, content, word_count, model, duration_ms) VALUES (?,?,?,?,?,?,?)",
-               (story_id, next_chapter, now, content, word_count, "M1", elapsed))
-    db.execute("UPDATE stories SET chapters=?, total_words=total_words+?, characters=?, updated_at=? WHERE id=?",
-               (next_chapter, word_count, json.dumps(all_chars), now, story_id))
+    db.execute(
+        "INSERT INTO story_chapters (story_id, chapter_num, ts, content, word_count, model, duration_ms) VALUES (?,?,?,?,?,?,?)",
+        (story_id,
+         next_chapter,
+         now,
+         content,
+         word_count,
+         "M1",
+         elapsed))
+    db.execute(
+        "UPDATE stories SET chapters=?, total_words=total_words+?, characters=?, updated_at=? WHERE id=?",
+        (next_chapter,
+         word_count,
+         json.dumps(all_chars),
+         now,
+         story_id))
     db.commit()
 
-    result = {
-        "action": "continue",
-        "story_id": story_id,
-        "title": title,
-        "chapter": next_chapter,
-        "word_count": word_count,
-        "total_words": db.execute("SELECT total_words FROM stories WHERE id=?", (story_id,)).fetchone()[0],
-        "characters": all_chars,
-        "content_preview": content[:500],
-        "duration_ms": elapsed,
-        "ts": datetime.now().isoformat()
-    }
+    result = {"action": "continue",
+              "story_id": story_id,
+              "title": title,
+              "chapter": next_chapter,
+              "word_count": word_count,
+              "total_words": db.execute("SELECT total_words FROM stories WHERE id=?",
+                                        (story_id,
+                                         )).fetchone()[0],
+              "characters": all_chars,
+              "content_preview": content[:500],
+              "duration_ms": elapsed,
+              "ts": datetime.now().isoformat()}
     db.close()
     return result
+
 
 def do_style(style_name=None):
     result = {
@@ -213,22 +275,29 @@ def do_style(style_name=None):
     }
     return result
 
+
 def do_export(file_path):
     db = init_db()
-    story = db.execute("SELECT id, title, theme, style, chapters FROM stories ORDER BY id DESC LIMIT 1").fetchone()
+    story = db.execute(
+        "SELECT id, title, theme, style, chapters FROM stories ORDER BY id DESC LIMIT 1").fetchone()
     if not story:
         db.close()
         return {"error": "No stories to export"}
 
     story_id = story[0]
-    chapters = db.execute("SELECT chapter_num, content FROM story_chapters WHERE story_id=? ORDER BY chapter_num", (story_id,)).fetchall()
+    chapters = db.execute(
+        "SELECT chapter_num, content FROM story_chapters WHERE story_id=? ORDER BY chapter_num",
+        (story_id,
+         )).fetchall()
 
     output = Path(file_path)
     try:
-        lines = [f"# {story[1]}\n", f"*Theme: {story[2]} | Style: {story[3]}*\n\n---\n"]
+        lines = [f"# {story[1]}\n",
+                 f"*Theme: {story[2]} | Style: {story[3]}*\n\n---\n"]
         for ch in chapters:
             lines.append(f"\n## Chapitre {ch[0]}\n\n{ch[1]}\n")
-        lines.append(f"\n---\n*Genere par JARVIS IA — {datetime.now().strftime('%Y-%m-%d')}*\n")
+        lines.append(
+            f"\n---\n*Genere par JARVIS IA — {datetime.now().strftime('%Y-%m-%d')}*\n")
 
         output.write_text("\n".join(lines), encoding="utf-8")
         db.execute("INSERT INTO story_exports (story_id, ts, format, file_path, success) VALUES (?,?,?,?,?)",
@@ -250,12 +319,16 @@ def do_export(file_path):
     db.close()
     return result
 
+
 def do_once():
     db = init_db()
     total = db.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
-    active = db.execute("SELECT COUNT(*) FROM stories WHERE status='in_progress'").fetchone()[0]
-    total_chapters = db.execute("SELECT COUNT(*) FROM story_chapters").fetchone()[0]
-    total_words = db.execute("SELECT SUM(total_words) FROM stories").fetchone()[0] or 0
+    active = db.execute(
+        "SELECT COUNT(*) FROM stories WHERE status='in_progress'").fetchone()[0]
+    total_chapters = db.execute(
+        "SELECT COUNT(*) FROM story_chapters").fetchone()[0]
+    total_words = db.execute(
+        "SELECT SUM(total_words) FROM stories").fetchone()[0] or 0
     result = {
         "status": "ok",
         "total_stories": total,
@@ -269,18 +342,41 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="IA Story Generator — COWORK #234")
-    parser.add_argument("--generate", type=str, metavar="THEME", help="Generate new story")
-    parser.add_argument("--continue", dest="continue_story", action="store_true", help="Continue current story")
+    parser = argparse.ArgumentParser(
+        description="IA Story Generator — COWORK #234")
+    parser.add_argument(
+        "--generate",
+        type=str,
+        metavar="THEME",
+        help="Generate new story")
+    parser.add_argument(
+        "--continue",
+        dest="continue_story",
+        action="store_true",
+        help="Continue current story")
     parser.add_argument("--style", type=str, help="Set/show story style")
-    parser.add_argument("--export", type=str, metavar="FILE", help="Export story to MD file")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser.add_argument(
+        "--export",
+        type=str,
+        metavar="FILE",
+        help="Export story to MD file")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.generate:
         style = args.style or "sf"
-        print(json.dumps(do_generate(args.generate, style), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_generate(
+                    args.generate,
+                    style),
+                ensure_ascii=False,
+                indent=2))
     elif args.continue_story:
         print(json.dumps(do_continue(), ensure_ascii=False, indent=2))
     elif args.style:
@@ -289,6 +385,7 @@ def main():
         print(json.dumps(do_export(args.export), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

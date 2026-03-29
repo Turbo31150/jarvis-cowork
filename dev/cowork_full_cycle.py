@@ -57,7 +57,10 @@ def run_script(name, args, label):
     """Run a single analysis script and capture output."""
     script_path = SCRIPT_DIR / f"{name}.py"
     if not script_path.exists():
-        return {"script": name, "status": "missing", "error": f"{name}.py not found"}
+        return {
+            "script": name,
+            "status": "missing",
+            "error": f"{name}.py not found"}
 
     cmd = [PYTHON, str(script_path)]
     if isinstance(args, str):
@@ -89,9 +92,13 @@ def run_script(name, args, label):
                 }
             except json.JSONDecodeError:
                 return {
-                    "script": name, "label": label, "status": "ok",
+                    "script": name,
+                    "label": label,
+                    "status": "ok",
                     "duration_ms": elapsed_ms,
-                    "summary": {"output_lines": len(result.stdout.split("\n"))},
+                    "summary": {
+                        "output_lines": len(
+                            result.stdout.split("\n"))},
                 }
         else:
             return {
@@ -100,9 +107,18 @@ def run_script(name, args, label):
                 "error": result.stderr[:200] if result.stderr else "Empty output",
             }
     except subprocess.TimeoutExpired:
-        return {"script": name, "label": label, "status": "timeout", "duration_ms": 120000}
+        return {
+            "script": name,
+            "label": label,
+            "status": "timeout",
+            "duration_ms": 120000}
     except Exception as e:
-        return {"script": name, "label": label, "status": "error", "error": str(e)[:200]}
+        return {
+            "script": name,
+            "label": label,
+            "status": "error",
+            "error": str(e)[
+                :200]}
 
 
 def _extract_summary(name, data):
@@ -189,7 +205,8 @@ def run_cycle(cycle_type="full"):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="COWORK Full Improvement Cycle")
+    parser = argparse.ArgumentParser(
+        description="COWORK Full Improvement Cycle")
     parser.add_argument("--once", action="store_true", help="Full cycle")
     parser.add_argument("--quick", action="store_true", help="Quick check")
     parser.add_argument("--stats", action="store_true", help="Summary")

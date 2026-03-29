@@ -31,9 +31,12 @@ from typing import List, Optional
 # Helpers – connexion SQLite
 # ---------------------------------------------------------------------------
 
+
 def connect_db(db_path: Path) -> sqlite3.Connection:
     if not db_path.is_file():
-        print(f"[data_exporter] Base de données introuvable : {db_path}", file=sys.stderr)
+        print(
+            f"[data_exporter] Base de données introuvable : {db_path}",
+            file=sys.stderr)
         sys.exit(1)
     return sqlite3.connect(str(db_path))
 
@@ -41,10 +44,12 @@ def connect_db(db_path: Path) -> sqlite3.Connection:
 # List tables
 # ---------------------------------------------------------------------------
 
+
 def list_tables(db_path: Path):
     conn = connect_db(db_path)
     cur = conn.cursor()
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+    cur.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
     tables = [row[0] for row in cur.fetchall()]
     conn.close()
     if not tables:
@@ -58,6 +63,7 @@ def list_tables(db_path: Path):
 # Show schema
 # ---------------------------------------------------------------------------
 
+
 def show_schema(db_path: Path, table: str):
     conn = connect_db(db_path)
     cur = conn.cursor()
@@ -70,13 +76,20 @@ def show_schema(db_path: Path, table: str):
         print(f"Schéma de la table '{table}' :")
         print("  cid | name       | type    | notnull | dflt_value | pk")
         for cid, name, col_type, notnull, dflt, pk in rows:
-            print(f"  {cid:3} | {name:10} | {col_type:7} | {notnull:7} | {str(dflt):10} | {pk}")
+            print(
+                f"  {
+                    cid:3} | {
+                    name:10} | {
+                    col_type:7} | {
+                    notnull:7} | {
+                        str(dflt):10} | {pk}")
     finally:
         conn.close()
 
 # ---------------------------------------------------------------------------
 # Export – CSV / JSON
 # ---------------------------------------------------------------------------
+
 
 def export_table(
     db_path: Path,
@@ -104,7 +117,8 @@ def export_table(
     conn.close()
 
     # Destination – stdout if no file given
-    out_stream = sys.stdout if output is None else open(output, "w", encoding="utf-8", newline="")
+    out_stream = sys.stdout if output is None else open(
+        output, "w", encoding="utf-8", newline="")
     try:
         if fmt == "csv":
             writer = csv.writer(out_stream)
@@ -120,14 +134,19 @@ def export_table(
     finally:
         if output is not None:
             out_stream.close()
-    print(f"[data_exporter] Export terminé ({len(rows)} lignes) → {output if output else 'stdout'}")
+    print(
+        f"[data_exporter] Export terminé ({
+            len(rows)} lignes) → {
+            output if output else 'stdout'}")
 
 # ---------------------------------------------------------------------------
 # CLI parsing
 # ---------------------------------------------------------------------------
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Exporteur de données SQLite (JARVIS).")
+    parser = argparse.ArgumentParser(
+        description="Exporteur de données SQLite (JARVIS).")
     sub = parser.add_subparsers(dest="command", required=True)
 
     # list
@@ -143,10 +162,23 @@ def main():
     p_export = sub.add_parser("export", help="Exporter le contenu d'une table")
     p_export.add_argument("db", type=Path, help="Chemin vers le fichier .db")
     p_export.add_argument("table", help="Nom de la table à exporter")
-    p_export.add_argument("--format", choices=["csv", "json"], default="csv", help="Format de sortie")
-    p_export.add_argument("--output", type=Path, help="Fichier de destination (par défaut stdout)")
-    p_export.add_argument("--where", help="Clause WHERE SQL (sans le mot-clé WHERE)")
-    p_export.add_argument("--columns", help="Colonnes à exporter, séparées par des virgules")
+    p_export.add_argument(
+        "--format",
+        choices=[
+            "csv",
+            "json"],
+        default="csv",
+        help="Format de sortie")
+    p_export.add_argument(
+        "--output",
+        type=Path,
+        help="Fichier de destination (par défaut stdout)")
+    p_export.add_argument(
+        "--where",
+        help="Clause WHERE SQL (sans le mot-clé WHERE)")
+    p_export.add_argument(
+        "--columns",
+        help="Colonnes à exporter, séparées par des virgules")
 
     args = parser.parse_args()
 
@@ -164,6 +196,7 @@ def main():
             where=args.where,
             columns=cols,
         )
+
 
 if __name__ == "__main__":
     main()

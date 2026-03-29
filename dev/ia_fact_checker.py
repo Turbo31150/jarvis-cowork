@@ -116,9 +116,30 @@ def extract_verdict(response):
         return "unknown"
     resp_lower = response.lower()
     # Count indicators
-    true_indicators = sum(1 for k in ["true", "correct", "accurate", "yes", "factual", "verified"] if k in resp_lower)
-    false_indicators = sum(1 for k in ["false", "incorrect", "inaccurate", "no", "wrong", "misleading"] if k in resp_lower)
-    uncertain_indicators = sum(1 for k in ["uncertain", "unclear", "depends", "partially", "debatable", "mixed"] if k in resp_lower)
+    true_indicators = sum(
+        1 for k in [
+            "true",
+            "correct",
+            "accurate",
+            "yes",
+            "factual",
+            "verified"] if k in resp_lower)
+    false_indicators = sum(
+        1 for k in [
+            "false",
+            "incorrect",
+            "inaccurate",
+            "no",
+            "wrong",
+            "misleading"] if k in resp_lower)
+    uncertain_indicators = sum(
+        1 for k in [
+            "uncertain",
+            "unclear",
+            "depends",
+            "partially",
+            "debatable",
+            "mixed"] if k in resp_lower)
 
     if true_indicators > false_indicators and true_indicators > uncertain_indicators:
         return "TRUE"
@@ -160,7 +181,12 @@ Verdict (TRUE/FALSE/UNCERTAIN):"""
     ol1_verdict = extract_verdict(ol1_resp) if ol1_resp else "error"
 
     # Calculate agreement and confidence
-    valid_verdicts = [v for v in [m1_verdict, ol1_verdict] if v not in ("error", "unknown")]
+    valid_verdicts = [
+        v for v in [
+            m1_verdict,
+            ol1_verdict] if v not in (
+            "error",
+            "unknown")]
     if len(valid_verdicts) == 2:
         agreement = calculate_agreement(valid_verdicts[0], valid_verdicts[1])
         confidence = agreement * 0.8 + 0.2  # Base confidence 0.2
@@ -183,31 +209,73 @@ Verdict (TRUE/FALSE/UNCERTAIN):"""
 
     check_id = db.execute(
         "INSERT INTO checks (ts, statement, m1_verdict, ol1_verdict, agreement, confidence, final_verdict, total_latency_ms) VALUES (?,?,?,?,?,?,?,?)",
-        (now.isoformat(), statement, m1_verdict, ol1_verdict,
-         round(agreement, 3), round(confidence, 3), final_verdict, round(total_latency, 1)),
+        (now.isoformat(),
+         statement,
+         m1_verdict,
+         ol1_verdict,
+         round(
+            agreement,
+            3),
+            round(
+            confidence,
+            3),
+            final_verdict,
+            round(
+            total_latency,
+            1)),
     ).lastrowid
 
     db.execute(
         "INSERT INTO responses (check_id, model, response, verdict, latency_ms, error) VALUES (?,?,?,?,?,?)",
-        (check_id, "M1/qwen3-8b", (m1_resp or "")[:1000], m1_verdict, m1_lat, m1_err),
+        (check_id,
+         "M1/qwen3-8b",
+         (m1_resp or "")[
+             :1000],
+            m1_verdict,
+            m1_lat,
+            m1_err),
     )
     db.execute(
         "INSERT INTO responses (check_id, model, response, verdict, latency_ms, error) VALUES (?,?,?,?,?,?)",
-        (check_id, "OL1/qwen3:1.7b", (ol1_resp or "")[:1000], ol1_verdict, ol1_lat, ol1_err),
+        (check_id,
+         "OL1/qwen3:1.7b",
+         (ol1_resp or "")[
+             :1000],
+            ol1_verdict,
+            ol1_lat,
+            ol1_err),
     )
     db.commit()
 
     result = {
-        "ts": now.isoformat(), "action": "check", "check_id": check_id,
+        "ts": now.isoformat(),
+        "action": "check",
+        "check_id": check_id,
         "statement": statement,
         "verdicts": {
-            "M1": {"verdict": m1_verdict, "response": (m1_resp or "")[:200], "latency_ms": m1_lat},
-            "OL1": {"verdict": ol1_verdict, "response": (ol1_resp or "")[:200], "latency_ms": ol1_lat},
+            "M1": {
+                "verdict": m1_verdict,
+                "response": (
+                    m1_resp or "")[
+                    :200],
+                "latency_ms": m1_lat},
+            "OL1": {
+                "verdict": ol1_verdict,
+                "response": (
+                    ol1_resp or "")[
+                    :200],
+                "latency_ms": ol1_lat},
         },
-        "agreement": round(agreement, 3),
-        "confidence": round(confidence, 3),
+        "agreement": round(
+            agreement,
+            3),
+        "confidence": round(
+            confidence,
+            3),
         "final_verdict": final_verdict,
-        "total_latency_ms": round(total_latency, 1),
+        "total_latency_ms": round(
+            total_latency,
+            1),
     }
     db.close()
     return result
@@ -216,10 +284,14 @@ Verdict (TRUE/FALSE/UNCERTAIN):"""
 def do_sources():
     """Show model responses for last check."""
     db = init_db()
-    last = db.execute("SELECT id, statement FROM checks ORDER BY id DESC LIMIT 1").fetchone()
+    last = db.execute(
+        "SELECT id, statement FROM checks ORDER BY id DESC LIMIT 1").fetchone()
     if not last:
         db.close()
-        return {"ts": datetime.now().isoformat(), "action": "sources", "message": "No checks yet"}
+        return {
+            "ts": datetime.now().isoformat(),
+            "action": "sources",
+            "message": "No checks yet"}
 
     responses = db.execute(
         "SELECT model, response, verdict, latency_ms FROM responses WHERE check_id=?",
@@ -248,11 +320,17 @@ def do_confidence():
     ).fetchall()
 
     result = {
-        "ts": datetime.now().isoformat(), "action": "confidence",
+        "ts": datetime.now().isoformat(),
+        "action": "confidence",
         "total_checks": db.execute("SELECT COUNT(*) FROM checks").fetchone()[0],
-        "avg_confidence": round(avg_conf or 0, 3),
-        "avg_agreement": round(avg_agree or 0, 3),
-        "by_verdict": {r[0]: r[1] for r in by_verdict},
+        "avg_confidence": round(
+            avg_conf or 0,
+            3),
+        "avg_agreement": round(
+            avg_agree or 0,
+            3),
+        "by_verdict": {
+            r[0]: r[1] for r in by_verdict},
     }
     db.close()
     return result
@@ -281,7 +359,9 @@ def do_history():
 def do_status():
     db = init_db()
     result = {
-        "ts": datetime.now().isoformat(), "script": "ia_fact_checker.py", "script_id": 259,
+        "ts": datetime.now().isoformat(),
+        "script": "ia_fact_checker.py",
+        "script_id": 259,
         "db": str(DB_PATH),
         "total_checks": db.execute("SELECT COUNT(*) FROM checks").fetchone()[0],
         "total_responses": db.execute("SELECT COUNT(*) FROM responses").fetchone()[0],
@@ -292,12 +372,29 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ia_fact_checker.py — Fact checking (#259)")
-    parser.add_argument("--check", type=str, metavar="STATEMENT", help="Check a statement")
-    parser.add_argument("--sources", action="store_true", help="Show sources for last check")
-    parser.add_argument("--confidence", action="store_true", help="Show confidence stats")
-    parser.add_argument("--history", action="store_true", help="Show check history")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="ia_fact_checker.py — Fact checking (#259)")
+    parser.add_argument(
+        "--check",
+        type=str,
+        metavar="STATEMENT",
+        help="Check a statement")
+    parser.add_argument(
+        "--sources",
+        action="store_true",
+        help="Show sources for last check")
+    parser.add_argument(
+        "--confidence",
+        action="store_true",
+        help="Show confidence stats")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show check history")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.check:

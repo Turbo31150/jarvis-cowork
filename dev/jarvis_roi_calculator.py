@@ -7,7 +7,11 @@ Usage:
     python dev/jarvis_roi_calculator.py --report
     python dev/jarvis_roi_calculator.py --once
 """
-import argparse, json, sqlite3, time, os
+import argparse
+import json
+import sqlite3
+import time
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -95,10 +99,16 @@ def _estimate_cloud_costs(db):
                 "SELECT model, COUNT(*), AVG(output_len) FROM results GROUP BY model"
             ).fetchall()
             for model, count, avg_len in rows:
-                est_tokens = int(count * (avg_len or 200) * 1.3)  # ~1.3 tokens per char
+                est_tokens = int(count * (avg_len or 200) *
+                                 1.3)  # ~1.3 tokens per char
                 rate = CLOUD_COST_PER_1K_TOKENS.get(model, 0.002)
                 cost = est_tokens / 1000 * rate
-                costs[model] = {"requests": count, "est_tokens": est_tokens, "cost_eur": round(cost, 4)}
+                costs[model] = {
+                    "requests": count,
+                    "est_tokens": est_tokens,
+                    "cost_eur": round(
+                        cost,
+                        4)}
             conn.close()
         except Exception:
             pass
@@ -108,12 +118,16 @@ def _estimate_cloud_costs(db):
     if bench_db.exists():
         try:
             conn = sqlite3.connect(str(bench_db))
-            tables = [t[0] for t in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            tables = [t[0] for t in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
             for tbl in tables:
                 try:
-                    cnt = conn.execute(f"SELECT COUNT(*) FROM [{tbl}]").fetchone()[0]
+                    cnt = conn.execute(
+                        f"SELECT COUNT(*) FROM [{tbl}]").fetchone()[0]
                     if cnt > 0 and "benchmark" not in costs:
-                        costs["benchmarks"] = {"runs": cnt, "est_cost_eur": round(cnt * 0.005, 3)}
+                        costs["benchmarks"] = {
+                            "runs": cnt, "est_cost_eur": round(
+                                cnt * 0.005, 3)}
                 except Exception:
                     pass
             conn.close()
@@ -154,7 +168,8 @@ def _estimate_time_saved():
 
     # Estimate savings
     auto_tasks_per_day = max(5, cron_count // 3)
-    avg_manual_min = sum(MANUAL_TASK_MINUTES.values()) / len(MANUAL_TASK_MINUTES)
+    avg_manual_min = sum(MANUAL_TASK_MINUTES.values()) / \
+        len(MANUAL_TASK_MINUTES)
     daily_saved_min = auto_tasks_per_day * avg_manual_min
     monthly_saved_hours = (daily_saved_min * 30) / 60
     monthly_value = monthly_saved_hours * HOURLY_RATE
@@ -177,17 +192,24 @@ def calculate_roi(db):
     electricity = _estimate_electricity()
     time_saved = _estimate_time_saved()
 
-    total_cloud = sum(c.get("cost_eur", 0) for c in cloud_costs.values() if isinstance(c, dict) and "cost_eur" in c)
+    total_cloud = sum(
+        c.get(
+            "cost_eur",
+            0) for c in cloud_costs.values() if isinstance(
+            c,
+            dict) and "cost_eur" in c)
     total_cost = total_cloud + electricity["monthly_eur"]
     total_savings = time_saved["monthly_value_eur"]
     net_roi = total_savings - total_cost
     roi_pct = round((net_roi / total_cost) * 100, 1) if total_cost > 0 else 0
 
-    db.execute("""INSERT OR REPLACE INTO monthly_roi
+    db.execute(
+        """INSERT OR REPLACE INTO monthly_roi
         (month, total_cost_eur, total_savings_eur, electricity_eur, net_roi_eur, roi_pct)
-        VALUES (?,?,?,?,?,?)""",
-        (month, round(total_cost, 2), round(total_savings, 2), electricity["monthly_eur"], round(net_roi, 2), roi_pct)
-    )
+        VALUES (?,?,?,?,?,?)""", (month, round(
+            total_cost, 2), round(
+            total_savings, 2), electricity["monthly_eur"], round(
+                net_roi, 2), roi_pct))
     db.commit()
 
     return {
@@ -221,7 +243,12 @@ def get_costs(db):
     """Show cost breakdown."""
     cloud = _estimate_cloud_costs(db)
     elec = _estimate_electricity()
-    total_cloud = sum(c.get("cost_eur", 0) for c in cloud.values() if isinstance(c, dict) and "cost_eur" in c)
+    total_cloud = sum(
+        c.get(
+            "cost_eur",
+            0) for c in cloud.values() if isinstance(
+            c,
+            dict) and "cost_eur" in c)
     return {
         "cloud_costs": cloud,
         "electricity": elec,
@@ -235,9 +262,11 @@ def full_report(db):
     history = db.execute(
         "SELECT month, total_cost_eur, total_savings_eur, net_roi_eur, roi_pct FROM monthly_roi ORDER BY month DESC LIMIT 6"
     ).fetchall()
-    roi["history"] = [
-        {"month": h[0], "cost": h[1], "savings": h[2], "net": h[3], "pct": h[4]} for h in history
-    ]
+    roi["history"] = [{"month": h[0],
+                       "cost": h[1],
+                       "savings": h[2],
+                       "net": h[3],
+                       "pct": h[4]} for h in history]
     return roi
 
 
@@ -251,19 +280,35 @@ def do_status(db):
         "id": 209,
         "db": str(DB_PATH),
         "months_tracked": months,
-        "latest_roi": {"month": latest[0], "net_eur": latest[1], "pct": latest[2]} if latest else None,
-        "gpu_nodes": list(LOCAL_GPU_WATTS.keys()),
+        "latest_roi": {
+            "month": latest[0],
+            "net_eur": latest[1],
+            "pct": latest[2]} if latest else None,
+        "gpu_nodes": list(
+            LOCAL_GPU_WATTS.keys()),
         "hourly_rate_eur": HOURLY_RATE,
-        "ts": datetime.now().isoformat()
-    }
+        "ts": datetime.now().isoformat()}
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS ROI Calculator — costs vs savings analysis")
-    parser.add_argument("--calculate", action="store_true", help="Calculate monthly ROI")
-    parser.add_argument("--savings", action="store_true", help="Show savings breakdown")
-    parser.add_argument("--cost", action="store_true", help="Show cost breakdown")
-    parser.add_argument("--report", action="store_true", help="Full report with history")
+    parser = argparse.ArgumentParser(
+        description="JARVIS ROI Calculator — costs vs savings analysis")
+    parser.add_argument(
+        "--calculate",
+        action="store_true",
+        help="Calculate monthly ROI")
+    parser.add_argument(
+        "--savings",
+        action="store_true",
+        help="Show savings breakdown")
+    parser.add_argument(
+        "--cost",
+        action="store_true",
+        help="Show cost breakdown")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Full report with history")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

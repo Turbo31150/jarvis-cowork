@@ -75,7 +75,8 @@ def get_gpu_temp():
             capture_output=True, text=True, timeout=5
         )
         if result.returncode == 0:
-            temps = [int(t.strip()) for t in result.stdout.strip().split("\n") if t.strip()]
+            temps = [int(t.strip())
+                     for t in result.stdout.strip().split("\n") if t.strip()]
             return max(temps) if temps else 0
     except Exception:
         pass
@@ -129,7 +130,9 @@ def calculate_adjustments(profile, tasks):
 
     for name, default_interval in DEFAULT_INTERVALS.items():
         task = tasks.get(name, {})
-        current = task.get("interval_s", default_interval) if isinstance(task, dict) else default_interval
+        current = task.get(
+            "interval_s", default_interval) if isinstance(
+            task, dict) else default_interval
         new_interval = max(30, int(default_interval * factor))
 
         # Don't adjust critical tasks below their minimum
@@ -138,7 +141,8 @@ def calculate_adjustments(profile, tasks):
         if name in ("db_backup", "weekly_cleanup") and new_interval < 1800:
             new_interval = 1800
 
-        if abs(new_interval - current) > current * 0.1:  # Only adjust if >10% change
+        if abs(new_interval - current) > current * \
+                0.1:  # Only adjust if >10% change
             adjustments[name] = {
                 "current": current,
                 "new": new_interval,
@@ -193,34 +197,54 @@ def list_tasks():
     result = []
     for name, default in DEFAULT_INTERVALS.items():
         task = tasks.get(name, {})
-        result.append({
-            "name": name,
-            "default_interval": default,
-            "current_interval": task.get("interval_s", default) if isinstance(task, dict) else default,
-            "run_count": task.get("run_count", 0) if isinstance(task, dict) else 0,
-            "fail_count": task.get("fail_count", 0) if isinstance(task, dict) else 0,
-        })
+        result.append(
+            {
+                "name": name, "default_interval": default, "current_interval": task.get(
+                    "interval_s", default) if isinstance(
+                    task, dict) else default, "run_count": task.get(
+                    "run_count", 0) if isinstance(
+                        task, dict) else 0, "fail_count": task.get(
+                            "fail_count", 0) if isinstance(
+                                task, dict) else 0, })
     return result
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Smart Cron Manager — Dynamic task interval optimization")
-    parser.add_argument("--once", "--optimize", action="store_true", help="Run optimization cycle")
-    parser.add_argument("--list", action="store_true", help="List tasks and intervals")
-    parser.add_argument("--loop", action="store_true", help="Continuous optimization")
-    parser.add_argument("--interval", type=int, default=1800, help="Loop interval (seconds)")
+    parser = argparse.ArgumentParser(
+        description="Smart Cron Manager — Dynamic task interval optimization")
+    parser.add_argument(
+        "--once",
+        "--optimize",
+        action="store_true",
+        help="Run optimization cycle")
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List tasks and intervals")
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Continuous optimization")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=1800,
+        help="Loop interval (seconds)")
     args = parser.parse_args()
 
     if args.list:
         result = list_tasks()
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.loop:
-        print(f"[SMART_CRON] Starting continuous optimization (interval={args.interval}s)")
+        print(
+            f"[SMART_CRON] Starting continuous optimization (interval={
+                args.interval}s)")
         while True:
             try:
                 result = do_optimize()
                 adj = len(result["adjustments"])
-                print(f"[{result['ts']}] GPU:{result['gpu_temp']}C CPU:{result['cpu_load']}% Profile:{result['load_profile']} Adjustments:{adj}")
+                print(
+                    f"[{result['ts']}] GPU:{result['gpu_temp']}C CPU:{result['cpu_load']}% Profile:{result['load_profile']} Adjustments:{adj}")
             except Exception as e:
                 print(f"[ERROR] Optimize failed: {e}")
             time.sleep(args.interval)

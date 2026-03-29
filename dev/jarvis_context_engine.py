@@ -51,8 +51,25 @@ def tokenize(text):
     """Simple tokenizer — extract meaningful words."""
     words = re.findall(r'[a-zA-Z_][a-zA-Z0-9_]{2,}', text.lower())
     # Filter stopwords
-    stop = {"the", "and", "for", "from", "with", "that", "this", "are", "was", "not",
-            "def", "self", "import", "return", "none", "true", "false", "class"}
+    stop = {
+        "the",
+        "and",
+        "for",
+        "from",
+        "with",
+        "that",
+        "this",
+        "are",
+        "was",
+        "not",
+        "def",
+        "self",
+        "import",
+        "return",
+        "none",
+        "true",
+        "false",
+        "class"}
     return [w for w in words if w not in stop and len(w) > 2]
 
 
@@ -87,7 +104,11 @@ def do_build():
 
     for source in SOURCES:
         if "glob" in source:
-            files = sorted(Path(source["glob"]).parent.glob(Path(source["glob"]).name))
+            files = sorted(
+                Path(
+                    source["glob"]).parent.glob(
+                    Path(
+                        source["glob"]).name))
         elif "path" in source:
             p = Path(source["path"])
             files = [p] if p.exists() else []
@@ -101,8 +122,11 @@ def do_build():
             for e in entries:
                 db.execute(
                     "INSERT INTO index_entries (word, source_type, filepath, line_num, context) VALUES (?,?,?,?,?)",
-                    (e["word"], e["source_type"], e["filepath"], e["line_num"], e["context"])
-                )
+                    (e["word"],
+                     e["source_type"],
+                        e["filepath"],
+                        e["line_num"],
+                        e["context"]))
                 all_words.add(e["word"])
             total_entries += len(entries)
             files_indexed += 1
@@ -148,7 +172,11 @@ def query_index(topic, top_k=10):
     db.close()
 
     # Sort by score
-    sorted_results = sorted(results.values(), key=lambda x: x["score"], reverse=True)[:top_k]
+    sorted_results = sorted(
+        results.values(),
+        key=lambda x: x["score"],
+        reverse=True)[
+        :top_k]
     return [{
         "filepath": r["filepath"], "line": r["line"],
         "context": r["context"], "source": r["source"], "score": r["score"],
@@ -157,7 +185,11 @@ def query_index(topic, top_k=10):
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Context Engine")
-    parser.add_argument("--once", "--build", action="store_true", help="Build index")
+    parser.add_argument(
+        "--once",
+        "--build",
+        action="store_true",
+        help="Build index")
     parser.add_argument("--query", metavar="TOPIC", help="Query index")
     parser.add_argument("--refresh", action="store_true", help="Refresh index")
     parser.add_argument("--stats", action="store_true", help="Show stats")
@@ -169,12 +201,11 @@ def main():
     elif args.stats:
         db = init_db()
         total = db.execute("SELECT COUNT(*) FROM index_entries").fetchone()[0]
-        builds = db.execute("SELECT ts, files_indexed, words_indexed FROM builds ORDER BY ts DESC LIMIT 5").fetchall()
+        builds = db.execute(
+            "SELECT ts, files_indexed, words_indexed FROM builds ORDER BY ts DESC LIMIT 5").fetchall()
         db.close()
-        print(json.dumps({
-            "total_entries": total,
-            "builds": [{"ts": datetime.fromtimestamp(b[0]).isoformat(), "files": b[1], "words": b[2]} for b in builds]
-        }, indent=2))
+        print(json.dumps({"total_entries": total, "builds": [{"ts": datetime.fromtimestamp(
+            b[0]).isoformat(), "files": b[1], "words": b[2]} for b in builds]}, indent=2))
     else:
         result = do_build()
         print(json.dumps(result, ensure_ascii=False, indent=2))

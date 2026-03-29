@@ -18,14 +18,20 @@ from typing import List, Dict
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT_ID = "2010747443"
 
+
 def telegram_send(msg: str):
-    import urllib.parse, urllib.request
+    import urllib.parse
+    import urllib.request
     try:
-        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
+        data = urllib.parse.urlencode(
+            {"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=10)
+        urllib.request.urlopen(
+            urllib.request.Request(
+                url, data=data), timeout=10)
     except Exception:
         pass
+
 
 def ps(cmd: str, timeout: int = 15) -> str:
     try:
@@ -39,15 +45,20 @@ def ps(cmd: str, timeout: int = 15) -> str:
 # ---------------------------------------------------------------------------
 # Status
 # ---------------------------------------------------------------------------
+
+
 def show_status():
     out = ps("Get-PnpDevice -Class Bluetooth | Select-Object Status,FriendlyName | Format-Table -AutoSize")
     if not out:
         print("[bluetooth_manager] Aucun adaptateur Bluetooth détecté.")
         return
     # Check adapter
-    adapter = ps("Get-PnpDevice -Class Bluetooth | Where-Object {$_.FriendlyName -like '*Bluetooth*' -and $_.Class -eq 'Bluetooth'} | Select-Object -First 1 Status,FriendlyName | Format-List")
-    radio = ps("Get-PnpDevice -Class Bluetooth -ErrorAction SilentlyContinue | Where-Object {$_.InstanceId -like 'USB*' -or $_.FriendlyName -match 'Radio|Adapter'} | Select-Object -First 1 Status")
-    enabled = "OK" in (radio or adapter) or "OK" in out.split('\n')[0] if out else False
+    adapter = ps(
+        "Get-PnpDevice -Class Bluetooth | Where-Object {$_.FriendlyName -like '*Bluetooth*' -and $_.Class -eq 'Bluetooth'} | Select-Object -First 1 Status,FriendlyName | Format-List")
+    radio = ps(
+        "Get-PnpDevice -Class Bluetooth -ErrorAction SilentlyContinue | Where-Object {$_.InstanceId -like 'USB*' -or $_.FriendlyName -match 'Radio|Adapter'} | Select-Object -First 1 Status")
+    enabled = "OK" in (radio or adapter) or "OK" in out.split('\n')[
+        0] if out else False
     print(f"Adaptateur Bluetooth : {'Actif' if enabled else 'État inconnu'}")
     print(f"\nAppareils Bluetooth :")
     print(out)
@@ -55,6 +66,8 @@ def show_status():
 # ---------------------------------------------------------------------------
 # List paired
 # ---------------------------------------------------------------------------
+
+
 def list_paired():
     out = ps("""
         Get-PnpDevice -Class Bluetooth |
@@ -71,6 +84,8 @@ def list_paired():
 # ---------------------------------------------------------------------------
 # Scan
 # ---------------------------------------------------------------------------
+
+
 def scan_devices():
     print("[bluetooth_manager] Scan Bluetooth en cours (via PnP)...")
     out = ps("""
@@ -88,32 +103,54 @@ def scan_devices():
         print("Appareils Bluetooth détectés :")
         print(out)
     else:
-        print("[bluetooth_manager] Aucun appareil détecté. Vérifiez que le Bluetooth est activé.")
+        print(
+            "[bluetooth_manager] Aucun appareil détecté. Vérifiez que le Bluetooth est activé.")
 
 # ---------------------------------------------------------------------------
 # Connect
 # ---------------------------------------------------------------------------
+
+
 def connect_device(device_id: str):
     # Enable device via PnP
-    out = ps(f"Enable-PnpDevice -InstanceId '{device_id}' -Confirm:$false -ErrorAction SilentlyContinue")
+    out = ps(
+        f"Enable-PnpDevice -InstanceId '{device_id}' -Confirm:$false -ErrorAction SilentlyContinue")
     print(f"[bluetooth_manager] Tentative de connexion à {device_id}")
     # Verify
-    status = ps(f"Get-PnpDevice -InstanceId '{device_id}' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status")
+    status = ps(
+        f"Get-PnpDevice -InstanceId '{device_id}' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status")
     if status == "OK":
         print(f"[bluetooth_manager] Appareil connecté (Status: OK)")
     else:
-        print(f"[bluetooth_manager] Status après connexion : {status or 'inconnu'}")
+        print(
+            f"[bluetooth_manager] Status après connexion : {
+                status or 'inconnu'}")
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Gestionnaire Bluetooth Windows.")
+    parser = argparse.ArgumentParser(
+        description="Gestionnaire Bluetooth Windows.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--scan", action="store_true", help="Scanner les appareils visibles")
-    group.add_argument("--list", action="store_true", help="Lister les appareils appairés")
-    group.add_argument("--status", action="store_true", help="État de l'adaptateur")
-    group.add_argument("--connect", metavar="DEVICE_ID", help="Connecter un appareil")
+    group.add_argument(
+        "--scan",
+        action="store_true",
+        help="Scanner les appareils visibles")
+    group.add_argument(
+        "--list",
+        action="store_true",
+        help="Lister les appareils appairés")
+    group.add_argument(
+        "--status",
+        action="store_true",
+        help="État de l'adaptateur")
+    group.add_argument(
+        "--connect",
+        metavar="DEVICE_ID",
+        help="Connecter un appareil")
     args = parser.parse_args()
 
     if args.scan:
@@ -124,6 +161,7 @@ def main():
         show_status()
     elif args.connect:
         connect_device(args.connect)
+
 
 if __name__ == "__main__":
     main()

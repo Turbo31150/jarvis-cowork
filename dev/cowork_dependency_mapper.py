@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """cowork_dependency_mapper.py — Maps dependencies between all COWORK scripts.
 
@@ -113,7 +114,11 @@ def scan_run_script_calls(src, tree, all_script_names):
             continue
         func = node.func
         fname = None
-        if isinstance(func, ast.Name) and func.id in ("run_script", "run_analyzer"):
+        if isinstance(
+                func,
+                ast.Name) and func.id in (
+                "run_script",
+                "run_analyzer"):
             fname = func.id
         elif isinstance(func, ast.Attribute) and func.attr in ("run_script", "run_analyzer"):
             fname = func.attr
@@ -137,17 +142,29 @@ def scan_subprocess_calls(src, tree, all_script_names):
         func = node.func
         is_subprocess = False
         if isinstance(func, ast.Attribute) and func.attr == "run":
-            if isinstance(func.value, ast.Name) and func.value.id == "subprocess":
+            if isinstance(
+                    func.value,
+                    ast.Name) and func.value.id == "subprocess":
                 is_subprocess = True
             elif isinstance(func.value, ast.Attribute):
                 is_subprocess = True
-        if isinstance(func, ast.Attribute) and func.attr in ("Popen", "call", "check_output", "check_call"):
+        if isinstance(
+                func,
+                ast.Attribute) and func.attr in (
+                "Popen",
+                "call",
+                "check_output",
+                "check_call"):
             is_subprocess = True
         if not is_subprocess:
             continue
         # Extract all string constants from the call arguments
         for child in ast.walk(node):
-            if isinstance(child, ast.Constant) and isinstance(child.value, str):
+            if isinstance(
+                    child,
+                    ast.Constant) and isinstance(
+                    child.value,
+                    str):
                 val = child.value
                 if val.endswith(".py"):
                     basename = Path(val).name
@@ -159,7 +176,9 @@ def scan_subprocess_calls(src, tree, all_script_names):
 def scan_create_tables(src):
     """Find CREATE TABLE IF NOT EXISTS <name> patterns."""
     tables = set()
-    pattern = re.compile(r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)", re.IGNORECASE)
+    pattern = re.compile(
+        r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)",
+        re.IGNORECASE)
     for m in pattern.finditer(src):
         tables.add(m.group(1).lower())
     return tables
@@ -201,7 +220,8 @@ def scan_data_dir_refs(src):
     for m in pat1.finditer(src):
         files.add(m.group(1))
     # os.path.join style
-    pat2 = re.compile(r"""os\.path\.join\(\s*DATA_DIR\s*,\s*['"]([^'"]+)['"]""")
+    pat2 = re.compile(
+        r"""os\.path\.join\(\s*DATA_DIR\s*,\s*['"]([^'"]+)['"]""")
     for m in pat2.finditer(src):
         files.add(m.group(1))
     return files
@@ -228,11 +248,13 @@ def scan_all():
         src, tree = _read_source(sp)
 
         # 1. run_script / run_analyzer calls
-        for target, dtype, detail in scan_run_script_calls(src, tree, all_script_names):
+        for target, dtype, detail in scan_run_script_calls(
+                src, tree, all_script_names):
             all_deps.append((name, target, dtype, detail))
 
         # 2. subprocess calls
-        for target, dtype, detail in scan_subprocess_calls(src, tree, all_script_names):
+        for target, dtype, detail in scan_subprocess_calls(
+                src, tree, all_script_names):
             if target != name:  # skip self-references
                 all_deps.append((name, target, dtype, detail))
 
@@ -265,7 +287,8 @@ def scan_all():
         for creator in creators:
             for user in users:
                 if user != creator:
-                    all_deps.append((user, creator, "reads_table", f"table:{tbl}"))
+                    all_deps.append(
+                        (user, creator, "reads_table", f"table:{tbl}"))
             # Also mark the creator as writes_table
             all_deps.append((creator, creator, "writes_table", f"table:{tbl}"))
 
@@ -285,7 +308,8 @@ def scan_all():
             for u in users_list:
                 for other in users_list:
                     if u != other:
-                        all_deps.append((u, other, "shares_file", f"file:{fpath}"))
+                        all_deps.append(
+                            (u, other, "shares_file", f"file:{fpath}"))
 
     # Deduplicate
     seen = set()
@@ -297,7 +321,8 @@ def scan_all():
             unique_deps.append(d)
 
     # Remove self-referencing writes_table (only keep for stats)
-    final_deps = [d for d in unique_deps if not (d[0] == d[1] and d[2] == "writes_table")]
+    final_deps = [d for d in unique_deps if not (
+        d[0] == d[1] and d[2] == "writes_table")]
     writes_table_deps = [d for d in unique_deps if d[2] == "writes_table"]
 
     return {
@@ -338,9 +363,11 @@ def cmd_once():
     # Hub scripts: most connections in both directions
     connection_counts = defaultdict(int)
     for s in data["scripts"]:
-        connection_counts[s] = len(dep_graph.get(s, set())) + len(rev_graph.get(s, set()))
+        connection_counts[s] = len(dep_graph.get(
+            s, set())) + len(rev_graph.get(s, set()))
     hub_scripts = sorted(connection_counts.items(), key=lambda x: -x[1])[:20]
-    hub_scripts = [{"script": h[0], "connections": h[1]} for h in hub_scripts if h[1] > 0]
+    hub_scripts = [{"script": h[0], "connections": h[1]}
+                   for h in hub_scripts if h[1] > 0]
 
     # Isolated scripts
     connected = set(dep_graph.keys()) | set(rev_graph.keys())
@@ -351,7 +378,9 @@ def cmd_once():
 
     # Shared tables summary
     shared_tables = {}
-    all_tables = set(data["table_creators"].keys()) | set(data["table_users"].keys())
+    all_tables = set(
+        data["table_creators"].keys()) | set(
+        data["table_users"].keys())
     for tbl in sorted(all_tables):
         shared_tables[tbl] = {
             "created_by": data["table_creators"].get(tbl, []),
@@ -359,14 +388,22 @@ def cmd_once():
         }
 
     report = {
-        "total_scripts": len(data["scripts"]),
-        "total_dependencies": len(data["deps"]),
-        "dependency_graph": {k: sorted(v) for k, v in dep_graph.items()},
-        "reverse_graph": {k: sorted(v) for k, v in rev_graph.items()},
+        "total_scripts": len(
+            data["scripts"]),
+        "total_dependencies": len(
+            data["deps"]),
+        "dependency_graph": {
+            k: sorted(v) for k,
+            v in dep_graph.items()},
+        "reverse_graph": {
+            k: sorted(v) for k,
+            v in rev_graph.items()},
         "hub_scripts": hub_scripts,
         "isolated_scripts": isolated,
         "shared_tables": shared_tables,
-        "shared_files": {k: v for k, v in data["file_users"].items() if len(v) > 1},
+        "shared_files": {
+            k: v for k,
+            v in data["file_users"].items() if len(v) > 1},
     }
 
     print(json.dumps(report, indent=2, ensure_ascii=False))
@@ -399,7 +436,8 @@ def cmd_graph():
 
     # Rank by total connections
     all_scripts = set(dep_graph.keys()) | set(rev_graph.keys())
-    ranked = sorted(all_scripts, key=lambda s: len(dep_graph.get(s, set())) + len(rev_graph.get(s, set())), reverse=True)
+    ranked = sorted(all_scripts, key=lambda s: len(dep_graph.get(
+        s, set())) + len(rev_graph.get(s, set())), reverse=True)
     top20 = ranked[:20]
 
     # Print header
@@ -418,7 +456,8 @@ def cmd_graph():
 
         if outgoing:
             for i, dep in enumerate(outgoing):
-                connector = "`-->" if i == len(outgoing) - 1 and not incoming else "|-->"
+                connector = "`-->" if i == len(outgoing) - \
+                    1 and not incoming else "|-->"
                 print(f"        {connector} {dep.replace('.py', '')}")
 
         if incoming:
@@ -512,9 +551,18 @@ def main():
     parser = argparse.ArgumentParser(
         description="Map dependencies between COWORK scripts"
     )
-    parser.add_argument("--once", action="store_true", help="Scan all scripts and map dependencies (JSON output)")
-    parser.add_argument("--graph", action="store_true", help="Show ASCII dependency graph of top 20 scripts")
-    parser.add_argument("--stats", action="store_true", help="Show dependency statistics by type")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Scan all scripts and map dependencies (JSON output)")
+    parser.add_argument(
+        "--graph",
+        action="store_true",
+        help="Show ASCII dependency graph of top 20 scripts")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show dependency statistics by type")
     args = parser.parse_args()
 
     if not any([args.once, args.graph, args.stats]):

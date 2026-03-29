@@ -72,7 +72,11 @@ def cmd_new(context: str) -> None:
     init_db()
 
     session_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')
+    now = datetime.now(
+        timezone.utc).isoformat(
+        timespec='microseconds').replace(
+            '+00:00',
+        'Z')
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -109,13 +113,19 @@ def cmd_add(session_id: str, message: str, role: str = "user") -> None:
         session = cursor.fetchone()
 
         if not session:
-            result = {"status": "error", "message": f"Session {session_id} not found"}
+            result = {
+                "status": "error",
+                "message": f"Session {session_id} not found"}
             print(json.dumps(result, indent=2))
             return
 
         # Insert message
         msg_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat(timespec='microseconds').replace('+00:00', 'Z')
+        now = datetime.now(
+            timezone.utc).isoformat(
+            timespec='microseconds').replace(
+            '+00:00',
+            'Z')
         tokens = estimate_tokens(message)
 
         cursor.execute("""
@@ -160,7 +170,9 @@ def cmd_history(session_id: str) -> None:
         session = cursor.fetchone()
 
         if not session:
-            result = {"status": "error", "message": f"Session {session_id} not found"}
+            result = {
+                "status": "error",
+                "message": f"Session {session_id} not found"}
             print(json.dumps(result, indent=2))
             return
 
@@ -274,7 +286,9 @@ def cmd_export(session_id: str) -> None:
         session = cursor.fetchone()
 
         if not session:
-            result = {"status": "error", "message": f"Session {session_id} not found"}
+            result = {
+                "status": "error",
+                "message": f"Session {session_id} not found"}
             print(json.dumps(result, indent=2))
             return
 
@@ -352,17 +366,18 @@ def cmd_stats() -> None:
                 "total": stats_row["total_sessions"] or 0,
                 "active": stats_row["active_sessions"] or 0,
                 "total_messages": stats_row["total_messages"] or 0,
-                "avg_per_session": round(stats_row["avg_messages_per_session"] or 0, 2),
-                "max_in_session": stats_row["max_messages_in_session"] or 0
-            },
+                "avg_per_session": round(
+                    stats_row["avg_messages_per_session"] or 0,
+                    2),
+                "max_in_session": stats_row["max_messages_in_session"] or 0},
             "messages": {
                 "total_records": msg_row["total_message_records"] or 0,
                 "total_tokens": msg_row["total_tokens"] or 0,
-                "avg_tokens_per_msg": round(msg_row["avg_tokens_per_message"] or 0, 2),
-                "sessions_used": msg_row["sessions_with_messages"] or 0
-            },
-            "by_role": roles
-        }
+                "avg_tokens_per_msg": round(
+                    msg_row["avg_tokens_per_message"] or 0,
+                    2),
+                "sessions_used": msg_row["sessions_with_messages"] or 0},
+            "by_role": roles}
         print(json.dumps(result, indent=2))
     finally:
         conn.close()
@@ -384,21 +399,52 @@ Examples:
   python conversation_manager.py --stats
 
 Database location: dev/data/conversations.db
-        """
-    )
+        """)
 
-    parser.add_argument("--new", type=str, help="Start new conversation with context")
-    parser.add_argument("--add", nargs=2, metavar=("SESSION_ID", "MESSAGE"), help="Add message to conversation")
-    parser.add_argument("--history", type=str, metavar="SESSION_ID", help="Show conversation history")
-    parser.add_argument("--list", action="store_true", help="List all conversations")
-    parser.add_argument("--search", type=str, help="Search across conversations")
-    parser.add_argument("--export", type=str, metavar="SESSION_ID", help="Export conversation as JSON")
-    parser.add_argument("--stats", action="store_true", help="Show conversation statistics")
+    parser.add_argument(
+        "--new",
+        type=str,
+        help="Start new conversation with context")
+    parser.add_argument(
+        "--add",
+        nargs=2,
+        metavar=(
+            "SESSION_ID",
+            "MESSAGE"),
+        help="Add message to conversation")
+    parser.add_argument(
+        "--history",
+        type=str,
+        metavar="SESSION_ID",
+        help="Show conversation history")
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List all conversations")
+    parser.add_argument(
+        "--search",
+        type=str,
+        help="Search across conversations")
+    parser.add_argument(
+        "--export",
+        type=str,
+        metavar="SESSION_ID",
+        help="Export conversation as JSON")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show conversation statistics")
 
     args = parser.parse_args()
 
     # Ensure at least one command is specified
-    if not any([args.new, args.add, args.history, args.list, args.search, args.export, args.stats]):
+    if not any([args.new,
+                args.add,
+                args.history,
+                args.list,
+                args.search,
+                args.export,
+                args.stats]):
         parser.print_help()
         sys.exit(1)
 

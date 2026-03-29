@@ -21,8 +21,14 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "swarm_coordinator.db"
 AGENTS = {
-    "M1": {"url": "http://127.0.0.1:1234/api/v1/chat", "type": "lmstudio", "weight": 1.8},
-    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "type": "ollama", "weight": 1.3},
+    "M1": {
+        "url": "http://127.0.0.1:1234/api/v1/chat",
+        "type": "lmstudio",
+        "weight": 1.8},
+    "OL1": {
+        "url": "http://127.0.0.1:11434/api/chat",
+        "type": "ollama",
+        "weight": 1.3},
 }
 
 
@@ -128,14 +134,23 @@ def do_dispatch(task=None):
 
 def main():
     parser = argparse.ArgumentParser(description="IA Swarm Coordinator")
-    parser.add_argument("--once", "--status", action="store_true", help="Status")
+    parser.add_argument(
+        "--once",
+        "--status",
+        action="store_true",
+        help="Status")
     parser.add_argument("--dispatch", metavar="TASK", help="Dispatch task")
     parser.add_argument("--results", action="store_true", help="Results")
     parser.add_argument("--optimize", action="store_true", help="Optimize")
     args = parser.parse_args()
 
     if args.dispatch:
-        print(json.dumps(do_dispatch(args.dispatch), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_dispatch(
+                    args.dispatch),
+                ensure_ascii=False,
+                indent=2))
     else:
         print(json.dumps(do_dispatch(), ensure_ascii=False, indent=2))
 

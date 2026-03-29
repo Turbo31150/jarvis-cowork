@@ -27,10 +27,36 @@ OLLAMA_URL = "http://127.0.0.1:11434"
 
 # Default model profiles by hour ranges
 DEFAULT_SCHEDULE = {
-    "morning": {"hours": list(range(7, 12)), "models": ["qwen3-8b"], "provider": "lmstudio"},
-    "afternoon": {"hours": list(range(12, 18)), "models": ["qwen3:1.7b", "qwen3:14b"], "provider": "ollama"},
-    "evening": {"hours": list(range(18, 23)), "models": ["qwen3-8b"], "provider": "lmstudio"},
-    "night": {"hours": list(range(0, 7)) + [23], "models": [], "provider": "none"},
+    "morning": {
+        "hours": list(
+            range(
+                7,
+                12)),
+        "models": ["qwen3-8b"],
+        "provider": "lmstudio"},
+    "afternoon": {
+        "hours": list(
+            range(
+                12,
+                18)),
+        "models": [
+            "qwen3:1.7b",
+            "qwen3:14b"],
+        "provider": "ollama"},
+    "evening": {
+        "hours": list(
+            range(
+                18,
+                23)),
+        "models": ["qwen3-8b"],
+        "provider": "lmstudio"},
+    "night": {
+        "hours": list(
+            range(
+                0,
+                7)) + [23],
+        "models": [],
+        "provider": "none"},
 }
 
 
@@ -169,7 +195,14 @@ def do_preload():
 
                 db.execute(
                     "INSERT INTO preload_log (ts, model, provider, success, latency_ms, reason) VALUES (?,?,?,?,?,?)",
-                    (now.isoformat(), model, provider, int(success), round(latency, 1), reason),
+                    (now.isoformat(),
+                     model,
+                     provider,
+                     int(success),
+                        round(
+                        latency,
+                        1),
+                        reason),
                 )
                 preloaded.append({
                     "model": model, "provider": provider,
@@ -193,7 +226,8 @@ def do_schedule():
     """Show preloading schedule."""
     db = init_db()
     # Check for custom schedules
-    custom = db.execute("SELECT profile_name, hours, models, provider, active FROM schedules").fetchall()
+    custom = db.execute(
+        "SELECT profile_name, hours, models, provider, active FROM schedules").fetchall()
 
     schedule = {}
     if custom:
@@ -229,8 +263,10 @@ def do_stats():
     """Show preloading statistics."""
     db = init_db()
     total = db.execute("SELECT COUNT(*) FROM preload_log").fetchone()[0]
-    success = db.execute("SELECT COUNT(*) FROM preload_log WHERE success=1").fetchone()[0]
-    avg_latency = db.execute("SELECT AVG(latency_ms) FROM preload_log WHERE success=1").fetchone()[0]
+    success = db.execute(
+        "SELECT COUNT(*) FROM preload_log WHERE success=1").fetchone()[0]
+    avg_latency = db.execute(
+        "SELECT AVG(latency_ms) FROM preload_log WHERE success=1").fetchone()[0]
     by_model = db.execute(
         "SELECT model, COUNT(*), AVG(latency_ms) FROM preload_log GROUP BY model ORDER BY COUNT(*) DESC"
     ).fetchall()
@@ -276,12 +312,28 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="jarvis_preloader.py — Intelligent model preloading (#247)")
-    parser.add_argument("--status", action="store_true", help="Show preloader status")
-    parser.add_argument("--preload", action="store_true", help="Preload models for current hour")
-    parser.add_argument("--schedule", action="store_true", help="Show preloading schedule")
-    parser.add_argument("--stats", action="store_true", help="Show preloading statistics")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="jarvis_preloader.py — Intelligent model preloading (#247)")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Show preloader status")
+    parser.add_argument(
+        "--preload",
+        action="store_true",
+        help="Preload models for current hour")
+    parser.add_argument(
+        "--schedule",
+        action="store_true",
+        help="Show preloading schedule")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show preloading statistics")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.preload:

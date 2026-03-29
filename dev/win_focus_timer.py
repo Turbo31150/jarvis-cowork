@@ -82,8 +82,14 @@ def do_status():
         (time.time() - 86400,)
     ).fetchone()
 
-    db.execute("INSERT INTO sessions (ts, duration_min, type, productive_apps, distraction_apps, score) VALUES (?,?,?,?,?,?)",
-               (time.time(), 0, "snapshot", len(productive), len(distracting), score))
+    db.execute(
+        "INSERT INTO sessions (ts, duration_min, type, productive_apps, distraction_apps, score) VALUES (?,?,?,?,?,?)",
+        (time.time(),
+         0,
+         "snapshot",
+         len(productive),
+         len(distracting),
+         score))
     db.commit()
     db.close()
 
@@ -104,8 +110,16 @@ def do_status():
 def main():
     parser = argparse.ArgumentParser(description="Windows Focus Timer")
     parser.add_argument("--once", "--stats", action="store_true", help="Stats")
-    parser.add_argument("--start", type=int, metavar="MINUTES", help="Start focus")
-    parser.add_argument("--break", dest="take_break", action="store_true", help="Take break")
+    parser.add_argument(
+        "--start",
+        type=int,
+        metavar="MINUTES",
+        help="Start focus")
+    parser.add_argument(
+        "--break",
+        dest="take_break",
+        action="store_true",
+        help="Take break")
     parser.add_argument("--history", action="store_true", help="History")
     args = parser.parse_args()
     print(json.dumps(do_status(), ensure_ascii=False, indent=2))

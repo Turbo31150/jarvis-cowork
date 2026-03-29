@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ia_knowledge_distiller.py (#188) — Extraction et condensation de connaissances.
 
@@ -249,7 +250,9 @@ def generate_quiz(db, topic):
         ).fetchone()
 
     if not row:
-        return {"status": "error", "error": "Could not distill knowledge for quiz"}
+        return {
+            "status": "error",
+            "error": "Could not distill knowledge for quiz"}
 
     kid, facts_json = row
     facts = json.loads(facts_json)
@@ -279,17 +282,15 @@ def generate_quiz(db, topic):
     if not questions:
         # Fallback: generate from facts
         for i, fact in enumerate(facts[:5]):
-            questions.append(f"What is true about {topic} regarding: {fact[:50]}...?")
+            questions.append(
+                f"What is true about {topic} regarding: {fact[:50]}...?")
             answers.append(fact)
 
     db.execute(
         """INSERT INTO quizzes (ts, topic, knowledge_id, questions_json, answers_json, question_count)
-           VALUES (?,?,?,?,?,?)""",
-        (time.time(), topic, kid,
-         json.dumps(questions, ensure_ascii=False),
-         json.dumps(answers, ensure_ascii=False),
-         len(questions))
-    )
+           VALUES (?,?,?,?,?,?)""", (time.time(), topic, kid, json.dumps(
+            questions, ensure_ascii=False), json.dumps(
+            answers, ensure_ascii=False), len(questions)))
     db.commit()
 
     return {
@@ -308,14 +309,16 @@ def verify_knowledge(db, topic):
     ).fetchone()
 
     if not row:
-        return {"status": "error", "error": f"No knowledge stored for '{topic}'. Use --distill first."}
+        return {
+            "status": "error",
+            "error": f"No knowledge stored for '{topic}'. Use --distill first."}
 
     kid, facts_json = row
     facts = json.loads(facts_json)
 
     prompt = (
         f"Verify these facts about '{topic}'. For each, say TRUE or FALSE with a brief reason.\n"
-        + "\n".join(f"{i+1}. {f}" for i, f in enumerate(facts[:8]))
+        + "\n".join(f"{i + 1}. {f}" for i, f in enumerate(facts[:8]))
         + "\n\nReply as JSON array: [{\"fact\": \"...\", \"valid\": true/false, \"reason\": \"...\"}]"
     )
     raw = query_m1(prompt, max_tokens=1024)
@@ -344,9 +347,14 @@ def verify_knowledge(db, topic):
     db.execute(
         """INSERT INTO verifications (ts, topic, knowledge_id, verified, discrepancies_json, confidence)
            VALUES (?,?,?,?,?,?)""",
-        (time.time(), topic, kid, verified_count,
-         json.dumps(discrepancies, ensure_ascii=False), confidence)
-    )
+        (time.time(),
+         topic,
+         kid,
+         verified_count,
+         json.dumps(
+            discrepancies,
+            ensure_ascii=False),
+            confidence))
     db.commit()
 
     return {
@@ -364,8 +372,7 @@ def export_all(db):
     """Export all knowledge."""
     rows = db.execute(
         "SELECT topic, key_facts_json, sources_json, fact_count, merged_summary, ts "
-        "FROM knowledge ORDER BY ts DESC"
-    ).fetchall()
+        "FROM knowledge ORDER BY ts DESC").fetchall()
     return {
         "status": "ok",
         "total_topics": len(rows),
@@ -385,8 +392,10 @@ def export_all(db):
 
 def once(db):
     """Run once with demo."""
-    total_topics = db.execute("SELECT COUNT(DISTINCT topic) FROM knowledge").fetchone()[0]
-    total_facts = db.execute("SELECT COALESCE(SUM(fact_count), 0) FROM knowledge").fetchone()[0]
+    total_topics = db.execute(
+        "SELECT COUNT(DISTINCT topic) FROM knowledge").fetchone()[0]
+    total_facts = db.execute(
+        "SELECT COALESCE(SUM(fact_count), 0) FROM knowledge").fetchone()[0]
     total_quizzes = db.execute("SELECT COUNT(*) FROM quizzes").fetchone()[0]
 
     demo = distill_topic(db, "SQLite database")
@@ -406,8 +415,7 @@ def once(db):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ia_knowledge_distiller.py (#188) — Extraction et condensation de connaissances"
-    )
+        description="ia_knowledge_distiller.py (#188) — Extraction et condensation de connaissances")
     parser.add_argument("--distill", type=str, metavar="TOPIC",
                         help="Distill knowledge on a topic from M1+OL1")
     parser.add_argument("--quiz", type=str, metavar="TOPIC",

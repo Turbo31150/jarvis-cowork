@@ -51,8 +51,13 @@ def get_system_mem():
             total_mb = total_kb / 1024
             free_mb = free_kb / 1024
             used_mb = total_mb - free_mb
-            return {"total_mb": round(total_mb), "used_mb": round(used_mb),
-                    "free_mb": round(free_mb), "pct": round(used_mb / total_mb * 100, 1)}
+            return {
+                "total_mb": round(total_mb),
+                "used_mb": round(used_mb),
+                "free_mb": round(free_mb),
+                "pct": round(
+                    used_mb / total_mb * 100,
+                    1)}
     except Exception:
         pass
     return {"total_mb": 0, "used_mb": 0, "free_mb": 0, "pct": 0}
@@ -87,11 +92,20 @@ def do_snapshot():
     mem = get_system_mem()
     procs = get_top_processes()
 
-    db.execute("INSERT INTO snapshots (ts, total_mb, used_mb, free_mb, pct) VALUES (?,?,?,?,?)",
-               (time.time(), mem["total_mb"], mem["used_mb"], mem["free_mb"], mem["pct"]))
+    db.execute(
+        "INSERT INTO snapshots (ts, total_mb, used_mb, free_mb, pct) VALUES (?,?,?,?,?)",
+        (time.time(),
+         mem["total_mb"],
+         mem["used_mb"],
+         mem["free_mb"],
+         mem["pct"]))
     for p in procs:
-        db.execute("INSERT INTO process_mem (ts, name, pid, mem_mb) VALUES (?,?,?,?)",
-                   (time.time(), p["name"], p["pid"], p["mem_mb"]))
+        db.execute(
+            "INSERT INTO process_mem (ts, name, pid, mem_mb) VALUES (?,?,?,?)",
+            (time.time(),
+             p["name"],
+                p["pid"],
+                p["mem_mb"]))
     db.commit()
     db.close()
 
@@ -143,7 +157,11 @@ def do_leaks():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Memory Profiler")
-    parser.add_argument("--once", "--snapshot", action="store_true", help="Take snapshot")
+    parser.add_argument(
+        "--once",
+        "--snapshot",
+        action="store_true",
+        help="Take snapshot")
     parser.add_argument("--leaks", action="store_true", help="Detect leaks")
     parser.add_argument("--top", action="store_true", help="Top processes")
     parser.add_argument("--history", action="store_true", help="History")

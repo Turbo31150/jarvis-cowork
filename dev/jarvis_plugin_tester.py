@@ -57,14 +57,23 @@ def test_plugin(plugin_dir):
     results = []
     manifest = plugin_dir / "plugin.json"
     if not manifest.exists():
-        results.append({"component": "manifest", "file": "plugin.json", "status": "FAIL", "error": "Missing plugin.json"})
+        results.append({"component": "manifest",
+                        "file": "plugin.json",
+                        "status": "FAIL",
+                        "error": "Missing plugin.json"})
         return results
 
     ok, err = validate_json(manifest)
     if not ok:
-        results.append({"component": "manifest", "file": "plugin.json", "status": "FAIL", "error": err})
+        results.append({"component": "manifest",
+                        "file": "plugin.json",
+                        "status": "FAIL",
+                        "error": err})
         return results
-    results.append({"component": "manifest", "file": "plugin.json", "status": "PASS", "error": None})
+    results.append({"component": "manifest",
+                    "file": "plugin.json",
+                    "status": "PASS",
+                    "error": None})
 
     config = json.loads(manifest.read_text(encoding="utf-8"))
 
@@ -87,9 +96,13 @@ def test_plugin(plugin_dir):
         for f in hooks_dir.iterdir():
             if f.suffix == ".py":
                 ok, err = validate_python(f)
-                results.append({"component": "hook", "file": f.name, "status": "PASS" if ok else "FAIL", "error": err})
+                results.append({"component": "hook",
+                                "file": f.name,
+                                "status": "PASS" if ok else "FAIL",
+                                "error": err})
             elif f.suffix in (".sh", ".bash"):
-                results.append({"component": "hook", "file": f.name, "status": "PASS", "error": None})
+                results.append(
+                    {"component": "hook", "file": f.name, "status": "PASS", "error": None})
 
     # Check agents
     agents_dir = plugin_dir / "agents"
@@ -109,7 +122,8 @@ def test_plugin(plugin_dir):
     if cmds_dir.exists():
         for f in cmds_dir.iterdir():
             if f.suffix == ".md":
-                results.append({"component": "command", "file": f.name, "status": "PASS", "error": None})
+                results.append(
+                    {"component": "command", "file": f.name, "status": "PASS", "error": None})
 
     return results
 
@@ -126,8 +140,14 @@ def do_test_all():
                 results = test_plugin(p)
                 all_results[p.name] = results
                 for r in results:
-                    db.execute("INSERT INTO test_results (ts, plugin, component, file_path, status, error) VALUES (?,?,?,?,?,?)",
-                               (time.time(), p.name, r["component"], r["file"], r["status"], r.get("error")))
+                    db.execute(
+                        "INSERT INTO test_results (ts, plugin, component, file_path, status, error) VALUES (?,?,?,?,?,?)",
+                        (time.time(),
+                         p.name,
+                         r["component"],
+                            r["file"],
+                            r["status"],
+                            r.get("error")))
 
     db.commit()
     db.close()
@@ -151,8 +171,15 @@ def do_test_all():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Plugin Tester")
-    parser.add_argument("--once", "--all", action="store_true", help="Test all plugins")
-    parser.add_argument("--test", metavar="PLUGIN", help="Test specific plugin")
+    parser.add_argument(
+        "--once",
+        "--all",
+        action="store_true",
+        help="Test all plugins")
+    parser.add_argument(
+        "--test",
+        metavar="PLUGIN",
+        help="Test specific plugin")
     parser.add_argument("--report", action="store_true", help="Show report")
     parser.add_argument("--fix", action="store_true", help="Auto-fix issues")
     args = parser.parse_args()

@@ -14,6 +14,7 @@ from pathlib import Path
 DB_PATH = Path(__file__).parent / "brain.db"
 TURBO = Path("F:/BUREAU/turbo")
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS context (
@@ -31,6 +32,7 @@ def init_db():
         commands_count INTEGER, topics TEXT, mood TEXT)""")
     db.commit()
     return db
+
 
 def learn_from_history(db):
     """Analyze etoile.db and jarvis.db for patterns."""
@@ -60,7 +62,7 @@ def learn_from_history(db):
                 for hour, cnt in rows:
                     db.execute(
                         "INSERT OR REPLACE INTO context (ts, category, key, value, confidence, last_accessed) VALUES (?,?,?,?,?,?)",
-                        (time.time(), "user_schedule", f"active_hour_{hour}", str(cnt), min(1.0, cnt/50), time.time()))
+                        (time.time(), "user_schedule", f"active_hour_{hour}", str(cnt), min(1.0, cnt / 50), time.time()))
             except sqlite3.OperationalError:
                 pass
             edb.close()
@@ -88,6 +90,7 @@ def learn_from_history(db):
     db.commit()
     return patterns_found
 
+
 def predict_next_actions(db):
     """Based on patterns, predict what user might need."""
     predictions = []
@@ -96,27 +99,38 @@ def predict_next_actions(db):
 
     # Morning predictions (6-9)
     if 6 <= hour <= 9:
-        predictions.append(("Rapport matinal cluster + trading", "morning_routine", 0.8))
-        predictions.append(("Check emails et Telegram", "morning_routine", 0.7))
+        predictions.append(
+            ("Rapport matinal cluster + trading", "morning_routine", 0.8))
+        predictions.append(
+            ("Check emails et Telegram", "morning_routine", 0.7))
     # Work hours (9-18)
     elif 9 <= hour <= 18:
-        predictions.append(("Session code intensive — precharger gpt-oss et M1", "work_pattern", 0.6))
+        predictions.append(
+            ("Session code intensive — precharger gpt-oss et M1", "work_pattern", 0.6))
     # Evening (18-23)
     elif 18 <= hour <= 23:
-        predictions.append(("Backup quotidien et rapport", "evening_routine", 0.5))
+        predictions.append(
+            ("Backup quotidien et rapport", "evening_routine", 0.5))
 
     # Check if cluster needs attention
     patterns = db.execute(
         "SELECT description, frequency FROM patterns WHERE pattern_type='cluster_issue' AND last_seen > ? ORDER BY frequency DESC LIMIT 3",
         (now - 3600,)).fetchall()
     for desc, freq in patterns:
-        predictions.append((f"Cluster attention: {desc}", "cluster_pattern", min(0.9, freq/10)))
+        predictions.append(
+            (f"Cluster attention: {desc}", "cluster_pattern", min(
+                0.9, freq / 10)))
 
     for pred, basis, conf in predictions:
-        db.execute("INSERT INTO predictions (ts, prediction, basis, confidence) VALUES (?,?,?,?)",
-                   (now, pred, basis, conf))
+        db.execute(
+            "INSERT INTO predictions (ts, prediction, basis, confidence) VALUES (?,?,?,?)",
+            (now,
+             pred,
+             basis,
+             conf))
     db.commit()
     return predictions
+
 
 def store_context(db, category, key, value, confidence=1.0):
     """Store a context fact."""
@@ -124,6 +138,7 @@ def store_context(db, category, key, value, confidence=1.0):
         "INSERT OR REPLACE INTO context (ts, category, key, value, confidence, last_accessed) VALUES (?,?,?,?,?,?)",
         (time.time(), category, key, str(value), confidence, time.time()))
     db.commit()
+
 
 def get_context_summary(db):
     """Get a summary of current context."""
@@ -140,12 +155,30 @@ def get_context_summary(db):
         "recent_predictions": predictions,
     }
 
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Brain — Context & Reasoning")
-    parser.add_argument("--learn", action="store_true", help="Learn from databases")
-    parser.add_argument("--predict", action="store_true", help="Generate predictions")
-    parser.add_argument("--summary", action="store_true", help="Context summary")
-    parser.add_argument("--store", nargs=3, metavar=("CAT", "KEY", "VALUE"), help="Store context")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Brain — Context & Reasoning")
+    parser.add_argument(
+        "--learn",
+        action="store_true",
+        help="Learn from databases")
+    parser.add_argument(
+        "--predict",
+        action="store_true",
+        help="Generate predictions")
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Context summary")
+    parser.add_argument(
+        "--store",
+        nargs=3,
+        metavar=(
+            "CAT",
+            "KEY",
+            "VALUE"),
+        help="Store context")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--interval", type=int, default=1800)
@@ -162,7 +195,10 @@ def main():
         summary = get_context_summary(db)
         print("=== JARVIS Brain Summary ===")
         for cat, info in summary["categories"].items():
-            print(f"  [{cat}] {info['count']} facts (confidence {info['avg_confidence']})")
+            print(
+                f"  [{cat}] {
+                    info['count']} facts (confidence {
+                    info['avg_confidence']})")
         print(f"  Patterns: {summary['total_patterns']}")
         print(f"  Recent predictions: {summary['recent_predictions']}")
 
@@ -187,6 +223,7 @@ def main():
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

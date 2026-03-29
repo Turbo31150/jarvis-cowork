@@ -20,6 +20,7 @@ from datetime import datetime
 # Path to SQLite DB (ensure directory exists)
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "learner.db")
 
+
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
@@ -39,6 +40,7 @@ def init_db():
     conn.commit()
     return conn
 
+
 def learn(conn):
     """Placeholder learning routine.
     In a real implementation this would parse Telegram logs.
@@ -54,6 +56,7 @@ def learn(conn):
     conn.commit()
     return {"status": "learned", "command": cmd, "timestamp": now.isoformat()}
 
+
 def predict(conn):
     """Predict the most frequent command for the current hour/week day.
     Simple majority vote on matching hour and weekday.
@@ -67,10 +70,22 @@ def predict(conn):
     row = cur.fetchone()
     if row:
         command, count = row
-        confidence = float(count) / max(1, _total_for_time(conn, now.hour, now.weekday()))
-        return {"prediction": command, "confidence": round(confidence, 2), "hour": now.hour, "weekday": now.weekday()}
+        confidence = float(
+            count) / max(1, _total_for_time(conn, now.hour, now.weekday()))
+        return {
+            "prediction": command,
+            "confidence": round(
+                confidence,
+                2),
+            "hour": now.hour,
+            "weekday": now.weekday()}
     else:
-        return {"prediction": None, "confidence": 0, "hour": now.hour, "weekday": now.weekday()}
+        return {
+            "prediction": None,
+            "confidence": 0,
+            "hour": now.hour,
+            "weekday": now.weekday()}
+
 
 def _total_for_time(conn, hour, weekday):
     cur = conn.cursor()
@@ -80,6 +95,7 @@ def _total_for_time(conn, hour, weekday):
     )
     return cur.fetchone()[0]
 
+
 def patterns(conn):
     cur = conn.cursor()
     cur.execute(
@@ -87,6 +103,7 @@ def patterns(conn):
     )
     rows = cur.fetchall()
     return [{"command": cmd, "count": cnt} for cmd, cnt in rows]
+
 
 def stats(conn):
     cur = conn.cursor()
@@ -97,15 +114,32 @@ def stats(conn):
     # commands per hour (average)
     cur.execute("SELECT hour, COUNT(*) FROM commands GROUP BY hour")
     per_hour = {hour: cnt for hour, cnt in cur.fetchall()}
-    return {"total_commands": total, "distinct_commands": distinct, "commands_per_hour": per_hour}
+    return {
+        "total_commands": total,
+        "distinct_commands": distinct,
+        "commands_per_hour": per_hour}
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Apprend les patterns d'utilisation Telegram pour prédire les prochaines tâches.")
+    parser = argparse.ArgumentParser(
+        description="Apprend les patterns d'utilisation Telegram pour prédire les prochaines tâches.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--learn", action="store_true", help="Analyser l'historique et stocker les commandes.")
-    group.add_argument("--predict", action="store_true", help="Prédire la prochaine tâche.")
-    group.add_argument("--patterns", action="store_true", help="Afficher les patterns fréquents.")
-    group.add_argument("--stats", action="store_true", help="Afficher des statistiques de l'historique.")
+    group.add_argument(
+        "--learn",
+        action="store_true",
+        help="Analyser l'historique et stocker les commandes.")
+    group.add_argument(
+        "--predict",
+        action="store_true",
+        help="Prédire la prochaine tâche.")
+    group.add_argument(
+        "--patterns",
+        action="store_true",
+        help="Afficher les patterns fréquents.")
+    group.add_argument(
+        "--stats",
+        action="store_true",
+        help="Afficher des statistiques de l'historique.")
     args = parser.parse_args()
 
     conn = init_db()
@@ -122,6 +156,7 @@ def main():
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
     conn.close()
+
 
 if __name__ == "__main__":
     main()

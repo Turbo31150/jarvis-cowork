@@ -90,7 +90,9 @@ def scan_databases(verbose=False):
 
             for table_row in tables:
                 table = table_row["name"]
-                events.extend(_scan_table_for_errors(conn, db_name, table, verbose))
+                events.extend(
+                    _scan_table_for_errors(
+                        conn, db_name, table, verbose))
 
             conn.close()
         except (sqlite3.Error, OSError) as e:
@@ -110,10 +112,16 @@ def _scan_table_for_errors(conn, db_name, table, verbose=False):
         columns = {row["name"].lower() for row in cursor.fetchall()}
 
         # Look for status/error columns
-        error_columns = columns & {"status", "error", "error_message", "result",
-                                    "state", "severity", "level"}
+        error_columns = columns & {
+            "status",
+            "error",
+            "error_message",
+            "result",
+            "state",
+            "severity",
+            "level"}
         time_columns = columns & {"timestamp", "created_at", "date", "time",
-                                   "created", "updated_at", "last_seen"}
+                                  "created", "updated_at", "last_seen"}
 
         if not error_columns:
             return events
@@ -128,7 +136,7 @@ def _scan_table_for_errors(conn, db_name, table, verbose=False):
 
                 # Look for name/script columns
                 name_cols = columns & {"name", "script_name", "script", "task",
-                                        "test_name", "source"}
+                                       "test_name", "source"}
                 if name_cols:
                     select_cols.append(next(iter(name_cols)))
 
@@ -144,10 +152,13 @@ def _scan_table_for_errors(conn, db_name, table, verbose=False):
                         "source_db": db_name,
                         "source_table": table,
                         "error_type": ecol,
-                        "error_message": str(row[0])[:200],
-                        "timestamp": str(row[1]) if len(row) > 1 and row[1] else "",
-                        "script_name": str(row[2]) if len(row) > 2 and row[2] else ""
-                    }
+                        "error_message": str(
+                            row[0])[
+                            :200],
+                        "timestamp": str(
+                            row[1]) if len(row) > 1 and row[1] else "",
+                        "script_name": str(
+                            row[2]) if len(row) > 2 and row[2] else ""}
                     events.append(event)
 
             except sqlite3.Error:
@@ -268,7 +279,7 @@ def predict_failures(patterns, events, verbose=False):
                 "predicted_failure": f"Recurring failure ({occurrences} past events)",
                 "confidence": round(confidence, 2),
                 "reason": f"Script has failed {occurrences} times. "
-                         f"Error types: {', '.join(pattern['error_types'][:3])}",
+                f"Error types: {', '.join(pattern['error_types'][:3])}",
                 "window_hours": 24,
                 "severity": "high" if occurrences >= 5 else "medium"
             })
@@ -287,7 +298,7 @@ def predict_failures(patterns, events, verbose=False):
             predictions.append({
                 "script_name": "multiple",
                 "predicted_failure": f"Peak failure window at {peak_hour:02d}:00 "
-                                    f"(in ~{hours_until}h)",
+                f"(in ~{hours_until}h)",
                 "confidence": round(confidence, 2),
                 "reason": f"{pattern['occurrences']} failures historically at this hour",
                 "window_hours": hours_until + 1,
@@ -295,14 +306,17 @@ def predict_failures(patterns, events, verbose=False):
             })
 
         elif pattern["type"] == "error_category":
-            if pattern["key"] in ("timeout", "connection_error", "memory_error"):
+            if pattern["key"] in (
+                "timeout",
+                "connection_error",
+                    "memory_error"):
                 confidence = min(0.80, 0.3 + (pattern["occurrences"] * 0.07))
                 predictions.append({
                     "script_name": "system",
                     "predicted_failure": f"{pattern['key']} likely to recur",
                     "confidence": round(confidence, 2),
                     "reason": f"{pattern['occurrences']} occurrences of {pattern['key']}. "
-                             "System-level issues tend to be persistent.",
+                    "System-level issues tend to be persistent.",
                     "window_hours": 12,
                     "severity": "high" if pattern["key"] == "memory_error" else "medium"
                 })
@@ -333,7 +347,8 @@ def compute_stats(events, patterns):
     source_dist = Counter(e.get("source_db", "unknown") for e in events)
 
     # Script distribution
-    script_dist = Counter(e.get("script_name", "unknown") for e in events if e.get("script_name"))
+    script_dist = Counter(e.get("script_name", "unknown")
+                          for e in events if e.get("script_name"))
 
     # Time distribution
     hourly_dist = Counter()
@@ -387,10 +402,10 @@ def run(args):
     for p in patterns:
         conn.execute(
             "INSERT INTO failure_patterns (timestamp, pattern_type, pattern_key, occurrences, last_seen, details) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (now, p["type"], p["key"], p["occurrences"],
-             p.get("last_seen", ""), json.dumps(p.get("error_types", [])))
-        )
+            "VALUES (?, ?, ?, ?, ?, ?)", (now, p["type"], p["key"], p["occurrences"], p.get(
+                "last_seen", ""), json.dumps(
+                p.get(
+                    "error_types", []))))
 
     # Build output
     output = {
@@ -409,19 +424,27 @@ def run(args):
                 "INSERT INTO failure_predictions "
                 "(timestamp, script_name, predicted_failure, confidence, reason, window_hours) "
                 "VALUES (?, ?, ?, ?, ?, ?)",
-                (now, pred["script_name"], pred["predicted_failure"],
-                 pred["confidence"], pred["reason"], pred["window_hours"])
-            )
+                (now,
+                 pred["script_name"],
+                    pred["predicted_failure"],
+                    pred["confidence"],
+                    pred["reason"],
+                    pred["window_hours"]))
 
         output["predictions"] = predictions
-        output["high_risk_count"] = sum(1 for p in predictions if p["confidence"] >= 0.6)
+        output["high_risk_count"] = sum(
+            1 for p in predictions if p["confidence"] >= 0.6)
 
         if args.verbose:
-            print(f"\n[failure-detector] Predictions ({len(predictions)} total):")
+            print(
+                f"\n[failure-detector] Predictions ({len(predictions)} total):")
             for p in predictions:
                 risk = "HIGH" if p["confidence"] >= 0.6 else "MED" if p["confidence"] >= 0.4 else "LOW"
-                print(f"  [{risk}] {p['script_name']}: {p['predicted_failure']} "
-                      f"(confidence={p['confidence']})")
+                print(
+                    f"  [{risk}] {
+                        p['script_name']}: {
+                        p['predicted_failure']} " f"(confidence={
+                        p['confidence']})")
 
     # Statistics
     if args.stats:
@@ -454,8 +477,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Predictive Failure Detector — Predict script failures from patterns"
-    )
+        description="Predictive Failure Detector — Predict script failures from patterns")
     parser.add_argument("--once", action="store_true",
                         help="Run once and exit")
     parser.add_argument("--predict", action="store_true",

@@ -21,11 +21,14 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "shortcut_manager.db"
 
-SCAN_DIRS = [
-    {"name": "Desktop", "path": Path.home() / "Desktop"},
-    {"name": "StartMenu", "path": Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows" / "Start Menu"},
-    {"name": "QuickLaunch", "path": Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Internet Explorer" / "Quick Launch"},
-]
+SCAN_DIRS = [{"name": "Desktop", "path": Path.home() /
+              "Desktop"}, {"name": "StartMenu", "path": Path(os.environ.get("APPDATA", "")) /
+                           "Microsoft" /
+                           "Windows" /
+                           "Start Menu"}, {"name": "QuickLaunch", "path": Path(os.environ.get("APPDATA", "")) /
+                                           "Microsoft" /
+                                           "Internet Explorer" /
+                                           "Quick Launch"}, ]
 
 
 def init_db():
@@ -95,22 +98,26 @@ def scan_shortcuts():
     db.commit()
     db.close()
 
-    return {
-        "ts": datetime.now().isoformat(),
-        "total_shortcuts": len(all_shortcuts),
-        "broken": len(broken),
-        "locations": [{
-            "name": loc["name"],
-            "count": sum(1 for s in all_shortcuts if s["location"] == loc["name"]),
-            "broken": sum(1 for s in broken if s["location"] == loc["name"]),
-        } for loc in SCAN_DIRS],
-        "broken_shortcuts": [{"name": s["name"], "target": s["target"][:80], "loc": s["location"]} for s in broken[:15]],
-    }
+    return {"ts": datetime.now().isoformat(),
+            "total_shortcuts": len(all_shortcuts),
+            "broken": len(broken),
+            "locations": [{"name": loc["name"],
+                           "count": sum(1 for s in all_shortcuts if s["location"] == loc["name"]),
+                           "broken": sum(1 for s in broken if s["location"] == loc["name"]),
+                           } for loc in SCAN_DIRS],
+            "broken_shortcuts": [{"name": s["name"],
+                                  "target": s["target"][:80],
+                                  "loc": s["location"]} for s in broken[:15]],
+            }
 
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Shortcut Manager")
-    parser.add_argument("--once", "--scan", action="store_true", help="Scan shortcuts")
+    parser.add_argument(
+        "--once",
+        "--scan",
+        action="store_true",
+        help="Scan shortcuts")
     parser.add_argument("--broken", action="store_true", help="Show broken")
     parser.add_argument("--fix", action="store_true", help="Fix broken")
     parser.add_argument("--organize", action="store_true", help="Organize")

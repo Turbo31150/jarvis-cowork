@@ -32,18 +32,18 @@ GAPS_DB = DATA_DIR / "cowork_gaps.db"
 
 # TTL per task type (seconds)
 TYPE_TTL = {
-    "simple":       300,    # 5 min
-    "math":         3600,   # 1 hour (math doesn't change)
-    "code":         1800,   # 30 min
-    "system":       60,     # 1 min (system state changes fast)
-    "trading":      120,    # 2 min (market data volatile)
-    "creative":     600,    # 10 min
-    "analysis":     900,    # 15 min
-    "reasoning":    1800,   # 30 min
-    "web":          300,    # 5 min
-    "data":         600,    # 10 min
+    "simple": 300,    # 5 min
+    "math": 3600,   # 1 hour (math doesn't change)
+    "code": 1800,   # 30 min
+    "system": 60,     # 1 min (system state changes fast)
+    "trading": 120,    # 2 min (market data volatile)
+    "creative": 600,    # 10 min
+    "analysis": 900,    # 15 min
+    "reasoning": 1800,   # 30 min
+    "web": 300,    # 5 min
+    "data": 600,    # 10 min
     "architecture": 3600,   # 1 hour
-    "security":     1800,   # 30 min
+    "security": 1800,   # 30 min
 }
 
 MAX_CACHE_SIZE = 500   # Max entries
@@ -69,7 +69,8 @@ def get_db():
         last_hit TEXT
     )""")
     # Check if cache_stats has the right schema
-    cols = {r[1] for r in conn.execute("PRAGMA table_info(cache_stats)").fetchall()}
+    cols = {r[1] for r in conn.execute(
+        "PRAGMA table_info(cache_stats)").fetchall()}
     if cols and "total_hits" not in cols:
         conn.execute("DROP TABLE cache_stats")
     conn.execute("""CREATE TABLE IF NOT EXISTS cache_stats (
@@ -120,9 +121,12 @@ def cache_get(db, prompt, task_type=""):
             "text": row["response_text"],
             "node": row["node"],
             "original_latency_ms": row["latency_ms"],
-            "hit_count": row["hit_count"] + 1,
-            "age_s": int((datetime.fromisoformat(now) -
-                          datetime.fromisoformat(row["created_at"])).total_seconds()),
+            "hit_count": row["hit_count"] +
+            1,
+            "age_s": int(
+                (datetime.fromisoformat(now) -
+                 datetime.fromisoformat(
+                    row["created_at"])).total_seconds()),
         }
 
     # Miss
@@ -170,7 +174,8 @@ def cache_put(db, prompt, task_type, response_text, node, latency_ms):
 def cache_evict_expired(db):
     """Remove expired entries."""
     now = datetime.now().isoformat()
-    result = db.execute("DELETE FROM dispatch_cache WHERE expires_at <= ?", (now,))
+    result = db.execute(
+        "DELETE FROM dispatch_cache WHERE expires_at <= ?", (now,))
     db.commit()
     return result.rowcount
 
@@ -203,7 +208,11 @@ def show_stats(db):
     if types:
         print("\n  Per-type:")
         for t in types:
-            print(f"    {t['task_type']:15} {t['cnt']} entries  {t['hits']} hits")
+            print(
+                f"    {
+                    t['task_type']:15} {
+                    t['cnt']} entries  {
+                    t['hits']} hits")
 
     # Top cached
     top = db.execute("""
@@ -213,7 +222,8 @@ def show_stats(db):
     if top:
         print("\n  Most cached:")
         for t in top:
-            print(f"    [{t['node']}] {t['task_type']:10} hits={t['hit_count']} \"{t['prompt_preview'][:40]}\"")
+            print(
+                f"    [{t['node']}] {t['task_type']:10} hits={t['hit_count']} \"{t['prompt_preview'][:40]}\"")
 
 
 def run_test(db):
@@ -251,7 +261,8 @@ def run_test(db):
     print(f"  PASS evict_expired ({evicted} removed)")
 
     # Clean up test entries
-    db.execute("DELETE FROM dispatch_cache WHERE prompt_preview LIKE 'test prompt%'")
+    db.execute(
+        "DELETE FROM dispatch_cache WHERE prompt_preview LIKE 'test prompt%'")
     db.commit()
 
     print("\n  All cache tests passed")
@@ -276,13 +287,18 @@ def main():
         show_stats(db)
     elif args.clear:
         db.execute("DELETE FROM dispatch_cache")
-        db.execute("UPDATE cache_stats SET total_hits=0, total_misses=0, total_evictions=0")
+        db.execute(
+            "UPDATE cache_stats SET total_hits=0, total_misses=0, total_evictions=0")
         db.commit()
         print("Cache cleared")
     elif args.lookup:
         result = cache_get(db, args.lookup, args.type)
         if result:
-            print(f"HIT: [{result['node']}] age={result['age_s']}s hits={result['hit_count']}")
+            print(
+                f"HIT: [{
+                    result['node']}] age={
+                    result['age_s']}s hits={
+                    result['hit_count']}")
             print(f"  {result['text'][:200]}")
         else:
             print("MISS")

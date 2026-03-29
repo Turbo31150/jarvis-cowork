@@ -64,7 +64,9 @@ def analyze_python_file(filepath):
             has_doc = ast.get_docstring(node) is not None
             if has_doc:
                 documented += 1
-            methods = [n.name for n in node.body if isinstance(n, ast.FunctionDef)]
+            methods = [
+                n.name for n in node.body if isinstance(
+                    n, ast.FunctionDef)]
             classes.append({
                 "name": node.name,
                 "methods": methods,
@@ -123,7 +125,11 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Doc Writer")
-    parser.add_argument("--once", "--readme", action="store_true", help="Scan docs")
+    parser.add_argument(
+        "--once",
+        "--readme",
+        action="store_true",
+        help="Scan docs")
     parser.add_argument("--generate", metavar="FILE", help="Generate for file")
     parser.add_argument("--api", action="store_true", help="API reference")
     parser.add_argument("--changelog", action="store_true", help="Changelog")

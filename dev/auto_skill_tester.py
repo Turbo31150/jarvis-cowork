@@ -126,7 +126,12 @@ def test_skill(skill):
     else:
         issues.append("no_triggers")
 
-    if skill.get("action_type") in ("python", "hotkey", "pipeline", "domino", "mcp"):
+    if skill.get("action_type") in (
+        "python",
+        "hotkey",
+        "pipeline",
+        "domino",
+            "mcp"):
         score += 0.2
     else:
         issues.append(f"invalid_action_type: {skill.get('action_type')}")
@@ -190,7 +195,12 @@ def test_command(cmd):
     else:
         issues.append("missing_trigger")
 
-    if cmd.get("action_type") in ("python", "hotkey", "pipeline", "domino", "mcp"):
+    if cmd.get("action_type") in (
+        "python",
+        "hotkey",
+        "pipeline",
+        "domino",
+            "mcp"):
         score += 0.25
     else:
         issues.append(f"invalid_action_type: {cmd.get('action_type')}")
@@ -224,8 +234,11 @@ def do_test_all():
         results["skills"].append(result)
         db.execute(
             "INSERT INTO test_results (ts, skill_name, status, score, details) VALUES (?,?,?,?,?)",
-            (time.time(), result["name"], result["status"], result["score"], json.dumps(result))
-        )
+            (time.time(),
+             result["name"],
+                result["status"],
+                result["score"],
+                json.dumps(result)))
         if result["status"] == "pass":
             passed += 1
         else:
@@ -266,7 +279,8 @@ def do_test_all():
 def get_report():
     """Get historical test reports."""
     db = init_db()
-    rows = db.execute("SELECT * FROM runs ORDER BY ts DESC LIMIT 10").fetchall()
+    rows = db.execute(
+        "SELECT * FROM runs ORDER BY ts DESC LIMIT 10").fetchall()
     db.close()
     reports = []
     for r in rows:
@@ -279,10 +293,21 @@ def get_report():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Auto Skill Tester — Validate JARVIS skills")
-    parser.add_argument("--once", "--test-all", action="store_true", help="Test all skills")
-    parser.add_argument("--test-new", action="store_true", help="Test only new/recent skills")
-    parser.add_argument("--report", action="store_true", help="Show test history")
+    parser = argparse.ArgumentParser(
+        description="Auto Skill Tester — Validate JARVIS skills")
+    parser.add_argument(
+        "--once",
+        "--test-all",
+        action="store_true",
+        help="Test all skills")
+    parser.add_argument(
+        "--test-new",
+        action="store_true",
+        help="Test only new/recent skills")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Show test history")
     args = parser.parse_args()
 
     if args.report:

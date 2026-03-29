@@ -23,10 +23,32 @@ TELEGRAM_PROXY = "http://127.0.0.1:18800"
 WS_URL = "http://127.0.0.1:9742"
 
 URGENCY_KEYWORDS = {
-    "critical": ["crash", "offline", "down", "erreur critique", "echec", "failed", "alert"],
-    "high": ["warning", "attention", "alerte", "gpu chaud", "temperature", "degradation"],
-    "medium": ["rapport", "status", "resultat", "mise a jour", "update"],
-    "low": ["info", "note", "suggestion", "recommandation"],
+    "critical": [
+        "crash",
+        "offline",
+        "down",
+        "erreur critique",
+        "echec",
+        "failed",
+        "alert"],
+    "high": [
+        "warning",
+        "attention",
+        "alerte",
+        "gpu chaud",
+        "temperature",
+        "degradation"],
+    "medium": [
+        "rapport",
+        "status",
+        "resultat",
+        "mise a jour",
+        "update"],
+    "low": [
+        "info",
+        "note",
+        "suggestion",
+        "recommandation"],
 }
 
 
@@ -131,18 +153,23 @@ def route_message(message):
 def get_history():
     """Get routing history."""
     db = init_db()
-    rows = db.execute("SELECT ts, message, urgency, channel FROM routes ORDER BY ts DESC LIMIT 20").fetchall()
+    rows = db.execute(
+        "SELECT ts, message, urgency, channel FROM routes ORDER BY ts DESC LIMIT 20").fetchall()
     db.close()
     return [{"ts": datetime.fromtimestamp(r[0]).isoformat() if r[0] else None,
-             "message": r[1][:100], "urgency": r[2], "channels": json.loads(r[3]) if r[3] else []}
-            for r in rows]
+             "message": r[1][:100],
+             "urgency": r[2],
+             "channels": json.loads(r[3]) if r[3] else []} for r in rows]
 
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Message Router")
     parser.add_argument("--once", action="store_true", help="Show status")
     parser.add_argument("--route", metavar="MSG", help="Route a message")
-    parser.add_argument("--history", action="store_true", help="Routing history")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Routing history")
     args = parser.parse_args()
 
     if args.route:
@@ -153,7 +180,8 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         result = get_history()
-        print(json.dumps({"history": result, "channels": ["telegram", "tts", "log"]}, ensure_ascii=False, indent=2))
+        print(json.dumps({"history": result, "channels": [
+              "telegram", "tts", "log"]}, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

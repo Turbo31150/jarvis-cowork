@@ -33,46 +33,65 @@ ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
 
 # Strategy matrix: task_type -> strategy
 STRATEGY_MATRIX = {
-    "simple":       "single",
-    "web":          "single",
-    "system":       "single",
-    "creative":     "single",
-    "code":         "race",
-    "math":         "race",
-    "data":         "single",
-    "devops":       "single",
-    "trading":      "consensus",
-    "security":     "consensus",
+    "simple": "single",
+    "web": "single",
+    "system": "single",
+    "creative": "single",
+    "code": "race",
+    "math": "race",
+    "data": "single",
+    "devops": "single",
+    "trading": "consensus",
+    "security": "consensus",
     "architecture": "consensus",
-    "reasoning":    "deep",
-    "analysis":     "deep",
+    "reasoning": "deep",
+    "analysis": "deep",
 }
 
 # Strategy configs
 STRATEGY_CONFIG = {
-    "single":    {"nodes": 1, "timeout": 30},
-    "race":      {"nodes": 2, "timeout": 30},
+    "single": {"nodes": 1, "timeout": 30},
+    "race": {"nodes": 2, "timeout": 30},
     "consensus": {"nodes": 3, "timeout": 45},
-    "deep":      {"nodes": 2, "timeout": 60},
+    "deep": {"nodes": 2, "timeout": 60},
 }
 
 NODES = {
-    "M1":  {"url": "http://127.0.0.1:1234/api/v1/chat", "model": "qwen3-8b",
-            "ollama": False, "prefix": "/nothink\n", "timeout": 30, "weight": 1.8},
-    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b",
-            "ollama": True, "timeout": 20, "weight": 1.3},
-    "M2":  {"url": "http://192.168.1.26:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
-            "ollama": False, "max_tokens": 2048, "timeout": 60, "weight": 1.0},
-    "M3":  {"url": "http://192.168.1.113:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
-            "ollama": False, "max_tokens": 2048, "timeout": 60, "weight": 0.8},
+    "M1": {
+        "url": "http://127.0.0.1:1234/api/v1/chat",
+        "model": "qwen3-8b",
+        "ollama": False,
+        "prefix": "/nothink\n",
+        "timeout": 30,
+        "weight": 1.8},
+    "OL1": {
+        "url": "http://127.0.0.1:11434/api/chat",
+        "model": "qwen3:1.7b",
+        "ollama": True,
+        "timeout": 20,
+        "weight": 1.3},
+    "M2": {
+        "url": "http://192.168.1.26:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "ollama": False,
+        "max_tokens": 2048,
+        "timeout": 60,
+        "weight": 1.0},
+    "M3": {
+        "url": "http://192.168.1.113:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "ollama": False,
+        "max_tokens": 2048,
+        "timeout": 60,
+        "weight": 0.8},
 }
 
 # Node priority by strategy
 STRATEGY_NODES = {
-    "single":    ["M1", "OL1"],
-    "race":      ["M1", "OL1"],
+    "single": ["M1", "OL1"],
+    "race": ["M1", "OL1"],
     "consensus": ["M1", "OL1", "M2"],
-    "deep":      ["M1", "M2"],
+    "deep": ["M1", "M2"],
 }
 
 
@@ -107,8 +126,9 @@ def dispatch_node(node_name, prompt, timeout=30):
                 "stream": False, "store": False,
             }).encode()
 
-        req = urllib.request.Request(node["url"], data=body,
-                                     headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            node["url"], data=body, headers={
+                "Content-Type": "application/json"})
         resp = urllib.request.urlopen(req, timeout=timeout)
         data = json.loads(resp.read())
         elapsed = int((time.time() - start) * 1000)
@@ -144,13 +164,21 @@ def strategy_single(prompt, nodes, timeout):
         if result["success"]:
             result["strategy"] = "single"
             return result
-    return {"success": False, "strategy": "single", "error": "All nodes failed"}
+    return {
+        "success": False,
+        "strategy": "single",
+        "error": "All nodes failed"}
 
 
 def strategy_race(prompt, nodes, timeout):
     """Parallel race - first response wins."""
     with ThreadPoolExecutor(max_workers=len(nodes)) as pool:
-        futures = {pool.submit(dispatch_node, n, prompt, timeout): n for n in nodes}
+        futures = {
+            pool.submit(
+                dispatch_node,
+                n,
+                prompt,
+                timeout): n for n in nodes}
         for future in as_completed(futures, timeout=timeout + 5):
             result = future.result()
             if result["success"]:
@@ -161,14 +189,22 @@ def strategy_race(prompt, nodes, timeout):
                     f.cancel()
                 return result
 
-    return {"success": False, "strategy": "race", "error": "All race nodes failed"}
+    return {
+        "success": False,
+        "strategy": "race",
+        "error": "All race nodes failed"}
 
 
 def strategy_consensus(prompt, nodes, timeout):
     """Parallel consensus - compare and vote."""
     results = []
     with ThreadPoolExecutor(max_workers=len(nodes)) as pool:
-        futures = {pool.submit(dispatch_node, n, prompt, timeout): n for n in nodes}
+        futures = {
+            pool.submit(
+                dispatch_node,
+                n,
+                prompt,
+                timeout): n for n in nodes}
         for future in as_completed(futures, timeout=timeout + 5):
             try:
                 result = future.result()
@@ -178,7 +214,10 @@ def strategy_consensus(prompt, nodes, timeout):
                 pass
 
     if not results:
-        return {"success": False, "strategy": "consensus", "error": "No responses"}
+        return {
+            "success": False,
+            "strategy": "consensus",
+            "error": "No responses"}
 
     # Weight votes
     total_weight = sum(r["weight"] for r in results)
@@ -208,14 +247,19 @@ def strategy_deep(prompt, nodes, timeout):
         if len(nodes) > 1:
             primary = dispatch_node(nodes[1], prompt, timeout)
         if not primary["success"]:
-            return {"success": False, "strategy": "deep", "error": "Analysis failed"}
+            return {
+                "success": False,
+                "strategy": "deep",
+                "error": "Analysis failed"}
 
     if len(nodes) < 2:
         primary["strategy"] = "deep"
         return primary
 
     # Step 2: Verification (shorter prompt)
-    verify_prompt = f"/nothink\nVerifie cette reponse et corrige si besoin (reponds le resultat final uniquement):\n{primary['text'][:500]}"
+    verify_prompt = f"/nothink\nVerifie cette reponse et corrige si besoin (reponds le resultat final uniquement):\n{
+        primary['text'][
+            :500]}"
     verify = dispatch_node(nodes[1], verify_prompt, timeout)
 
     if verify["success"]:
@@ -242,7 +286,8 @@ def dispatch(task_type, prompt, force_strategy=None):
     # Dynamic timeout based on prompt complexity
     try:
         from dynamic_timeout import compute_timeout
-        to_result = compute_timeout(task_type, prompt, nodes[0] if nodes else "M1")
+        to_result = compute_timeout(
+            task_type, prompt, nodes[0] if nodes else "M1")
         timeout = to_result["timeout_s"]
     except ImportError:
         timeout = config["timeout"]
@@ -291,28 +336,49 @@ def show_strategies():
     for task_type, strategy in sorted(STRATEGY_MATRIX.items()):
         config = STRATEGY_CONFIG[strategy]
         nodes = STRATEGY_NODES.get(strategy, [])[:config["nodes"]]
-        print(f"  {task_type:15} -> {strategy:10} nodes={','.join(nodes)} timeout={config['timeout']}s")
+        print(
+            f"  {
+                task_type:15} -> {
+                strategy:10} nodes={
+                ','.join(nodes)} timeout={
+                    config['timeout']}s")
 
 
 def run_test():
     """Test all strategies."""
     print("=== Multi-Strategy Test ===\n")
-    tests = [
-        {"type": "simple", "prompt": "/nothink\nDis OK.", "expected_strategy": "single"},
-        {"type": "code", "prompt": "/nothink\ndef add(a,b): return a+b", "expected_strategy": "race"},
-        {"type": "math", "prompt": "/nothink\n7*8=?", "expected_strategy": "race"},
-    ]
+    tests = [{"type": "simple",
+              "prompt": "/nothink\nDis OK.",
+              "expected_strategy": "single"},
+             {"type": "code",
+              "prompt": "/nothink\ndef add(a,b): return a+b",
+              "expected_strategy": "race"},
+             {"type": "math",
+              "prompt": "/nothink\n7*8=?",
+              "expected_strategy": "race"},
+             ]
 
     ok = 0
     for t in tests:
         result = dispatch(t["type"], t["prompt"])
         log_dispatch(result, t["type"])
-        passed = result["success"] and result.get("strategy") == t["expected_strategy"]
+        passed = result["success"] and result.get(
+            "strategy") == t["expected_strategy"]
         if passed:
             ok += 1
         status = "PASS" if passed else "FAIL"
-        print(f"  {status} {t['type']:10} strategy={result.get('strategy', '?'):10} "
-              f"node={result.get('node', '?'):8} {result.get('latency_ms', 0)}ms")
+        print(
+            f"  {status} {
+                t['type']:10} strategy={
+                result.get(
+                    'strategy',
+                    '?'):10} " f"node={
+                    result.get(
+                        'node',
+                        '?'):8} {
+                            result.get(
+                                'latency_ms',
+                                0)}ms")
 
     print(f"\n  {ok}/{len(tests)} passed")
 
@@ -320,8 +386,17 @@ def run_test():
 def main():
     parser = argparse.ArgumentParser(description="Multi-Strategy Dispatcher")
     parser.add_argument("--dispatch", nargs=2, metavar=("TYPE", "PROMPT"))
-    parser.add_argument("--strategy", nargs=3, metavar=("STRAT", "TYPE", "PROMPT"))
-    parser.add_argument("--strategies", action="store_true", help="Show matrix")
+    parser.add_argument(
+        "--strategy",
+        nargs=3,
+        metavar=(
+            "STRAT",
+            "TYPE",
+            "PROMPT"))
+    parser.add_argument(
+        "--strategies",
+        action="store_true",
+        help="Show matrix")
     parser.add_argument("--test", action="store_true", help="Test all")
     parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args()
@@ -354,7 +429,14 @@ def main():
             print(f"[{result.get('strategy', '?')}/{result.get('node', '?')}] "
                   f"{result.get('text', '')[:500]}")
         else:
-            print(f"FAIL [{result.get('strategy', '?')}]: {result.get('error', '')}")
+            print(
+                f"FAIL [{
+                    result.get(
+                        'strategy',
+                        '?')}]: {
+                    result.get(
+                        'error',
+                        '')}")
 
 
 if __name__ == "__main__":

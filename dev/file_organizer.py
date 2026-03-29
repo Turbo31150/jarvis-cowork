@@ -16,6 +16,7 @@ Le script utilise uniquement la bibliothèque standard : ``shutil``, ``pathlib
 ``json`` et ``argparse``.
 """
 
+from datetime import datetime
 import argparse
 import json
 import shutil
@@ -23,7 +24,8 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-# Ensure Unicode output works on Windows consoles (cp1252 cannot encode all chars)
+# Ensure Unicode output works on Windows consoles (cp1252 cannot encode
+# all chars)
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
@@ -47,12 +49,14 @@ LOG_FILE = Path(__file__).with_name(".organizer_log.json")
 # Helpers – catégorisation
 # ---------------------------------------------------------------------------
 
+
 def categorize(file_path: Path) -> str:
     ext = file_path.suffix.lower()
     for cat, extensions in FILE_TYPES.items():
         if ext in extensions:
             return cat
     return DEFAULT_CATEGORY
+
 
 def scan_directory(base_dir: Path) -> Dict[str, List[Path]]:
     """Return a dict mapping category -> list of files found directly under *base_dir* (non‑recursive)."""
@@ -66,13 +70,17 @@ def scan_directory(base_dir: Path) -> Dict[str, List[Path]]:
 # ---------------------------------------------------------------------------
 # Reporting utilities
 # ---------------------------------------------------------------------------
+
+
 def print_scan(scan: Dict[str, List[Path]]):
     for cat, files in sorted(scan.items()):
         print(f"{cat.capitalize():<12}: {len(files)} fichier(s)")
         for f in files:
             print(f"   {f.name}")
 
-def build_moves(scan: Dict[str, List[Path]], base_dir: Path) -> List[Tuple[Path, Path]]:
+
+def build_moves(scan: Dict[str, List[Path]],
+                base_dir: Path) -> List[Tuple[Path, Path]]:
     """Return a list of tuples (src, dst) for each file in *scan*.
     Destination directories are ``base_dir / category``; they are created later.
     """
@@ -83,6 +91,7 @@ def build_moves(scan: Dict[str, List[Path]], base_dir: Path) -> List[Tuple[Path,
             dst = target_dir / src.name
             moves.append((src, dst))
     return moves
+
 
 def preview_moves(moves: List[Tuple[Path, Path]]):
     if not moves:
@@ -96,6 +105,8 @@ def preview_moves(moves: List[Tuple[Path, Path]]):
 # ---------------------------------------------------------------------------
 # Execution – réellement déplacer / enregistrer le log
 # ---------------------------------------------------------------------------
+
+
 def execute_moves(moves: List[Tuple[Path, Path]]):
     performed = []
     for src, dst in moves:
@@ -107,7 +118,9 @@ def execute_moves(moves: List[Tuple[Path, Path]]):
             print(f"[file_organizer] Erreur lors du déplacement de {src}: {e}")
     # Save log for possible undo
     if performed:
-        log_entry = {"timestamp": datetime.utcnow().isoformat() + "Z", "moves": performed}
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "moves": performed}
         try:
             # Append to JSON log (list of entries)
             if LOG_FILE.is_file():
@@ -122,10 +135,11 @@ def execute_moves(moves: List[Tuple[Path, Path]]):
             print(f"[file_organizer] Impossible d'écrire le journal : {e}")
     return performed
 
+
 # ---------------------------------------------------------------------------
 # Undo – restaurer le dernier jeu de déplacements
 # ---------------------------------------------------------------------------
-from datetime import datetime
+
 
 def undo_last():
     if not LOG_FILE.is_file():
@@ -146,7 +160,8 @@ def undo_last():
         print("[file_organizer] Aucun déplacement à annuler dans la dernière entrée.")
     else:
         print("[file_organizer] Annulation du dernier jeu de déplacements …")
-        for dst_str, src_str in moves:  # note: we stored (src, dst) – now we reverse
+        # note: we stored (src, dst) – now we reverse
+        for dst_str, src_str in moves:
             src = Path(src_str)
             dst = Path(dst_str)
             if dst.is_file():
@@ -155,24 +170,41 @@ def undo_last():
                     shutil.move(str(dst), str(src))
                     print(f"  Restitué : {dst.name} → {src.parent}")
                 except Exception as e:
-                    print(f"[file_organizer] Erreur lors du retour de {dst}: {e}")
+                    print(
+                        f"[file_organizer] Erreur lors du retour de {dst}: {e}")
     # Write back the truncated log
     try:
         with LOG_FILE.open("w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
-        print(f"[file_organizer] Erreur d'écriture du journal après annulation : {e}")
+        print(
+            f"[file_organizer] Erreur d'écriture du journal après annulation : {e}")
 
 # ---------------------------------------------------------------------------
 # CLI parsing
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Organisateur de fichiers (Bureau / Downloads).")
+    parser = argparse.ArgumentParser(
+        description="Organisateur de fichiers (Bureau / Downloads).")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--scan", metavar="DIR", help="Lister et catégoriser les fichiers du répertoire indiqué")
-    group.add_argument("--preview", metavar="DIR", help="Afficher les déplacements prévus (dry‑run)")
-    group.add_argument("--organize", metavar="DIR", help="Déplacer réellement les fichiers selon les catégories")
-    group.add_argument("--undo", action="store_true", help="Annuler le dernier jeu de déplacements")
+    group.add_argument(
+        "--scan",
+        metavar="DIR",
+        help="Lister et catégoriser les fichiers du répertoire indiqué")
+    group.add_argument(
+        "--preview",
+        metavar="DIR",
+        help="Afficher les déplacements prévus (dry‑run)")
+    group.add_argument(
+        "--organize",
+        metavar="DIR",
+        help="Déplacer réellement les fichiers selon les catégories")
+    group.add_argument(
+        "--undo",
+        action="store_true",
+        help="Annuler le dernier jeu de déplacements")
     args = parser.parse_args()
 
     if args.scan:
@@ -202,9 +234,12 @@ def main():
             return
         print("[file_organizer] Déplacement des fichiers…")
         performed = execute_moves(moves)
-        print(f"[file_organizer] Opération terminée – {len(performed)} fichier(s) déplacé(s).")
+        print(
+            f"[file_organizer] Opération terminée – {
+                len(performed)} fichier(s) déplacé(s).")
     elif args.undo:
         undo_last()
+
 
 if __name__ == "__main__":
     main()

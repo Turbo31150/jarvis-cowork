@@ -35,7 +35,7 @@ MEMORY_THRESHOLDS = {
     "vram_warning_pct": 85,    # Alerte si VRAM > 85% (par GPU)
     "vram_critical_pct": 95,   # Critique si VRAM > 95%
     "process_high_mb": 500,    # Processus > 500 MB = "gourmand"
-    "process_extreme_mb": 2000, # Processus > 2 GB = "extreme"
+    "process_extreme_mb": 2000,  # Processus > 2 GB = "extreme"
 }
 
 # --- Patterns de nettoyage ---
@@ -395,10 +395,15 @@ def cmd_analyze(args):
     vram_processes = _get_vram_processes()
 
     # Totaux VRAM (somme de tous les GPU)
-    total_vram = sum(g["total_mb"] for g in vram_gpus if g["total_mb"]) if vram_gpus else None
-    used_vram = sum(g["used_mb"] for g in vram_gpus if g["used_mb"]) if vram_gpus else None
-    free_vram = sum(g["free_mb"] for g in vram_gpus if g["free_mb"]) if vram_gpus else None
-    vram_pct = round((used_vram / total_vram) * 100, 1) if used_vram and total_vram else None
+    total_vram = sum(g["total_mb"]
+                     for g in vram_gpus if g["total_mb"]) if vram_gpus else None
+    used_vram = sum(g["used_mb"]
+                    for g in vram_gpus if g["used_mb"]) if vram_gpus else None
+    free_vram = sum(g["free_mb"]
+                    for g in vram_gpus if g["free_mb"]) if vram_gpus else None
+    vram_pct = round(
+        (used_vram / total_vram) * 100,
+        1) if used_vram and total_vram else None
 
     # Processus RAM les plus gourmands
     top_processes = _get_top_processes(top_n=args.top)
@@ -598,7 +603,8 @@ def cmd_clean(args):
                                 for f in full_path.rglob("*")
                                 if f.is_file()
                             )
-                            file_count = sum(1 for _ in full_path.rglob("*") if _.is_file())
+                            file_count = sum(
+                                1 for _ in full_path.rglob("*") if _.is_file())
                             items_found.append({
                                 "path": str(full_path),
                                 "size_bytes": dir_size,
@@ -606,7 +612,8 @@ def cmd_clean(args):
                             })
 
                             if not dry_run:
-                                shutil.rmtree(str(full_path), ignore_errors=True)
+                                shutil.rmtree(
+                                    str(full_path), ignore_errors=True)
                                 items_removed += 1
                                 bytes_freed += dir_size
                             else:
@@ -655,7 +662,8 @@ def cmd_clean(args):
         results["total_items_removed"] += items_removed
         results["total_bytes_freed"] += bytes_freed
 
-    results["total_bytes_freed_human"] = _human_size(results["total_bytes_freed"])
+    results["total_bytes_freed_human"] = _human_size(
+        results["total_bytes_freed"])
 
     # Enregistrer le nettoyage dans l'historique
     conn = sqlite3.connect(str(DB_PATH))
@@ -708,8 +716,10 @@ def cmd_monitor(args):
 
         # Collecter VRAM
         vram_gpus = _get_vram_info()
-        total_vram = sum(g["total_mb"] for g in vram_gpus if g["total_mb"]) if vram_gpus else None
-        used_vram = sum(g["used_mb"] for g in vram_gpus if g["used_mb"]) if vram_gpus else None
+        total_vram = sum(g["total_mb"]
+                         for g in vram_gpus if g["total_mb"]) if vram_gpus else None
+        used_vram = sum(g["used_mb"]
+                        for g in vram_gpus if g["used_mb"]) if vram_gpus else None
 
         sample = {
             "elapsed_s": round(time.time() - start_time, 2),
@@ -727,20 +737,31 @@ def cmd_monitor(args):
         # Sauvegarder le snapshot
         conn = sqlite3.connect(str(DB_PATH))
         cursor = conn.cursor()
-        free_vram = sum(g["free_mb"] for g in vram_gpus if g["free_mb"]) if vram_gpus else None
-        vram_pct = round((used_vram / total_vram) * 100, 1) if used_vram and total_vram else None
-        cursor.execute("""
+        free_vram = sum(g["free_mb"]
+                        for g in vram_gpus if g["free_mb"]) if vram_gpus else None
+        vram_pct = round(
+            (used_vram / total_vram) * 100,
+            1) if used_vram and total_vram else None
+        cursor.execute(
+            """
             INSERT INTO memory_snapshots
                 (timestamp, total_ram_mb, used_ram_mb, free_ram_mb, ram_usage_pct,
                  total_vram_mb, used_vram_mb, free_vram_mb, vram_usage_pct,
                  gpu_count, process_count)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            sample["timestamp"], ram_info.get("total_mb"), ram_info.get("used_mb"),
-            ram_info.get("free_mb"), ram_info.get("usage_pct"),
-            total_vram, used_vram, free_vram, vram_pct,
-            len(vram_gpus), 0,
-        ))
+        """,
+            (sample["timestamp"],
+             ram_info.get("total_mb"),
+             ram_info.get("used_mb"),
+             ram_info.get("free_mb"),
+             ram_info.get("usage_pct"),
+             total_vram,
+             used_vram,
+             free_vram,
+             vram_pct,
+             len(vram_gpus),
+                0,
+             ))
         conn.commit()
         conn.close()
 
@@ -780,11 +801,13 @@ def cmd_monitor(args):
     }
 
     # Calculer la tendance (pente de la RAM au fil du temps)
-    ram_values = [s["ram_usage_pct"] for s in samples if s.get("ram_usage_pct") is not None]
+    ram_values = [s["ram_usage_pct"]
+                  for s in samples if s.get("ram_usage_pct") is not None]
     if len(ram_values) >= 2:
         # Pente simple: difference entre premiere et derniere valeur
         trend = round(ram_values[-1] - ram_values[0], 2)
-        trend_label = "stable" if abs(trend) < 1 else ("croissante" if trend > 0 else "decroissante")
+        trend_label = "stable" if abs(trend) < 1 else (
+            "croissante" if trend > 0 else "decroissante")
     else:
         trend = 0
         trend_label = "insuffisant"
@@ -993,7 +1016,7 @@ def main():
 Exemples:
   %(prog)s --analyze                        Analyse complete RAM + VRAM + processus
   %(prog)s --analyze --top 30               Top 30 processus (defaut: 20)
-  %(prog)s --clean --path F:\\BUREAU\\turbo   Nettoyer les caches Python
+  %(prog)s --clean --path F:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\BUREAU\\turbo   Nettoyer les caches Python
   %(prog)s --clean --path . --dry-run       Simuler le nettoyage (sans supprimer)
   %(prog)s --monitor --duration 60          Monitoring 60 secondes
   %(prog)s --monitor --interval 5           Echantillonnage toutes les 5 secondes
@@ -1026,7 +1049,9 @@ Exemples:
         help="Nombre de processus a afficher (defaut: 20, avec --analyze)",
     )
     parser.add_argument(
-        "--path", type=str, default=".",
+        "--path",
+        type=str,
+        default=".",
         help="Repertoire cible pour le nettoyage (defaut: repertoire courant, avec --clean)",
     )
     parser.add_argument(
@@ -1038,7 +1063,9 @@ Exemples:
         help="Duree du monitoring en secondes (defaut: 30, avec --monitor)",
     )
     parser.add_argument(
-        "--interval", type=float, default=2.0,
+        "--interval",
+        type=float,
+        default=2.0,
         help="Intervalle d'echantillonnage en secondes (defaut: 2.0, avec --monitor)",
     )
 

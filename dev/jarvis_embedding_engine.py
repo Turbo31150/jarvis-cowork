@@ -22,10 +22,45 @@ from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "embedding_engine.db"
-STOPWORDS = {"the", "and", "for", "that", "this", "with", "from", "are", "was", "not",
-             "but", "all", "can", "had", "her", "one", "our", "out", "you", "def",
-             "import", "self", "none", "true", "false", "return", "class", "pass",
-             "les", "des", "une", "dans", "pour", "sur", "par", "est", "qui", "que"}
+STOPWORDS = {
+    "the",
+    "and",
+    "for",
+    "that",
+    "this",
+    "with",
+    "from",
+    "are",
+    "was",
+    "not",
+    "but",
+    "all",
+    "can",
+    "had",
+    "her",
+    "one",
+    "our",
+    "out",
+    "you",
+    "def",
+    "import",
+    "self",
+    "none",
+    "true",
+    "false",
+    "return",
+    "class",
+    "pass",
+    "les",
+    "des",
+    "une",
+    "dans",
+    "pour",
+    "sur",
+    "par",
+    "est",
+    "qui",
+    "que"}
 
 
 def init_db():
@@ -59,8 +94,14 @@ def build_index():
             docs[py.name] = {"tf": dict(tf), "len": len(tokens)}
             for word in set(tokens):
                 df[word] += 1
-            db.execute("INSERT OR REPLACE INTO documents (ts, filepath, tokens, doc_len) VALUES (?,?,?,?)",
-                       (time.time(), py.name, json.dumps(dict(tf.most_common(50))), len(tokens)))
+            db.execute(
+                "INSERT OR REPLACE INTO documents (ts, filepath, tokens, doc_len) VALUES (?,?,?,?)",
+                (time.time(),
+                 py.name,
+                 json.dumps(
+                    dict(
+                        tf.most_common(50))),
+                    len(tokens)))
         except Exception:
             pass
 
@@ -101,7 +142,8 @@ def search(query, top_k=10):
             doc_vec[word] = count * idf
         sim = cosine_sim(query_vec, doc_vec)
         if sim > 0.01:
-            results.append({"file": name, "score": round(sim, 4), "tokens": info["len"]})
+            results.append({"file": name, "score": round(
+                sim, 4), "tokens": info["len"]})
 
     results.sort(key=lambda x: x["score"], reverse=True)
     return results[:top_k]
@@ -120,7 +162,11 @@ def do_index():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Embedding Engine")
-    parser.add_argument("--once", "--index", action="store_true", help="Build index")
+    parser.add_argument(
+        "--once",
+        "--index",
+        action="store_true",
+        help="Build index")
     parser.add_argument("--search", metavar="QUERY", help="Search query")
     parser.add_argument("--similar", metavar="FILE", help="Find similar")
     parser.add_argument("--stats", action="store_true", help="Index stats")
@@ -128,7 +174,8 @@ def main():
 
     if args.search:
         results = search(args.search)
-        print(json.dumps({"query": args.search, "results": results}, ensure_ascii=False, indent=2))
+        print(json.dumps({"query": args.search,
+              "results": results}, ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_index(), ensure_ascii=False, indent=2))
 

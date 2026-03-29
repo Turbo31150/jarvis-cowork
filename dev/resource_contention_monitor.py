@@ -149,11 +149,13 @@ def get_memory_usage(verbose=False):
         )
         if result.returncode == 0:
             free_match = re.search(r"FreePhysicalMemory=(\d+)", result.stdout)
-            total_match = re.search(r"TotalVisibleMemorySize=(\d+)", result.stdout)
+            total_match = re.search(
+                r"TotalVisibleMemorySize=(\d+)", result.stdout)
             if free_match and total_match:
                 free_kb = int(free_match.group(1))
                 total_kb = int(total_match.group(1))
-                used_pct = (1 - free_kb / total_kb) * 100 if total_kb > 0 else 0
+                used_pct = (1 - free_kb / total_kb) * \
+                    100 if total_kb > 0 else 0
                 return round(used_pct, 1)
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
         pass
@@ -195,8 +197,8 @@ def get_gpu_info(verbose=False):
                             "temperature_c": float(parts[5])
                         }
                         gpu["memory_percent"] = round(
-                            gpu["memory_used_mb"] / gpu["memory_total_mb"] * 100, 1
-                        ) if gpu["memory_total_mb"] > 0 else 0
+                            gpu["memory_used_mb"] / gpu["memory_total_mb"] * 100,
+                            1) if gpu["memory_total_mb"] > 0 else 0
                         gpu_info["gpus"].append(gpu)
                         gpu_info["total_memory_mb"] += gpu["memory_total_mb"]
                         gpu_info["used_memory_mb"] += gpu["memory_used_mb"]
@@ -217,7 +219,13 @@ def get_gpu_info(verbose=False):
     return gpu_info
 
 
-def detect_contention(cpu_pct, mem_pct, gpu_info, python_procs, threshold, verbose=False):
+def detect_contention(
+        cpu_pct,
+        mem_pct,
+        gpu_info,
+        python_procs,
+        threshold,
+        verbose=False):
     """Detect resource contention and generate alerts."""
     alerts = []
 
@@ -251,8 +259,8 @@ def detect_contention(cpu_pct, mem_pct, gpu_info, python_procs, threshold, verbo
                     "type": "gpu_memory_high",
                     "severity": "critical" if gpu["memory_percent"] >= 95 else "warning",
                     "message": (f"GPU {gpu['index']} ({gpu['name']}) memory at "
-                               f"{gpu['memory_percent']}% "
-                               f"({gpu['memory_used_mb']:.0f}/{gpu['memory_total_mb']:.0f} MB)"),
+                                f"{gpu['memory_percent']}% "
+                                f"({gpu['memory_used_mb']:.0f}/{gpu['memory_total_mb']:.0f} MB)"),
                     "resource": f"gpu_{gpu['index']}_memory",
                     "current_value": gpu["memory_percent"],
                     "threshold_value": threshold
@@ -263,7 +271,7 @@ def detect_contention(cpu_pct, mem_pct, gpu_info, python_procs, threshold, verbo
                     "type": "gpu_util_high",
                     "severity": "warning",
                     "message": (f"GPU {gpu['index']} utilization at "
-                               f"{gpu['utilization_percent']}%"),
+                                f"{gpu['utilization_percent']}%"),
                     "resource": f"gpu_{gpu['index']}_util",
                     "current_value": gpu["utilization_percent"],
                     "threshold_value": threshold
@@ -274,7 +282,7 @@ def detect_contention(cpu_pct, mem_pct, gpu_info, python_procs, threshold, verbo
                     "type": "gpu_thermal",
                     "severity": "critical" if gpu["temperature_c"] >= 90 else "warning",
                     "message": (f"GPU {gpu['index']} temperature at "
-                               f"{gpu['temperature_c']}C"),
+                                f"{gpu['temperature_c']}C"),
                     "resource": f"gpu_{gpu['index']}_temp",
                     "current_value": gpu["temperature_c"],
                     "threshold_value": 80
@@ -348,9 +356,13 @@ def run(args):
             "INSERT INTO contention_alerts "
             "(timestamp, alert_type, severity, message, resource, current_value, threshold_value) "
             "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (now, alert["type"], alert["severity"], alert["message"],
-             alert["resource"], alert["current_value"], alert["threshold_value"])
-        )
+            (now,
+             alert["type"],
+                alert["severity"],
+                alert["message"],
+                alert["resource"],
+                alert["current_value"],
+                alert["threshold_value"]))
 
     conn.commit()
     conn.close()
@@ -385,8 +397,10 @@ def run(args):
     }
 
     if args.verbose:
-        print(f"\n[contention] CPU: {cpu_pct}% | Memory: {mem_pct}% | "
-              f"GPUs: {gpu_info['gpu_count']} | Python procs: {len(python_procs)}")
+        print(
+            f"\n[contention] CPU: {cpu_pct}% | Memory: {mem_pct}% | " f"GPUs: {
+                gpu_info['gpu_count']} | Python procs: {
+                len(python_procs)}")
         if alerts:
             print(f"[contention] ALERTS ({len(alerts)}):")
             for a in alerts:
@@ -401,8 +415,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Resource Contention Monitor — Detect GPU/CPU contention between scripts"
-    )
+        description="Resource Contention Monitor — Detect GPU/CPU contention between scripts")
     parser.add_argument("--once", action="store_true",
                         help="Run once and exit")
     parser.add_argument("--watch", action="store_true",
@@ -416,7 +429,9 @@ def main():
     if args.once:
         run(args)
     elif args.watch:
-        print(f"[contention] Watching resources (threshold={args.threshold}%, Ctrl+C to stop)")
+        print(
+            f"[contention] Watching resources (threshold={
+                args.threshold}%, Ctrl+C to stop)")
         while True:
             try:
                 run(args)

@@ -1,8 +1,18 @@
+
 #!/usr/bin/env python3
 """ia_hypothesis_tester.py — Hypothesis tester. Defines hypothesis, designs experiment, runs tests, statistical analysis.
 Usage: python dev/ia_hypothesis_tester.py --test "HYPOTHESIS" --once
 """
-import argparse, json, os, sqlite3, subprocess, time, hashlib, re, math, random
+import argparse
+import json
+import os
+import sqlite3
+import subprocess
+import time
+import hashlib
+import re
+import math
+import random
 from datetime import datetime
 from pathlib import Path
 
@@ -146,7 +156,7 @@ def do_test(hypothesis):
     for i in range(num_trials):
         trial_prompt = (
             f"Given this hypothesis: \"{hypothesis}\"\n"
-            f"Trial {i+1}: Does available evidence support this hypothesis? "
+            f"Trial {i + 1}: Does available evidence support this hypothesis? "
             f"Answer YES or NO with brief reasoning."
         )
         response = call_m1(trial_prompt, max_tokens=256)
@@ -242,11 +252,12 @@ def do_report():
     db = init_db()
     row = db.execute(
         "SELECT id, hypothesis, null_hypothesis, result, p_value, significant, experiment_design "
-        "FROM hypotheses WHERE status='completed' ORDER BY ts DESC LIMIT 1"
-    ).fetchone()
+        "FROM hypotheses WHERE status='completed' ORDER BY ts DESC LIMIT 1").fetchone()
     if not row:
         db.close()
-        return {"ts": datetime.now().isoformat(), "status": "no_completed_hypotheses"}
+        return {
+            "ts": datetime.now().isoformat(),
+            "status": "no_completed_hypotheses"}
 
     hyp_id = row[0]
     trials = db.execute(
@@ -269,7 +280,9 @@ def do_report():
         f"Result: {row[3]}\n"
     )
 
-    conclusion = f"The hypothesis is {row[3].lower()} (p={row[4]}, alpha=0.05)."
+    conclusion = f"The hypothesis is {
+        row[3].lower()} (p={
+        row[4]}, alpha=0.05)."
 
     db.execute(
         "INSERT INTO reports (ts, hypothesis_id, report_text, conclusion) VALUES (?,?,?,?)",
@@ -287,12 +300,28 @@ def do_report():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Hypothesis tester — Design experiments, run tests, statistical analysis")
-    parser.add_argument("--test", metavar="HYPOTHESIS", help="Test a hypothesis")
-    parser.add_argument("--experiment", action="store_true", help="Show experiment details")
-    parser.add_argument("--results", action="store_true", help="Show results summary")
-    parser.add_argument("--report", action="store_true", help="Generate report")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="Hypothesis tester — Design experiments, run tests, statistical analysis")
+    parser.add_argument(
+        "--test",
+        metavar="HYPOTHESIS",
+        help="Test a hypothesis")
+    parser.add_argument(
+        "--experiment",
+        action="store_true",
+        help="Show experiment details")
+    parser.add_argument(
+        "--results",
+        action="store_true",
+        help="Show results summary")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Generate report")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.test:

@@ -78,17 +78,27 @@ def format_report(trends):
     lines = ["Resource usage trend predictions (linear regression):"]
     for name, info in trends.items():
         lines.append(
-            f"{name}: slope={info['slope']:.4f}, next day ~ {info['next_day_prediction']:.2f}"
-        )
+            f"{name}: slope={
+                info['slope']:.4f}, next day ~ {
+                info['next_day_prediction']:.2f}")
     return "\n".join(lines)
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Predict CPU/RAM/Disk/GPU usage trends using linear regression.")
-    parser.add_argument("--predict", action="store_true", help="Run the prediction pipeline.")
-    parser.add_argument("--trends", action="store_true", help="Show raw trend values (slope & intercept).")
-    parser.add_argument("--report", action="store_true", help="Print a short human-readable report.")
+    parser.add_argument(
+        "--predict",
+        action="store_true",
+        help="Run the prediction pipeline.")
+    parser.add_argument(
+        "--trends",
+        action="store_true",
+        help="Show raw trend values (slope & intercept).")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Print a short human-readable report.")
     args = parser.parse_args()
 
     if not args.predict:
@@ -102,7 +112,10 @@ def main():
     # 3. output according to flags
     if args.trends:
         for name, info in trends.items():
-            print(f"{name} trend: slope={info['slope']:.6f}, intercept={info['intercept']:.2f}")
+            print(
+                f"{name} trend: slope={
+                    info['slope']:.6f}, intercept={
+                    info['intercept']:.2f}")
     if args.report:
         print(format_report(trends))
 

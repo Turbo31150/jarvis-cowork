@@ -50,8 +50,10 @@ def get_current_scores():
             data = json.loads(r.read().decode())
             tasks = data.get("tasks", {})
             if tasks:
-                ok = sum(1 for t in tasks.values()
-                         if isinstance(t, dict) and t.get("fail_count", 0) <= 3)
+                ok = sum(
+                    1 for t in tasks.values() if isinstance(
+                        t, dict) and t.get(
+                        "fail_count", 0) <= 3)
                 scores["autonomous"] = round(ok / max(len(tasks), 1), 3)
     except Exception:
         scores["autonomous"] = 0
@@ -79,7 +81,8 @@ def get_current_scores():
     # Calculate composite score
     auto = scores.get("autonomous", 0)
     pred = scores.get("prediction", 0)
-    composite = (auto * 0.5 + pred * 0.3 + min(scores.get("patterns", 0) / 100, 1.0) * 0.2)
+    composite = (auto * 0.5 + pred * 0.3 +
+                 min(scores.get("patterns", 0) / 100, 1.0) * 0.2)
     scores["composite"] = round(composite, 3)
 
     return scores
@@ -117,18 +120,33 @@ def analyze_threshold_adjustments(scores_before, scores_after):
     pred_after = scores_after.get("prediction", 0)
 
     if pred_after > pred_before + 0.05:
-        adjustments["maintenance"] = {"current": 0.8, "suggested": 0.75, "reason": "prediction improved"}
-        adjustments["reporting"] = {"current": 0.7, "suggested": 0.65, "reason": "prediction improved"}
+        adjustments["maintenance"] = {
+            "current": 0.8,
+            "suggested": 0.75,
+            "reason": "prediction improved"}
+        adjustments["reporting"] = {
+            "current": 0.7,
+            "suggested": 0.65,
+            "reason": "prediction improved"}
 
     # If autonomous loop is very stable, lower health threshold slightly
     auto_after = scores_after.get("autonomous", 0)
     if auto_after >= 0.9:
-        adjustments["health"] = {"current": 0.9, "suggested": 0.85, "reason": "autonomous loop stable"}
+        adjustments["health"] = {
+            "current": 0.9,
+            "suggested": 0.85,
+            "reason": "autonomous loop stable"}
 
     # If things degraded, be more conservative
     if delta < -0.05:
-        adjustments["thermal"] = {"current": 0.95, "suggested": 0.98, "reason": "degradation detected"}
-        adjustments["health"] = {"current": 0.9, "suggested": 0.95, "reason": "degradation detected"}
+        adjustments["thermal"] = {
+            "current": 0.95,
+            "suggested": 0.98,
+            "reason": "degradation detected"}
+        adjustments["health"] = {
+            "current": 0.9,
+            "suggested": 0.95,
+            "reason": "degradation detected"}
 
     return adjustments
 
@@ -156,16 +174,30 @@ def do_cycle():
         "ts": datetime.now().isoformat(),
         "scores_before": scores_before,
         "scores_after": scores_after,
-        "delta": round(scores_after.get("composite", 0) - scores_before.get("composite", 0), 4),
+        "delta": round(
+            scores_after.get(
+                "composite",
+                0) -
+            scores_before.get(
+                "composite",
+                0),
+            4),
         "improve_loop": improve_result,
         "threshold_adjustments": adjustments,
     }
 
     db.execute(
         "INSERT INTO cycles (ts, score_before, score_after, improvements, threshold_adjustments, report) VALUES (?,?,?,?,?,?)",
-        (time.time(), scores_before.get("composite", 0), scores_after.get("composite", 0),
-         json.dumps(improve_result), json.dumps(adjustments), json.dumps(report))
-    )
+        (time.time(),
+         scores_before.get(
+            "composite",
+            0),
+            scores_after.get(
+            "composite",
+            0),
+            json.dumps(improve_result),
+            json.dumps(adjustments),
+            json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -174,7 +206,8 @@ def do_cycle():
 def get_report():
     """Get improvement history."""
     db = init_db()
-    rows = db.execute("SELECT ts, score_before, score_after, threshold_adjustments FROM cycles ORDER BY ts DESC LIMIT 10").fetchall()
+    rows = db.execute(
+        "SELECT ts, score_before, score_after, threshold_adjustments FROM cycles ORDER BY ts DESC LIMIT 10").fetchall()
     db.close()
     report = []
     for r in rows:
@@ -189,9 +222,17 @@ def get_report():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Self-Improve — Meta-agent d'auto-amelioration")
-    parser.add_argument("--once", "--cycle", action="store_true", help="Run improvement cycle")
-    parser.add_argument("--report", action="store_true", help="Improvement history")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Self-Improve — Meta-agent d'auto-amelioration")
+    parser.add_argument(
+        "--once",
+        "--cycle",
+        action="store_true",
+        help="Run improvement cycle")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Improvement history")
     args = parser.parse_args()
 
     if args.report:

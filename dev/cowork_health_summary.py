@@ -59,9 +59,15 @@ def run_script(name, args):
     script_path = SCRIPT_DIR / f"{name}.py"
     if not script_path.exists():
         return None
-    cmd = [PYTHON, str(script_path)] + (args if isinstance(args, list) else [args])
+    cmd = [PYTHON, str(script_path)] + \
+        (args if isinstance(args, list) else [args])
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60, cwd=str(SCRIPT_DIR))
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            cwd=str(SCRIPT_DIR))
         if r.returncode == 0 and r.stdout.strip():
             return json.loads(r.stdout)
     except Exception:
@@ -77,8 +83,18 @@ def check_scripts():
         passed = data.get("passed", 0)
         total_tests = data.get("total_tests", 0)
         rate = data.get("success_rate_pct", 0)
-        return {"total_scripts": total, "tests_passed": passed, "tests_total": total_tests, "pass_rate": rate, "score": rate}
-    return {"total_scripts": total, "tests_passed": 0, "tests_total": 0, "pass_rate": 0, "score": 0}
+        return {
+            "total_scripts": total,
+            "tests_passed": passed,
+            "tests_total": total_tests,
+            "pass_rate": rate,
+            "score": rate}
+    return {
+        "total_scripts": total,
+        "tests_passed": 0,
+        "tests_total": 0,
+        "pass_rate": 0,
+        "score": 0}
 
 
 def check_cluster():
@@ -89,7 +105,8 @@ def check_cluster():
         online = sum(1 for n in nodes if n.get("status") == "healthy")
         total = len(nodes)
         score = online / max(total, 1) * 100
-        avg_ms = sum(n.get("response_ms", 0) for n in nodes) / max(len(nodes), 1)
+        avg_ms = sum(n.get("response_ms", 0)
+                     for n in nodes) / max(len(nodes), 1)
         return {
             "status": data.get("cluster_status", "?"),
             "online": online, "total": total,
@@ -97,7 +114,13 @@ def check_cluster():
             "alerts": len(data.get("alerts", [])),
             "score": score,
         }
-    return {"status": "unknown", "online": 0, "total": 0, "avg_response_ms": 0, "alerts": 0, "score": 0}
+    return {
+        "status": "unknown",
+        "online": 0,
+        "total": 0,
+        "avg_response_ms": 0,
+        "alerts": 0,
+        "score": 0}
 
 
 def check_dispatch():
@@ -113,8 +136,13 @@ def check_dispatch():
     ).fetchone()[0]
     if not has_table:
         edb.close()
-        return {"recent_dispatches": 0, "success_rate": 0, "avg_latency_ms": 0,
-                "avg_quality": 0, "score": 50.0, "note": "no dispatch data yet"}
+        return {
+            "recent_dispatches": 0,
+            "success_rate": 0,
+            "avg_latency_ms": 0,
+            "avg_quality": 0,
+            "score": 50.0,
+            "note": "no dispatch data yet"}
 
     row = edb.execute("""
         SELECT COUNT(*) as total,
@@ -151,8 +179,10 @@ def check_infrastructure():
     edb = sqlite3.connect(str(ETOILE_DB))
 
     scripts = len(list(SCRIPT_DIR.glob("*.py")))
-    mapped = edb.execute("SELECT COUNT(*) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
-    patterns = edb.execute("SELECT COUNT(DISTINCT pattern_id) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
+    mapped = edb.execute(
+        "SELECT COUNT(*) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
+    patterns = edb.execute(
+        "SELECT COUNT(DISTINCT pattern_id) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
     edb.close()
 
     coverage = mapped / max(scripts, 1) * 100
@@ -273,10 +303,10 @@ def send_telegram(text):
     except Exception:
         # Retry without HTML
         try:
-            data2 = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
+            data2 = urllib.parse.urlencode(
+                {"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
             req2 = urllib.request.Request(
-                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data2
-            )
+                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data2)
             urllib.request.urlopen(req2, timeout=10)
         except Exception:
             pass
@@ -286,7 +316,10 @@ def send_telegram(text):
 def main():
     parser = argparse.ArgumentParser(description="COWORK Health Summary")
     parser.add_argument("--once", action="store_true", help="Generate summary")
-    parser.add_argument("--telegram", action="store_true", help="Generate and send")
+    parser.add_argument(
+        "--telegram",
+        action="store_true",
+        help="Generate and send")
     parser.add_argument("--stats", action="store_true", help="Show history")
     args = parser.parse_args()
 

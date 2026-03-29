@@ -267,7 +267,10 @@ def action_stats():
 def main():
     parser = argparse.ArgumentParser(description="Dispatch Error Analyzer")
     parser.add_argument("--once", action="store_true", help="Run analysis")
-    parser.add_argument("--fix-nulls", action="store_true", help="Backfill null errors")
+    parser.add_argument(
+        "--fix-nulls",
+        action="store_true",
+        help="Backfill null errors")
     parser.add_argument("--stats", action="store_true", help="Show stats")
     args = parser.parse_args()
 

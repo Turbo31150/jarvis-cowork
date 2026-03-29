@@ -17,6 +17,7 @@ TURBO = Path("F:/BUREAU/turbo")
 PAIRS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "SUIUSDT", "PEPEUSDT",
          "DOGEUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "LINKUSDT"]
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS signals (
@@ -31,6 +32,7 @@ def init_db():
         signals_generated INTEGER, cluster_nodes_used TEXT)""")
     db.commit()
     return db
+
 
 def fetch_prices():
     """Fetch current prices from public API."""
@@ -52,6 +54,7 @@ def fetch_prices():
         print(f"  Prix API erreur: {e}")
     return prices
 
+
 def store_prices(db, prices):
     """Store price data."""
     for pair, data in prices.items():
@@ -59,6 +62,7 @@ def store_prices(db, prices):
             "INSERT INTO market_data (ts, pair, price, change_24h, volume_24h) VALUES (?,?,?,?,?)",
             (time.time(), pair, data["price"], data["change_24h"], data["volume"]))
     db.commit()
+
 
 def analyze_pair_with_cluster(pair, price_data):
     """Ask cluster to analyze a trading pair."""
@@ -69,10 +73,13 @@ def analyze_pair_with_cluster(pair, price_data):
         f"Format: SCORE:XX DIRECTION:XXX RAISON:xxx"
     )
     try:
-        body = json.dumps({
-            "model": "qwen3-8b", "input": prompt,
-            "temperature": 0.1, "max_output_tokens": 256, "stream": False, "store": False,
-        }).encode()
+        body = json.dumps({"model": "qwen3-8b",
+                           "input": prompt,
+                           "temperature": 0.1,
+                           "max_output_tokens": 256,
+                           "stream": False,
+                           "store": False,
+                           }).encode()
         req = urllib.request.Request(
             "http://127.0.0.1:1234/api/v1/chat",
             data=body, headers={"Content-Type": "application/json"})
@@ -86,11 +93,15 @@ def analyze_pair_with_cluster(pair, price_data):
         pass
     return None
 
+
 def parse_signal(text, pair, price_data):
     """Parse AI response into a signal."""
     import re
     score_m = re.search(r"SCORE[:\s]*(\d+)", text, re.IGNORECASE)
-    dir_m = re.search(r"DIRECTION[:\s]*(LONG|SHORT|NEUTRAL)", text, re.IGNORECASE)
+    dir_m = re.search(
+        r"DIRECTION[:\s]*(LONG|SHORT|NEUTRAL)",
+        text,
+        re.IGNORECASE)
     score = int(score_m.group(1)) if score_m else 50
     direction = dir_m.group(1).upper() if dir_m else "NEUTRAL"
 
@@ -111,11 +122,13 @@ def parse_signal(text, pair, price_data):
         "entry": price, "tp": tp, "sl": sl, "reason": text[:200],
     }
 
+
 def send_telegram_signal(signal):
     """Send trading signal to Telegram."""
     try:
         edb = sqlite3.connect(str(TURBO / "data" / "etoile.db"))
-        row = edb.execute("SELECT value FROM memories WHERE key='telegram_bot_token'").fetchone()
+        row = edb.execute(
+            "SELECT value FROM memories WHERE key='telegram_bot_token'").fetchone()
         token = row[0] if row else ""
         edb.close()
     except Exception:
@@ -124,7 +137,12 @@ def send_telegram_signal(signal):
     if not token:
         return
 
-    icon = {"LONG": "🟢", "SHORT": "🔴", "NEUTRAL": "⚪"}.get(signal["direction"], "⚪")
+    icon = {
+        "LONG": "🟢",
+        "SHORT": "🔴",
+        "NEUTRAL": "⚪"}.get(
+        signal["direction"],
+        "⚪")
     msg = (
         f"{icon} *Trading Signal — {signal['pair']}*\n"
         f"Direction: {signal['direction']} | Score: {signal['score']}/100\n"
@@ -133,13 +151,15 @@ def send_telegram_signal(signal):
         f"Source: M1/qwen3-8b"
     )
     try:
-        body = json.dumps({"chat_id": "2010747443", "text": msg, "parse_mode": "Markdown"}).encode()
+        body = json.dumps({"chat_id": "2010747443", "text": msg,
+                          "parse_mode": "Markdown"}).encode()
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{token}/sendMessage",
             data=body, headers={"Content-Type": "application/json"})
         urllib.request.urlopen(req, timeout=10)
     except Exception:
         pass
+
 
 def run_analysis(db, notify=False):
     """Full market analysis pipeline."""
@@ -156,11 +176,20 @@ def run_analysis(db, notify=False):
         if signal and signal["score"] >= 70 and signal["direction"] != "NEUTRAL":
             db.execute(
                 "INSERT INTO signals (ts, pair, direction, score, entry_price, tp_price, sl_price, source) VALUES (?,?,?,?,?,?,?,?)",
-                (time.time(), signal["pair"], signal["direction"], signal["score"],
-                 signal["entry"], signal["tp"], signal["sl"], "M1"))
+                (time.time(),
+                 signal["pair"],
+                    signal["direction"],
+                    signal["score"],
+                    signal["entry"],
+                    signal["tp"],
+                    signal["sl"],
+                    "M1"))
             signals += 1
             icon = {"LONG": "🟢", "SHORT": "🔴"}.get(signal["direction"], "⚪")
-            print(f"  {icon} {pair}: {signal['direction']} score={signal['score']}")
+            print(
+                f"  {icon} {pair}: {
+                    signal['direction']} score={
+                    signal['score']}")
             if notify:
                 send_telegram_signal(signal)
 
@@ -170,12 +199,20 @@ def run_analysis(db, notify=False):
     db.commit()
     return signals
 
+
 def main():
     parser = argparse.ArgumentParser(description="Trading Intelligence")
     parser.add_argument("--once", action="store_true")
-    parser.add_argument("--notify", action="store_true", help="Send signals to Telegram")
+    parser.add_argument(
+        "--notify",
+        action="store_true",
+        help="Send signals to Telegram")
     parser.add_argument("--loop", action="store_true")
-    parser.add_argument("--interval", type=int, default=600, help="Seconds between scans")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=600,
+        help="Seconds between scans")
     parser.add_argument("--stats", action="store_true")
     args = parser.parse_args()
 
@@ -183,10 +220,15 @@ def main():
 
     if args.stats:
         total = db.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
-        longs = db.execute("SELECT COUNT(*) FROM signals WHERE direction='LONG'").fetchone()[0]
-        shorts = db.execute("SELECT COUNT(*) FROM signals WHERE direction='SHORT'").fetchone()[0]
-        avg_score = db.execute("SELECT AVG(score) FROM signals").fetchone()[0] or 0
-        print(f"Signals: {total} total | {longs} LONG | {shorts} SHORT | avg score {avg_score:.0f}")
+        longs = db.execute(
+            "SELECT COUNT(*) FROM signals WHERE direction='LONG'").fetchone()[0]
+        shorts = db.execute(
+            "SELECT COUNT(*) FROM signals WHERE direction='SHORT'").fetchone()[0]
+        avg_score = db.execute(
+            "SELECT AVG(score) FROM signals").fetchone()[0] or 0
+        print(
+            f"Signals: {total} total | {longs} LONG | {shorts} SHORT | avg score {
+                avg_score:.0f}")
         return
 
     if args.once or not args.loop:
@@ -204,6 +246,7 @@ def main():
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

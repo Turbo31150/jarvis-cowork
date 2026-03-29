@@ -95,7 +95,13 @@ def record_event(conn, event_type, severity, details, notified=0):
     conn.execute(
         "INSERT INTO realtime_events (timestamp, event_type, severity, details, notified) "
         "VALUES (?, ?, ?, ?, ?)",
-        (now, event_type, severity, json.dumps(details, ensure_ascii=False), notified),
+        (now,
+         event_type,
+         severity,
+         json.dumps(
+             details,
+             ensure_ascii=False),
+            notified),
     )
     conn.commit()
 
@@ -106,7 +112,12 @@ def record_event(conn, event_type, severity, details, notified=0):
 
 def send_telegram(text, severity="warning"):
     """Send a message to Telegram. Returns True on success."""
-    icon = {"critical": "\U0001f534", "warning": "\U0001f7e1", "info": "\U0001f7e2"}.get(severity, "\u26aa")
+    icon = {
+        "critical": "\U0001f534",
+        "warning": "\U0001f7e1",
+        "info": "\U0001f7e2"}.get(
+        severity,
+        "\u26aa")
     msg = f"{icon} *Dispatch Monitor*\n{text}"
 
     data = urllib.parse.urlencode({
@@ -144,9 +155,7 @@ def fetch_dispatches_since(edb, since_id):
     return edb.execute(
         "SELECT id, timestamp, request_text, classified_type, agent_id, model_used, "
         "node, strategy, latency_ms, tokens_in, tokens_out, success, error_msg, quality_score "
-        "FROM agent_dispatch_log WHERE id > ? ORDER BY id ASC",
-        (since_id,),
-    ).fetchall()
+        "FROM agent_dispatch_log WHERE id > ? ORDER BY id ASC", (since_id,), ).fetchall()
 
 
 def fetch_last_n(edb, n=10):
@@ -154,9 +163,7 @@ def fetch_last_n(edb, n=10):
     return edb.execute(
         "SELECT id, timestamp, request_text, classified_type, agent_id, model_used, "
         "node, strategy, latency_ms, tokens_in, tokens_out, success, error_msg, quality_score "
-        "FROM agent_dispatch_log ORDER BY id DESC LIMIT ?",
-        (n,),
-    ).fetchall()
+        "FROM agent_dispatch_log ORDER BY id DESC LIMIT ?", (n,), ).fetchall()
 
 
 def fetch_average_latency(edb, limit=100):
@@ -224,7 +231,8 @@ def analyze_dispatches(dispatches, avg_latency, known_patterns, db_conn):
         if lat and lat > threshold_ms:
             node = d["node"] or "unknown"
             if node not in spike_by_node:
-                spike_by_node[node] = {"count": 0, "max_ms": 0, "model": d["model_used"]}
+                spike_by_node[node] = {
+                    "count": 0, "max_ms": 0, "model": d["model_used"]}
             spike_by_node[node]["count"] += 1
             if lat > spike_by_node[node]["max_ms"]:
                 spike_by_node[node]["max_ms"] = lat
@@ -245,7 +253,8 @@ def analyze_dispatches(dispatches, avg_latency, known_patterns, db_conn):
 
     # --- 3. Success rate drop (rolling window) ---
     # Look at the most recent SUCCESS_RATE_WINDOW dispatches among the batch
-    window = dispatches[-SUCCESS_RATE_WINDOW:] if len(dispatches) >= SUCCESS_RATE_WINDOW else dispatches
+    window = dispatches[-SUCCESS_RATE_WINDOW:] if len(
+        dispatches) >= SUCCESS_RATE_WINDOW else dispatches
     if len(window) >= SUCCESS_RATE_WINDOW:
         successes = sum(1 for d in window if d["success"])
         rate = successes / len(window)
@@ -284,12 +293,17 @@ def analyze_dispatches(dispatches, avg_latency, known_patterns, db_conn):
 
     # Persist notified patterns
     if notified_patterns:
-        set_state(db_conn, "notified_patterns", ",".join(sorted(notified_patterns)))
+        set_state(
+            db_conn,
+            "notified_patterns",
+            ",".join(
+                sorted(notified_patterns)))
 
     return alerts
 
 
 ALERT_COOLDOWN_S = 600  # 10 minutes cooldown per event_type
+
 
 def _should_send(event_type, db_conn):
     """Check if we should send this alert (cooldown check)."""
@@ -331,10 +345,14 @@ def process_alerts(alerts, db_conn):
                 cnt = details.get("spike_count", 1)
                 cnt_txt = f" ({cnt} spikes)" if cnt > 1 else ""
                 text = (
-                    f"*Latency spike* on `{details['node']}`{cnt_txt}\n"
-                    f"Max {details['latency_ms']}ms (avg {details['avg_latency_ms']}ms, "
-                    f"{details['factor']}x)\nModel: `{details.get('model', '?')}`"
-                )
+                    f"*Latency spike* on `{
+                        details['node']}`{cnt_txt}\n" f"Max {
+                        details['latency_ms']}ms (avg {
+                        details['avg_latency_ms']}ms, " f"{
+                        details['factor']}x)\nModel: `{
+                        details.get(
+                            'model',
+                            '?')}`")
             elif a["event_type"] == "success_rate_drop":
                 text = (
                     f"*Success rate drop*: {details['rate']}% "
@@ -342,14 +360,23 @@ def process_alerts(alerts, db_conn):
                     f"{details['successes']}/{details['window']} OK"
                 )
             else:
-                text = f"*{a['event_type']}*\n```{json.dumps(details, indent=2)}```"
+                text = f"*{
+                    a['event_type']}*\n```{
+                    json.dumps(
+                        details,
+                        indent=2)}```"
 
             ok = send_telegram(text, severity)
             notified = 1 if ok else 0
             if ok:
                 sent_count += 1
 
-        record_event(db_conn, a["event_type"], severity, a["details"], notified)
+        record_event(
+            db_conn,
+            a["event_type"],
+            severity,
+            a["details"],
+            notified)
 
     return sent_count
 
@@ -400,7 +427,7 @@ def cmd_once():
         "avg_latency_ms": round(avg_lat, 1),
         "known_patterns": sorted(known),
         "alerts": [{"event_type": a["event_type"], "severity": a["severity"],
-                     "details": a["details"]} for a in alerts],
+                    "details": a["details"]} for a in alerts],
         "telegram_sent": sent,
     }
 
@@ -412,7 +439,9 @@ def cmd_once():
 
 def cmd_watch():
     """--watch: continuous monitoring every 30s."""
-    print(f"[dispatch_realtime_monitor] watch mode — interval {WATCH_INTERVAL_S}s (Ctrl+C to stop)", flush=True)
+    print(
+        f"[dispatch_realtime_monitor] watch mode — interval {WATCH_INTERVAL_S}s (Ctrl+C to stop)",
+        flush=True)
 
     db = get_db()
 
@@ -425,7 +454,8 @@ def cmd_watch():
     last_id = int(get_state(db, "last_seen_id", "0"))
     if last_id == 0:
         # Start from current max to avoid alerting on old data
-        row = edb.execute("SELECT MAX(id) as mx FROM agent_dispatch_log").fetchone()
+        row = edb.execute(
+            "SELECT MAX(id) as mx FROM agent_dispatch_log").fetchone()
         last_id = row["mx"] if row and row["mx"] else 0
         set_state(db, "last_seen_id", last_id)
         print(f"  Initialized last_seen_id = {last_id}", flush=True)
@@ -439,7 +469,9 @@ def cmd_watch():
 
             edb = open_etoile()
             if not edb:
-                print(f"  [{now}] etoile.db unavailable, retrying...", flush=True)
+                print(
+                    f"  [{now}] etoile.db unavailable, retrying...",
+                    flush=True)
                 time.sleep(WATCH_INTERVAL_S)
                 continue
 
@@ -455,8 +487,9 @@ def cmd_watch():
                 set_state(db, "last_seen_id", new_max_id)
 
                 print(
-                    f"  [{now}] cycle={cycle} new={len(new_dispatches)} "
-                    f"alerts={len(alerts)} tg_sent={sent} last_id={new_max_id}",
+                    f"  [{now}] cycle={cycle} new={
+                        len(new_dispatches)} " f"alerts={
+                        len(alerts)} tg_sent={sent} last_id={new_max_id}",
                     flush=True,
                 )
             else:
@@ -497,7 +530,8 @@ def cmd_stats():
         })
 
     # Total
-    total_row = db.execute("SELECT COUNT(*) as c FROM realtime_events").fetchone()
+    total_row = db.execute(
+        "SELECT COUNT(*) as c FROM realtime_events").fetchone()
     total = total_row["c"] if total_row else 0
 
     # Recent 20 events
@@ -526,7 +560,8 @@ def cmd_stats():
     notified_patterns = get_state(db, "notified_patterns", "")
 
     result = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(
+            timezone.utc).isoformat(),
         "total_events": total,
         "by_type": groups,
         "recent_20": recent_list,
@@ -550,9 +585,18 @@ def main():
         description="Real-time dispatch monitoring with Telegram alerts"
     )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--once", action="store_true", help="Check last 10 dispatches")
-    group.add_argument("--watch", action="store_true", help="Continuous monitoring every 30s")
-    group.add_argument("--stats", action="store_true", help="Show monitoring event history")
+    group.add_argument(
+        "--once",
+        action="store_true",
+        help="Check last 10 dispatches")
+    group.add_argument(
+        "--watch",
+        action="store_true",
+        help="Continuous monitoring every 30s")
+    group.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show monitoring event history")
 
     args = parser.parse_args()
 

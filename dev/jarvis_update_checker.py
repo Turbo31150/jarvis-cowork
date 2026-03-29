@@ -51,7 +51,8 @@ def parse_pyproject():
                 break
             pkg = line.strip(' ",')
             if pkg and not pkg.startswith("#"):
-                name = pkg.split(">=")[0].split("==")[0].split("<")[0].split(">")[0].strip()
+                name = pkg.split(">=")[0].split("==")[0].split("<")[
+                    0].split(">")[0].strip()
                 if name:
                     deps.append(name)
     return deps
@@ -88,8 +89,13 @@ def do_check():
             "outdated": is_outdated,
         }
         results.append(entry)
-        db.execute("INSERT INTO checks (ts, package, current_ver, latest_ver, outdated) VALUES (?,?,?,?,?)",
-                   (time.time(), dep, entry["current"], entry["latest"], int(is_outdated)))
+        db.execute(
+            "INSERT INTO checks (ts, package, current_ver, latest_ver, outdated) VALUES (?,?,?,?,?)",
+            (time.time(),
+             dep,
+             entry["current"],
+                entry["latest"],
+                int(is_outdated)))
 
     db.commit()
     db.close()
@@ -105,9 +111,16 @@ def do_check():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Update Checker")
-    parser.add_argument("--once", "--check", action="store_true", help="Check updates")
+    parser.add_argument(
+        "--once",
+        "--check",
+        action="store_true",
+        help="Check updates")
     parser.add_argument("--deps", action="store_true", help="List deps")
-    parser.add_argument("--security", action="store_true", help="Security check")
+    parser.add_argument(
+        "--security",
+        action="store_true",
+        help="Security check")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()
     print(json.dumps(do_check(), ensure_ascii=False, indent=2))

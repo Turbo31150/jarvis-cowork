@@ -21,8 +21,10 @@ from typing import List, Dict, Any
 # Types for issues
 Issue = Dict[str, Any]
 
+
 def find_python_files(root: Path) -> List[Path]:
     return [p for p in root.rglob('*.py') if p.is_file()]
+
 
 def analyze_file(path: Path) -> List[Issue]:
     issues: List[Issue] = []
@@ -40,7 +42,8 @@ def analyze_file(path: Path) -> List[Issue]:
         return issues
 
     # 1. Détection de code mort : fonctions non appelées au niveau du module
-    defined_funcs = {node.name: node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)}
+    defined_funcs = {node.name: node for node in ast.walk(
+        tree) if isinstance(node, ast.FunctionDef)}
     called_funcs = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
@@ -89,8 +92,10 @@ def analyze_file(path: Path) -> List[Issue]:
                     # check parent try/except
                     parent = getattr(node, 'parent', None)
                     # We cannot easily get parent; approximate by scanning surrounding nodes later
-                    # For simplicity, propose adding try/except if not already inside a Try node
-                    if not any(isinstance(anc, ast.Try) for anc in ast.iter_child_nodes(node)):
+                    # For simplicity, propose adding try/except if not already
+                    # inside a Try node
+                    if not any(isinstance(anc, ast.Try)
+                               for anc in ast.iter_child_nodes(node)):
                         issues.append({
                             'file': str(path),
                             'type': 'missing_error_handling',
@@ -107,15 +112,17 @@ def analyze_file(path: Path) -> List[Issue]:
 
     return issues
 
+
 def generate_report(issues: List[Issue]) -> Dict[str, Any]:
     report: Dict[str, Any] = {'summary': {}, 'issues': issues}
-    sev_counts = {'high':0,'medium':0,'low':0}
+    sev_counts = {'high': 0, 'medium': 0, 'low': 0}
     for iss in issues:
         sev = iss.get('severity')
         if sev in sev_counts:
             sev_counts[sev] += 1
     report['summary'] = sev_counts
     return report
+
 
 def apply_fixes(issues: List[Issue]):
     # Simple safe fixes: remove dead functions and unused imports.
@@ -133,11 +140,13 @@ def apply_fixes(issues: List[Issue]):
             try:
                 tree = ast.parse(source, filename=str(path))
                 for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef) and node.name == func_name:
+                    if isinstance(
+                            node, ast.FunctionDef) and node.name == func_name:
                         start = node.lineno - 1
                         # naive: remove until next top-level def or end
                         end = start + 1
-                        while end < len(lines) and not (lines[end].startswith('def ') or lines[end].startswith('class ')):
+                        while end < len(lines) and not (
+                                lines[end].startswith('def ') or lines[end].startswith('class ')):
                             end += 1
                         del lines[start:end]
                         modified = True
@@ -161,12 +170,26 @@ def apply_fixes(issues: List[Issue]):
             files_modified.add(str(path))
     return list(files_modified)
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Analyse et améliore les scripts Python du répertoire dev/')
-    parser.add_argument('--analyze', action='store_true', help='Analyse les fichiers et produit un rapport JSON')
-    parser.add_argument('--suggest', action='store_true', help='Affiche les suggestions sans les appliquer')
-    parser.add_argument('--apply', action='store_true', help='Applique les corrections suggérées (création d\'un backup .bak)')
-    parser.add_argument('--report', action='store_true', help='Génère un rapport détaillé après analyse/appliquer')
+    parser = argparse.ArgumentParser(
+        description='Analyse et améliore les scripts Python du répertoire dev/')
+    parser.add_argument(
+        '--analyze',
+        action='store_true',
+        help='Analyse les fichiers et produit un rapport JSON')
+    parser.add_argument(
+        '--suggest',
+        action='store_true',
+        help='Affiche les suggestions sans les appliquer')
+    parser.add_argument(
+        '--apply',
+        action='store_true',
+        help='Applique les corrections suggérées (création d\'un backup .bak)')
+    parser.add_argument(
+        '--report',
+        action='store_true',
+        help='Génère un rapport détaillé après analyse/appliquer')
     args = parser.parse_args()
 
     root = Path(__file__).parent
@@ -185,7 +208,8 @@ def main():
         return
     if args.apply:
         modified_files = apply_fixes(all_issues)
-        print(json.dumps({'modified_files': modified_files}, ensure_ascii=False, indent=2))
+        print(json.dumps({'modified_files': modified_files},
+              ensure_ascii=False, indent=2))
         return
     if args.report:
         report = generate_report(all_issues)
@@ -193,6 +217,7 @@ def main():
         return
     # If no arg, show help
     parser.print_help()
+
 
 if __name__ == '__main__':
     main()

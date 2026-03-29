@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """Script Deduplication — Find and merge duplicate/overlapping scripts.
 
@@ -89,7 +90,11 @@ def parse_script(filepath):
     info["ast_nodes"] = sum(1 for _ in ast.walk(tree))
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+        if isinstance(
+                node,
+                ast.FunctionDef) or isinstance(
+                node,
+                ast.AsyncFunctionDef):
             info["functions"].append(node.name)
         elif isinstance(node, ast.ClassDef):
             info["classes"].append(node.name)
@@ -128,7 +133,8 @@ def compute_similarity(info_a, info_b):
     common_generic = {"main", "run", "init_db", "__init__", "parse_args"}
     funcs_a_filtered = funcs_a - common_generic
     funcs_b_filtered = funcs_b - common_generic
-    scores["functions"] = jaccard_similarity(funcs_a_filtered, funcs_b_filtered)
+    scores["functions"] = jaccard_similarity(
+        funcs_a_filtered, funcs_b_filtered)
 
     # Import similarity
     imports_a = set(info_a["imports"])
@@ -207,9 +213,10 @@ def suggest_merge(info_a, info_b, similarity):
         shared_funcs = set(info_a["functions"]) & set(info_b["functions"])
         if shared_funcs:
             suggestions.append(
-                f"Extract shared functions ({', '.join(list(shared_funcs)[:5])}) "
-                f"into a common module."
-            )
+                f"Extract shared functions ({
+                    ', '.join(
+                        list(shared_funcs)[
+                            :5])}) " f"into a common module.")
         suggestions.append(
             f"Consider merging `{secondary['name']}` into `{primary['name']}` "
             f"or creating a shared base class."
@@ -232,7 +239,8 @@ def run(args):
     threshold = args.threshold
 
     if args.verbose:
-        print(f"[dedup] Scanning scripts in {DEV_DIR} (threshold={threshold}%)")
+        print(
+            f"[dedup] Scanning scripts in {DEV_DIR} (threshold={threshold}%)")
 
     # Parse all scripts
     pattern = os.path.join(DEV_DIR, "*.py")
@@ -277,13 +285,22 @@ def run(args):
                 conn.execute(
                     "INSERT INTO dedup_pairs (timestamp, script_a, script_b, similarity, overlap_type, merge_suggestion) "
                     "VALUES (?, ?, ?, ?, ?, ?)",
-                    (now, pair["script_a"], pair["script_b"], pair["similarity"],
-                     ",".join(sim["overlap_types"]), merge_suggestion)
-                )
+                    (now,
+                     pair["script_a"],
+                        pair["script_b"],
+                        pair["similarity"],
+                        ",".join(
+                         sim["overlap_types"]),
+                        merge_suggestion))
 
                 if args.verbose:
-                    print(f"  MATCH: {pair['script_a']} <-> {pair['script_b']} "
-                          f"= {pair['similarity']}% [{','.join(sim['overlap_types']) or 'general'}]")
+                    print(
+                        f"  MATCH: {
+                            pair['script_a']} <-> {
+                            pair['script_b']} " f"= {
+                            pair['similarity']}% [{
+                            ','.join(
+                                sim['overlap_types']) or 'general'}]")
 
     # Sort by similarity descending
     pairs.sort(key=lambda p: p["similarity"], reverse=True)
@@ -314,12 +331,14 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Script Deduplication — Find and merge duplicate/overlapping scripts"
-    )
+        description="Script Deduplication — Find and merge duplicate/overlapping scripts")
     parser.add_argument("--once", action="store_true",
                         help="Run once and exit")
-    parser.add_argument("--threshold", type=int, default=70,
-                        help="Minimum similarity threshold in percent (default: 70)")
+    parser.add_argument(
+        "--threshold",
+        type=int,
+        default=70,
+        help="Minimum similarity threshold in percent (default: 70)")
     parser.add_argument("--verbose", action="store_true",
                         help="Enable verbose output")
     args = parser.parse_args()

@@ -1,4 +1,11 @@
-import ast, os, sys, argparse, textwrap
+"""Generate Docstrings — COWORK auto-generated docstring."""
+
+import ast
+import os
+import sys
+import argparse
+import textwrap
+
 
 def add_docstrings_to_file(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -8,6 +15,7 @@ def add_docstrings_to_file(filepath):
     except SyntaxError as e:
         print(f'Syntax error in {filepath}: {e}', file=sys.stderr)
         return False
+
     class DocstringTransformer(ast.NodeTransformer):
         def visit_FunctionDef(self, node):
             self.generic_visit(node)
@@ -15,10 +23,13 @@ def add_docstrings_to_file(filepath):
                 # simple placeholder docstring using function name and args
                 args = [arg.arg for arg in node.args.args]
                 args_str = ', '.join(args)
-                doc = f"""{node.name}({args_str})\n\n: Add detailed documentation."""
+                doc = f"""{
+                    node.name}(
+        {args_str})\n\n: Add detailed documentation."""
                 doc_node = ast.Expr(value=ast.Constant(value=doc, kind=None))
                 node.body.insert(0, doc_node)
             return node
+
         def visit_AsyncFunctionDef(self, node):
             return self.visit_FunctionDef(node)
     transformer = DocstringTransformer()
@@ -31,6 +42,7 @@ def add_docstrings_to_file(filepath):
         return True
     return False
 
+
 def process_directory(root_dir):
     changed_files = []
     for dirpath, _, filenames in os.walk(root_dir):
@@ -41,10 +53,18 @@ def process_directory(root_dir):
                     changed_files.append(full)
     return changed_files
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Generate placeholder docstrings for Python functions lacking them.')
-    parser.add_argument('--dir', default='.', help='Root directory to scan (default: current)')
-    parser.add_argument('--dry-run', action='store_true', help='Show what would be changed without writing files')
+    parser = argparse.ArgumentParser(
+        description='Generate placeholder docstrings for Python functions lacking them.')
+    parser.add_argument(
+        '--dir',
+        default='.',
+        help='Root directory to scan (default: current)')
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Show what would be changed without writing files')
     args = parser.parse_args()
     root = os.path.abspath(args.dir)
     changed = []
@@ -75,6 +95,7 @@ def main():
         print(f'Processed {len(changed)} file(s).')
         for f in changed:
             print(f'Updated: {f}')
+
 
 if __name__ == '__main__':
     main()

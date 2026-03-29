@@ -9,7 +9,12 @@ Usage:
     python dev/jarvis_voice_profile.py --adapt
     python dev/jarvis_voice_profile.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -67,6 +72,7 @@ VOICE_PROFILES = {
     }
 }
 
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -97,14 +103,24 @@ def init_db():
     db.commit()
     return db
 
+
 def get_current_profile(db):
-    row = db.execute("SELECT profile, ts, reason FROM active_profile ORDER BY id DESC LIMIT 1").fetchone()
-    return {"profile": row[0], "since": row[1], "reason": row[2]} if row else {"profile": "default", "since": None, "reason": "initial"}
+    row = db.execute(
+        "SELECT profile, ts, reason FROM active_profile ORDER BY id DESC LIMIT 1").fetchone()
+    return {
+        "profile": row[0],
+        "since": row[1],
+        "reason": row[2]} if row else {
+        "profile": "default",
+        "since": None,
+        "reason": "initial"}
+
 
 def do_create():
     """Show how to create a custom profile."""
     db = init_db()
-    existing = db.execute("SELECT name, voice, description FROM custom_profiles ORDER BY name").fetchall()
+    existing = db.execute(
+        "SELECT name, voice, description FROM custom_profiles ORDER BY name").fetchall()
     result = {
         "action": "create_info",
         "builtin_profiles": list(VOICE_PROFILES.keys()),
@@ -127,13 +143,17 @@ def do_create():
     db.close()
     return result
 
+
 def do_switch(profile_name):
     db = init_db()
     profile_name = profile_name.lower()
 
     if profile_name not in VOICE_PROFILES:
         # Check custom profiles
-        custom = db.execute("SELECT name FROM custom_profiles WHERE name=?", (profile_name,)).fetchone()
+        custom = db.execute(
+            "SELECT name FROM custom_profiles WHERE name=?",
+            (profile_name,
+             )).fetchone()
         if not custom:
             db.close()
             return {
@@ -142,8 +162,12 @@ def do_switch(profile_name):
                 "ts": datetime.now().isoformat()
             }
 
-    db.execute("INSERT INTO active_profile (ts, profile, reason, auto_switched) VALUES (?,?,?,?)",
-               (datetime.now().isoformat(), profile_name, "manual_switch", 0))
+    db.execute(
+        "INSERT INTO active_profile (ts, profile, reason, auto_switched) VALUES (?,?,?,?)",
+        (datetime.now().isoformat(),
+         profile_name,
+         "manual_switch",
+         0))
     db.commit()
 
     profile_info = VOICE_PROFILES.get(profile_name, {})
@@ -161,6 +185,7 @@ def do_switch(profile_name):
     db.close()
     return result
 
+
 def do_list():
     db = init_db()
     current = get_current_profile(db)
@@ -177,7 +202,8 @@ def do_list():
             "is_active": name == current["profile"]
         })
 
-    custom = db.execute("SELECT name, voice, rate, pitch, volume, description FROM custom_profiles").fetchall()
+    custom = db.execute(
+        "SELECT name, voice, rate, pitch, volume, description FROM custom_profiles").fetchall()
     for r in custom:
         profiles.append({
             "name": r[0], "voice": r[1], "rate": r[2], "pitch": r[3],
@@ -194,6 +220,7 @@ def do_list():
     }
     db.close()
     return result
+
 
 def do_adapt():
     """Auto-adapt profile based on current hour."""
@@ -215,8 +242,12 @@ def do_adapt():
 
     changed = best_profile != current["profile"]
     if changed:
-        db.execute("INSERT INTO active_profile (ts, profile, reason, auto_switched) VALUES (?,?,?,?)",
-                   (datetime.now().isoformat(), best_profile, f"auto_adapt_hour_{hour}", 1))
+        db.execute(
+            "INSERT INTO active_profile (ts, profile, reason, auto_switched) VALUES (?,?,?,?)",
+            (datetime.now().isoformat(),
+             best_profile,
+             f"auto_adapt_hour_{hour}",
+             1))
         db.commit()
 
     result = {
@@ -225,17 +256,23 @@ def do_adapt():
         "previous_profile": current["profile"],
         "recommended_profile": best_profile,
         "changed": changed,
-        "description": VOICE_PROFILES.get(best_profile, {}).get("description", ""),
-        "ts": datetime.now().isoformat()
-    }
+        "description": VOICE_PROFILES.get(
+            best_profile,
+            {}).get(
+            "description",
+            ""),
+        "ts": datetime.now().isoformat()}
     db.close()
     return result
+
 
 def do_once():
     db = init_db()
     current = get_current_profile(db)
-    total_switches = db.execute("SELECT COUNT(*) FROM active_profile").fetchone()[0]
-    auto_switches = db.execute("SELECT COUNT(*) FROM active_profile WHERE auto_switched=1").fetchone()[0]
+    total_switches = db.execute(
+        "SELECT COUNT(*) FROM active_profile").fetchone()[0]
+    auto_switches = db.execute(
+        "SELECT COUNT(*) FROM active_profile WHERE auto_switched=1").fetchone()[0]
     result = {
         "status": "ok",
         "current_profile": current["profile"],
@@ -249,13 +286,31 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Voice Profile — COWORK #232")
-    parser.add_argument("--create", action="store_true", help="Show profile creation info")
-    parser.add_argument("--switch", type=str, metavar="PROFILE", help="Switch to profile")
-    parser.add_argument("--list", action="store_true", help="List all profiles")
-    parser.add_argument("--adapt", action="store_true", help="Auto-adapt by hour")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Voice Profile — COWORK #232")
+    parser.add_argument(
+        "--create",
+        action="store_true",
+        help="Show profile creation info")
+    parser.add_argument(
+        "--switch",
+        type=str,
+        metavar="PROFILE",
+        help="Switch to profile")
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List all profiles")
+    parser.add_argument(
+        "--adapt",
+        action="store_true",
+        help="Auto-adapt by hour")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.create:
@@ -268,6 +323,7 @@ def main():
         print(json.dumps(do_adapt(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

@@ -16,6 +16,7 @@ from pathlib import Path
 DB_PATH = Path(__file__).parent / "proactive.db"
 TURBO = Path("F:/BUREAU/turbo")
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS tasks (
@@ -28,6 +29,7 @@ def init_db():
     db.commit()
     return db
 
+
 def check_disk_space():
     """Check disk space on C: and F:"""
     findings = []
@@ -38,12 +40,18 @@ def check_disk_space():
             free_gb = usage.free / (1024**3)
             pct = (usage.used / usage.total) * 100
             if free_gb < 20:
-                findings.append(("disk", f"{drive} espace faible: {free_gb:.0f} GB libre ({pct:.0f}% utilise)", "high"))
+                findings.append(
+                    ("disk", f"{drive} espace faible: {
+                        free_gb:.0f} GB libre ({
+                        pct:.0f}% utilise)", "high"))
             elif free_gb < 50:
-                findings.append(("disk", f"{drive} attention: {free_gb:.0f} GB libre", "medium"))
+                findings.append(
+                    ("disk", f"{drive} attention: {
+                        free_gb:.0f} GB libre", "medium"))
         except OSError:
             pass
     return findings
+
 
 def check_cluster_health():
     """Quick cluster health check."""
@@ -58,16 +66,20 @@ def check_cluster_health():
             with urllib.request.urlopen(req, timeout=3) as resp:
                 data = json.loads(resp.read())
                 if name == "M1":
-                    loaded = len([m for m in data.get("data", data.get("models", [])) if m.get("loaded_instances")])
+                    loaded = len([m for m in data.get("data", data.get(
+                        "models", [])) if m.get("loaded_instances")])
                     if loaded == 0:
-                        findings.append(("cluster", f"{name}: aucun modele charge", "high"))
+                        findings.append(
+                            ("cluster", f"{name}: aucun modele charge", "high"))
                 elif name == "OL1":
                     models = len(data.get("models", []))
                     if models == 0:
-                        findings.append(("cluster", f"{name}: aucun modele disponible", "high"))
+                        findings.append(
+                            ("cluster", f"{name}: aucun modele disponible", "high"))
         except Exception:
             findings.append(("cluster", f"{name}: OFFLINE", "critical"))
     return findings
+
 
 def check_stale_logs():
     """Check for large log files that should be rotated."""
@@ -79,8 +91,14 @@ def check_stale_logs():
         for f in d.glob("*.log"):
             size_mb = f.stat().st_size / (1024 * 1024)
             if size_mb > 50:
-                findings.append(("logs", f"Log volumineux: {f.name} ({size_mb:.0f} MB)", "medium"))
+                findings.append(
+                    ("logs",
+                     f"Log volumineux: {
+                         f.name} ({
+                         size_mb:.0f} MB)",
+                        "medium"))
     return findings
+
 
 def check_db_health():
     """Check JARVIS databases integrity."""
@@ -97,14 +115,20 @@ def check_db_health():
             conn = sqlite3.connect(str(dbpath))
             result = conn.execute("PRAGMA integrity_check").fetchone()
             if result[0] != "ok":
-                findings.append(("database", f"{dbpath.name}: integrity FAIL", "critical"))
+                findings.append(
+                    ("database", f"{
+                        dbpath.name}: integrity FAIL", "critical"))
             size_mb = dbpath.stat().st_size / (1024 * 1024)
             if size_mb > 100:
-                findings.append(("database", f"{dbpath.name}: {size_mb:.0f} MB — VACUUM recommande", "medium"))
+                findings.append(
+                    ("database", f"{
+                        dbpath.name}: {
+                        size_mb:.0f} MB — VACUUM recommande", "medium"))
             conn.close()
         except Exception as e:
             findings.append(("database", f"{dbpath.name}: erreur {e}", "high"))
     return findings
+
 
 def check_canvas_proxy():
     """Check if canvas proxy is running."""
@@ -115,10 +139,12 @@ def check_canvas_proxy():
             data = json.loads(resp.read())
             nodes_up = data.get("nodesUp", 0)
             if nodes_up < 2:
-                findings.append(("proxy", f"Canvas proxy: seulement {nodes_up} noeuds", "high"))
+                findings.append(
+                    ("proxy", f"Canvas proxy: seulement {nodes_up} noeuds", "high"))
     except Exception:
         findings.append(("proxy", "Canvas proxy (18800) OFFLINE", "high"))
     return findings
+
 
 def check_telegram_bot():
     """Check Telegram bot health via service registry."""
@@ -129,10 +155,12 @@ def check_telegram_bot():
             data = json.loads(resp.read())
             services = data.get("services", {})
             if "telegram-bot" not in services:
-                findings.append(("telegram", "Telegram bot non enregistre dans le registry", "medium"))
+                findings.append(
+                    ("telegram", "Telegram bot non enregistre dans le registry", "medium"))
     except Exception:
         pass  # Proxy down already caught above
     return findings
+
 
 def discover_tasks(db):
     """Run all checks and store findings."""
@@ -164,6 +192,7 @@ def discover_tasks(db):
     db.commit()
     return all_findings, new_count
 
+
 def auto_fix(db):
     """Attempt to auto-fix pending tasks."""
     tasks = db.execute(
@@ -194,10 +223,14 @@ def auto_fix(db):
                     result = f"VACUUM echoue: {e}"
 
         if result:
-            db.execute("UPDATE tasks SET status='done', result=?, completed_at=? WHERE id=?",
-                       (result, time.time(), tid))
+            db.execute(
+                "UPDATE tasks SET status='done', result=?, completed_at=? WHERE id=?",
+                (result,
+                 time.time(),
+                    tid))
     db.commit()
     return fixed
+
 
 def send_telegram_alert(message):
     """Send alert to Telegram."""
@@ -207,7 +240,8 @@ def send_telegram_alert(message):
         # Try from etoile.db
         try:
             edb = sqlite3.connect(str(TURBO / "data" / "etoile.db"))
-            row = edb.execute("SELECT value FROM memories WHERE key='telegram_bot_token'").fetchone()
+            row = edb.execute(
+                "SELECT value FROM memories WHERE key='telegram_bot_token'").fetchone()
             if row:
                 token = row[0]
             edb.close()
@@ -216,7 +250,8 @@ def send_telegram_alert(message):
     if not token:
         return
     try:
-        body = json.dumps({"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}).encode()
+        body = json.dumps({"chat_id": chat_id, "text": message,
+                          "parse_mode": "Markdown"}).encode()
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{token}/sendMessage",
             data=body, headers={"Content-Type": "application/json"})
@@ -224,12 +259,20 @@ def send_telegram_alert(message):
     except Exception:
         pass
 
+
 def main():
     parser = argparse.ArgumentParser(description="IA Proactive Agent")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
-    parser.add_argument("--fix", action="store_true", help="Auto-fix pending tasks")
-    parser.add_argument("--interval", type=int, default=1800, help="Seconds between scans")
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="Auto-fix pending tasks")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=1800,
+        help="Seconds between scans")
     args = parser.parse_args()
 
     db = init_db()
@@ -237,7 +280,12 @@ def main():
         findings, new = discover_tasks(db)
         print(f"Scan: {len(findings)} findings, {new} new")
         for source, finding, severity in findings:
-            icon = {"critical": "🔴", "high": "🟠", "medium": "🟡"}.get(severity, "⚪")
+            icon = {
+                "critical": "🔴",
+                "high": "🟠",
+                "medium": "🟡"}.get(
+                severity,
+                "⚪")
             print(f"  {icon} [{source}] {finding}")
         if args.fix:
             fixed = auto_fix(db)
@@ -245,7 +293,8 @@ def main():
         # Alert on critical
         criticals = [f for f in findings if f[2] == "critical"]
         if criticals:
-            msg = "🔴 *JARVIS Proactive Alert*\n" + "\n".join(f"• {f[1]}" for f in criticals)
+            msg = "🔴 *JARVIS Proactive Alert*\n" + \
+                "\n".join(f"• {f[1]}" for f in criticals)
             send_telegram_alert(msg)
 
     if args.loop:
@@ -258,11 +307,13 @@ def main():
                 print(f"[{ts}] {len(findings)} checks | +{new} new | {fixed} fixed")
                 criticals = [f for f in findings if f[2] == "critical"]
                 if criticals:
-                    msg = f"🔴 *Proactive [{ts}]*\n" + "\n".join(f"• {f[1]}" for f in criticals)
+                    msg = f"🔴 *Proactive [{ts}]*\n" + \
+                        "\n".join(f"• {f[1]}" for f in criticals)
                     send_telegram_alert(msg)
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

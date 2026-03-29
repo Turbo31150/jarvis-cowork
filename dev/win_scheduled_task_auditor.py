@@ -22,8 +22,18 @@ from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "scheduled_task_auditor.db"
-TRUSTED_AUTHORS = {"microsoft", "microsoft corporation", "intel", "nvidia", "realtek", "adobe"}
-SUSPICIOUS_PATHS = ["%temp%", "appdata\\local\\temp", "downloads\\", "public\\"]
+TRUSTED_AUTHORS = {
+    "microsoft",
+    "microsoft corporation",
+    "intel",
+    "nvidia",
+    "realtek",
+    "adobe"}
+SUSPICIOUS_PATHS = [
+    "%temp%",
+    "appdata\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\local\\temp",
+    "downloads\\",
+    "public\\"]
 
 
 def init_db():
@@ -105,8 +115,13 @@ def do_audit():
         if c["is_suspicious"]:
             suspicious.append({**t, "reasons": c["reasons"]})
 
-    db.execute("INSERT INTO audits (ts, total_tasks, suspicious, microsoft, third_party) VALUES (?,?,?,?,?)",
-               (time.time(), len(tasks), len(suspicious), microsoft_count, third_party))
+    db.execute(
+        "INSERT INTO audits (ts, total_tasks, suspicious, microsoft, third_party) VALUES (?,?,?,?,?)",
+        (time.time(),
+         len(tasks),
+         len(suspicious),
+         microsoft_count,
+         third_party))
     db.commit()
     db.close()
 
@@ -121,9 +136,17 @@ def do_audit():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Windows Scheduled Task Auditor")
-    parser.add_argument("--once", "--audit", action="store_true", help="Audit tasks")
-    parser.add_argument("--suspicious", action="store_true", help="Show suspicious")
+    parser = argparse.ArgumentParser(
+        description="Windows Scheduled Task Auditor")
+    parser.add_argument(
+        "--once",
+        "--audit",
+        action="store_true",
+        help="Audit tasks")
+    parser.add_argument(
+        "--suspicious",
+        action="store_true",
+        help="Show suspicious")
     parser.add_argument("--disable", metavar="NAME", help="Disable task")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()

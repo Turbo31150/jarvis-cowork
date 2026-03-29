@@ -9,7 +9,12 @@ Usage:
     python dev/ia_peer_reviewer.py --report
     python dev/ia_peer_reviewer.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -24,6 +29,7 @@ REVIEW_CRITERIA = {
     "maintainability": {"weight": 0.15, "description": "Modularity, DRY, documentation"},
     "style": {"weight": 0.10, "description": "PEP8, formatting, consistency"},
 }
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -54,6 +60,7 @@ def init_db():
     db.commit()
     return db
 
+
 def read_file(filepath):
     """Read file content."""
     try:
@@ -65,9 +72,11 @@ def read_file(filepath):
     except Exception as e:
         return None, str(e)
 
+
 def file_hash(content):
     import hashlib
     return hashlib.md5(content.encode()).hexdigest()[:16]
+
 
 def query_m1(prompt):
     """Query M1."""
@@ -80,9 +89,15 @@ def query_m1(prompt):
         "store": False
     })
     try:
-        cmd = f'curl -s --max-time 60 http://127.0.0.1:1234/api/v1/chat -H "Content-Type: application/json" -d {json.dumps(payload)}'
+        cmd = f'curl -s --max-time 60 http://127.0.0.1:1234/api/v1/chat -H "Content-Type: application/json" -d {
+            json.dumps(payload)}'
         start = time.time()
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=65, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=65,
+            shell=True)
         elapsed = int((time.time() - start) * 1000)
         if r.stdout.strip():
             data = json.loads(r.stdout)
@@ -95,6 +110,7 @@ def query_m1(prompt):
     except Exception:
         return None, 0
 
+
 def query_ol1(prompt):
     """Query OL1."""
     payload = json.dumps({
@@ -103,19 +119,30 @@ def query_ol1(prompt):
         "stream": False
     })
     try:
-        cmd = f'curl -s --max-time 60 http://127.0.0.1:11434/api/chat -d {json.dumps(payload)}'
+        cmd = f'curl -s --max-time 60 http://127.0.0.1:11434/api/chat -d {
+            json.dumps(payload)}'
         start = time.time()
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=65, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=65,
+            shell=True)
         elapsed = int((time.time() - start) * 1000)
         if r.stdout.strip():
             data = json.loads(r.stdout)
             content = data.get("message", {}).get("content", "")
             import re
-            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
+            content = re.sub(
+                r'<think>.*?</think>',
+                '',
+                content,
+                flags=re.DOTALL).strip()
             return content.strip(), elapsed
         return None, elapsed
     except Exception:
         return None, 0
+
 
 def merge_reviews(m1_review, ol1_review):
     """Merge unique comments from both reviews."""
@@ -125,6 +152,7 @@ def merge_reviews(m1_review, ol1_review):
     if ol1_review:
         comments.append({"source": "OL1", "review": ol1_review[:800]})
     return comments
+
 
 def do_review(filepath):
     db = init_db()
@@ -183,6 +211,7 @@ def do_review(filepath):
     db.close()
     return result
 
+
 def do_criteria():
     return {
         "action": "criteria",
@@ -190,6 +219,7 @@ def do_criteria():
         "total_weight": sum(c["weight"] for c in REVIEW_CRITERIA.values()),
         "ts": datetime.now().isoformat()
     }
+
 
 def do_improve(filepath):
     db = init_db()
@@ -203,7 +233,10 @@ def do_improve(filepath):
 
     improved, elapsed = query_m1(prompt)
 
-    review = db.execute("SELECT id FROM reviews WHERE file_path=? ORDER BY id DESC LIMIT 1", (str(filepath),)).fetchone()
+    review = db.execute(
+        "SELECT id FROM reviews WHERE file_path=? ORDER BY id DESC LIMIT 1",
+        (str(filepath),
+         )).fetchone()
     review_id = review[0] if review else None
 
     db.execute("INSERT INTO improvements (review_id, ts, file_path, suggestions, improved_code, model) VALUES (?,?,?,?,?,?)",
@@ -220,28 +253,36 @@ def do_improve(filepath):
     db.close()
     return result
 
+
 def do_report():
     db = init_db()
     total = db.execute("SELECT COUNT(*) FROM reviews").fetchone()[0]
-    avg_score = db.execute("SELECT AVG(quality_score) FROM reviews").fetchone()[0] or 0
-    recent = db.execute("SELECT ts, file_path, quality_score, duration_ms FROM reviews ORDER BY id DESC LIMIT 10").fetchall()
-    improvements = db.execute("SELECT COUNT(*) FROM improvements").fetchone()[0]
+    avg_score = db.execute(
+        "SELECT AVG(quality_score) FROM reviews").fetchone()[0] or 0
+    recent = db.execute(
+        "SELECT ts, file_path, quality_score, duration_ms FROM reviews ORDER BY id DESC LIMIT 10").fetchall()
+    improvements = db.execute(
+        "SELECT COUNT(*) FROM improvements").fetchone()[0]
 
-    result = {
-        "action": "report",
-        "total_reviews": total,
-        "avg_quality_score": round(avg_score, 1),
-        "total_improvements": improvements,
-        "recent_reviews": [{"ts": r[0], "file": r[1], "score": r[2], "duration_ms": r[3]} for r in recent],
-        "ts": datetime.now().isoformat()
-    }
+    result = {"action": "report",
+              "total_reviews": total,
+              "avg_quality_score": round(avg_score,
+                                         1),
+              "total_improvements": improvements,
+              "recent_reviews": [{"ts": r[0],
+                                  "file": r[1],
+                                  "score": r[2],
+                                  "duration_ms": r[3]} for r in recent],
+              "ts": datetime.now().isoformat()}
     db.close()
     return result
+
 
 def do_once():
     db = init_db()
     total = db.execute("SELECT COUNT(*) FROM reviews").fetchone()[0]
-    avg = db.execute("SELECT AVG(quality_score) FROM reviews").fetchone()[0] or 0
+    avg = db.execute("SELECT AVG(quality_score) FROM reviews").fetchone()[
+        0] or 0
     result = {
         "status": "ok",
         "total_reviews": total,
@@ -253,13 +294,32 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="IA Peer Reviewer — COWORK #226")
-    parser.add_argument("--review", type=str, metavar="FILE", help="Review a code file")
-    parser.add_argument("--criteria", action="store_true", help="Show review criteria")
-    parser.add_argument("--improve", type=str, metavar="FILE", help="Suggest improvements")
-    parser.add_argument("--report", action="store_true", help="Show review report")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="IA Peer Reviewer — COWORK #226")
+    parser.add_argument(
+        "--review",
+        type=str,
+        metavar="FILE",
+        help="Review a code file")
+    parser.add_argument(
+        "--criteria",
+        action="store_true",
+        help="Show review criteria")
+    parser.add_argument(
+        "--improve",
+        type=str,
+        metavar="FILE",
+        help="Suggest improvements")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Show review report")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.review:
@@ -267,11 +327,17 @@ def main():
     elif args.criteria:
         print(json.dumps(do_criteria(), ensure_ascii=False, indent=2))
     elif args.improve:
-        print(json.dumps(do_improve(args.improve), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_improve(
+                    args.improve),
+                ensure_ascii=False,
+                indent=2))
     elif args.report:
         print(json.dumps(do_report(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

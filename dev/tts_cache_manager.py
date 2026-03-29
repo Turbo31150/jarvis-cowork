@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """JARVIS TTS Cache Manager — Gestion du cache Text-to-Speech."""
-import json, sys, os, subprocess, time, glob
+import json
+import sys
+import os
+import subprocess
+import time
+import glob
 from datetime import datetime, timedelta
+import argparse
 
 CACHE_DIRS = [
     os.path.expandvars(r"%TEMP%"),
@@ -34,6 +40,7 @@ TOP_PHRASES = [
     "En attente d'instructions",
 ]
 
+
 def get_cache_stats():
     total_size = 0
     total_files = 0
@@ -52,7 +59,14 @@ def get_cache_stats():
                 if mtime < cutoff:
                     old_files += 1
 
-    return {"files": total_files, "size_mb": round(total_size / 1048576, 2), "old": old_files}
+    return {
+        "files": total_files,
+        "size_mb": round(
+            total_size /
+            1048576,
+            2),
+        "old": old_files}
+
 
 def clean_old_files():
     cutoff = datetime.now() - timedelta(days=MAX_AGE_DAYS)
@@ -72,9 +86,11 @@ def clean_old_files():
                         os.remove(fp)
                         removed += 1
                         freed += size
-                    except: pass
+                    except BaseException:
+                        pass
 
     return removed, round(freed / 1048576, 2)
+
 
 def pregen_phrases():
     os.makedirs(CACHE_DIR, exist_ok=True)
@@ -82,7 +98,8 @@ def pregen_phrases():
     errors = 0
 
     for phrase in TOP_PHRASES:
-        safe_name = phrase[:40].replace(" ", "_").replace(",", "").replace("'", "").lower()
+        safe_name = phrase[:40].replace(" ", "_").replace(
+            ",", "").replace("'", "").lower()
         output = os.path.join(CACHE_DIR, f"{safe_name}.mp3")
         if os.path.exists(output):
             continue  # Already cached
@@ -101,13 +118,15 @@ def pregen_phrases():
 
     return generated, errors
 
+
 if __name__ == "__main__":
     if "--stats" in sys.argv:
         stats = get_cache_stats()
         print(f"[TTS CACHE] {stats['files']} fichiers, {stats['size_mb']} MB")
         print(f"  Anciens (>{MAX_AGE_DAYS}j): {stats['old']}")
         print(f"  Top phrases: {len(TOP_PHRASES)}")
-        cached = len([f for f in os.listdir(CACHE_DIR) if f.endswith(".mp3")]) if os.path.exists(CACHE_DIR) else 0
+        cached = len([f for f in os.listdir(CACHE_DIR) if f.endswith(
+            ".mp3")]) if os.path.exists(CACHE_DIR) else 0
         print(f"  Pre-generes: {cached}/{len(TOP_PHRASES)}")
 
     elif "--clean" in sys.argv:

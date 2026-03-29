@@ -57,7 +57,12 @@ def run_script(script, args, timeout=120):
     """Run a cowork script and return (success, output)."""
     cmd = [sys.executable, str(SCRIPT_DIR / script)] + args
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=str(SCRIPT_DIR))
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=str(SCRIPT_DIR))
         return r.returncode == 0, r.stdout, r.stderr
     except subprocess.TimeoutExpired:
         return False, "", "timeout"
@@ -69,7 +74,10 @@ def main():
     global PASS, FAIL
     parser = argparse.ArgumentParser(description="Pipeline Integration Test")
     parser.add_argument("--once", action="store_true")
-    parser.add_argument("--quick", action="store_true", help="Quick smoke test")
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Quick smoke test")
     args = parser.parse_args()
 
     if not any([args.once, args.quick]):
@@ -95,7 +103,9 @@ def main():
 
     # 2. Test crypto alerts
     print("\n2. Crypto Price Alerts")
-    ok, out, err = run_script("crypto_price_alert.py", ["--once", "--pairs", "IPUSDT"])
+    ok, out, err = run_script(
+        "crypto_price_alert.py", [
+            "--once", "--pairs", "IPUSDT"])
     test("crypto alert executes", lambda: ok)
     test("crypto shows price", lambda: "price" in out.lower())
 
@@ -109,10 +119,13 @@ def main():
     # 4. Quality benchmark (skip if --quick)
     if not args.quick:
         print("\n4. Quality Benchmark (this takes ~3 min)")
-        ok, out, err = run_script("dispatch_quality_tracker.py", ["--benchmark"], timeout=300)
+        ok, out, err = run_script("dispatch_quality_tracker.py", [
+                                  "--benchmark"], timeout=300)
         test("benchmark executes", lambda: ok)
         if ok:
-            test("benchmark has results", lambda: "benchmark" in out.lower() or "M1" in out)
+            test(
+                "benchmark has results",
+                lambda: "benchmark" in out.lower() or "M1" in out)
     else:
         print("\n4. Quality Benchmark [SKIPPED --quick]")
 
@@ -122,7 +135,9 @@ def main():
     test("learner routing", lambda: ok)
     ok, out, err = run_script("dispatch_learner.py", ["--learn"])
     test("learner learning cycle", lambda: ok)
-    test("learner outputs routes", lambda: "Route" in out or "route" in out or "Routing" in out)
+    test(
+        "learner outputs routes",
+        lambda: "Route" in out or "route" in out or "Routing" in out)
 
     # 6. Test smart routing engine
     print("\n6. Smart Routing Engine")
@@ -134,22 +149,29 @@ def main():
 
     # 7. Test health summary
     print("\n7. Health Summary")
-    ok, out, err = run_script("cowork_health_summary.py", ["--once"], timeout=60)
+    ok, out, err = run_script(
+        "cowork_health_summary.py", ["--once"], timeout=60)
     test("health summary executes", lambda: ok)
     if ok:
         try:
             data = json.loads(out)
             test("health has overall_score", lambda: "overall_score" in data)
-            test("health score > 50", lambda: data.get("overall_score", 0) > 50)
+            test(
+                "health score > 50",
+                lambda: data.get(
+                    "overall_score",
+                    0) > 50)
             test("health has grade", lambda: "grade" in data)
-        except:
+        except BaseException:
             test("health JSON parse", lambda: False)
 
     # 8. Test orchestrator
     print("\n8. Autonomous Orchestrator")
     ok, out, err = run_script("autonomous_orchestrator.py", ["--dry-run"])
     test("orchestrator dry-run", lambda: ok)
-    test("orchestrator lists tasks", lambda: "heartbeat" in out.lower() or "Running" in out)
+    test(
+        "orchestrator lists tasks",
+        lambda: "heartbeat" in out.lower() or "Running" in out)
 
     # 9. Database integrity
     print("\n9. Database Integrity")
@@ -160,14 +182,16 @@ def main():
         ).fetchone()[0]
         test("agent_dispatch_log exists", lambda: has_dispatch == 1)
         if has_dispatch:
-            cnt = edb.execute("SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
+            cnt = edb.execute(
+                "SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
             test("dispatch log has data", lambda: cnt > 0)
         has_mapping = edb.execute(
             "SELECT COUNT(*) FROM sqlite_master WHERE name='cowork_script_mapping'"
         ).fetchone()[0]
         test("cowork_script_mapping exists", lambda: has_mapping == 1)
         if has_mapping:
-            cnt = edb.execute("SELECT COUNT(*) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
+            cnt = edb.execute(
+                "SELECT COUNT(*) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
             test("script mappings > 350", lambda: cnt > 350)
         edb.close()
     except Exception as e:
@@ -176,7 +200,7 @@ def main():
     try:
         gdb = sqlite3.connect(str(GAPS_DB), timeout=10)
         tables = ["heartbeat_log", "heartbeat_state", "orchestrator_runs",
-                   "routing_recommendations", "timeout_configs"]
+                  "routing_recommendations", "timeout_configs"]
         for t in tables:
             has = gdb.execute(
                 f"SELECT COUNT(*) FROM sqlite_master WHERE name='{t}'"
@@ -189,8 +213,9 @@ def main():
     # Summary
     elapsed = time.time() - start
     total = PASS + FAIL
-    print(f"\n{'='*50}")
-    print(f"Results: {PASS}/{total} passed ({PASS/max(total,1)*100:.0f}%) in {elapsed:.1f}s")
+    print(f"\n{'=' * 50}")
+    print(f"Results: {PASS}/{total} passed ({PASS / max(total,
+                                                        1) * 100:.0f}%) in {elapsed:.1f}s")
     if FAIL == 0:
         print("ALL TESTS PASSED")
     else:

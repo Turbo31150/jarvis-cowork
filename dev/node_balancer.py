@@ -32,11 +32,12 @@ NODES = {
 # Seuils de déclenchement
 THRESHOLDS = {
     "temp_c": 75,   # >75°C → décharger
-    "vram_pct": 90, # >90% d'utilisation → migrer
+    "vram_pct": 90,  # >90% d'utilisation → migrer
     "cpu_pct": 95,  # >95% → distribuer
 }
 
 DB_PATH = os.path.join("dev", "data", "balancer.db")
+
 
 def _ensure_db() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -55,6 +56,7 @@ def _ensure_db() -> sqlite3.Connection:
     conn.commit()
     return conn
 
+
 def log_action(action: str, details: Dict = None) -> None:
     conn = _ensure_db()
     cur = conn.cursor()
@@ -65,6 +67,7 @@ def log_action(action: str, details: Dict = None) -> None:
     )
     conn.commit()
     conn.close()
+
 
 def get_recent_actions(limit: int = 20) -> List[Dict]:
     conn = _ensure_db()
@@ -85,6 +88,7 @@ def get_recent_actions(limit: int = 20) -> List[Dict]:
 # via nvidia‑smi, wmi ou des appels REST aux agents de monitoring.
 # ---------------------------------------------------------------------------
 
+
 def mock_metrics() -> Dict[str, Dict[str, float]]:
     """Retourne des métriques factices pour chaque nœud.
     Les valeurs changent légèrement à chaque appel pour simuler une charge.
@@ -103,6 +107,7 @@ def mock_metrics() -> Dict[str, Dict[str, float]]:
         }
     return metrics
 
+
 def display_status(metrics: Dict[str, Dict[str, float]]) -> None:
     print("État des nœuds du cluster IA :")
     for node, data in metrics.items():
@@ -114,7 +119,9 @@ def display_status(metrics: Dict[str, Dict[str, float]]) -> None:
         parts.append(f"CPU: {data['cpu_pct']}%")
         print(f"  {node:4}: " + ", ".join(parts))
 
-def find_overloaded(metrics: Dict[str, Dict[str, float]]) -> List[Tuple[str, List[str]]]:
+
+def find_overloaded(
+        metrics: Dict[str, Dict[str, float]]) -> List[Tuple[str, List[str]]]:
     """Renvoie la liste des nœuds avec leurs problèmes détectés.
     Exemple: [("M2", ["temp", "vram"]), ...]
     """
@@ -131,7 +138,9 @@ def find_overloaded(metrics: Dict[str, Dict[str, float]]) -> List[Tuple[str, Lis
             overloaded.append((node, problems))
     return overloaded
 
-def select_target(overloaded_node: str, metrics: Dict[str, Dict[str, float]]) -> str:
+
+def select_target(overloaded_node: str,
+                  metrics: Dict[str, Dict[str, float]]) -> str:
     """Choisit le nœud le moins chargé parmi ceux qui ne sont pas surchargés.
     On privilégie les nœuds avec le plus de VRAM disponible.
     """
@@ -160,6 +169,7 @@ def select_target(overloaded_node: str, metrics: Dict[str, Dict[str, float]]) ->
     candidates.sort(reverse=True)
     return candidates[0][1]
 
+
 def perform_migration(src: str, dst: str) -> None:
     # Dans un vrai système on invoquerait le dispatcher ou un script de migration.
     # Ici on ne fait qu'enregistrer l'action.
@@ -168,6 +178,7 @@ def perform_migration(src: str, dst: str) -> None:
         {"from": src, "to": dst, "time": datetime.utcnow().isoformat() + "Z"},
     )
     print(f"Migration simulée de {src} → {dst}")
+
 
 def balance() -> None:
     metrics = mock_metrics()
@@ -179,12 +190,17 @@ def balance() -> None:
     for node, issues in overloaded:
         target = select_target(node, metrics)
         if target:
-            print(f"Nœud {node} surchargé ({', '.join(issues)}). Migration vers {target}.")
+            print(
+                f"Nœud {node} surchargé ({
+                    ', '.join(issues)}). Migration vers {target}.")
             perform_migration(node, target)
         else:
-            print(f"Nœud {node} surchargé ({', '.join(issues)}). Aucun nœud cible disponible.")
+            print(
+                f"Nœud {node} surchargé ({
+                    ', '.join(issues)}). Aucun nœud cible disponible.")
             log_action("balance_failed", {"node": node, "issues": issues})
     log_action("balance", {"overloaded": overloaded})
+
 
 def migrate(src: str, dst: str) -> None:
     if src not in NODES or dst not in NODES:
@@ -192,17 +208,35 @@ def migrate(src: str, dst: str) -> None:
         return
     perform_migration(src, dst)
 
+
 def report() -> None:
     actions = get_recent_actions()
-    print(json.dumps({"recent_actions": actions}, ensure_ascii=False, indent=2))
+    print(json.dumps({"recent_actions": actions},
+          ensure_ascii=False, indent=2))
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Équilibrage du cluster IA")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--balance", action="store_true", help="Analyse et rééquilibre le cluster")
-    group.add_argument("--status", action="store_true", help="Affiche l’état des nœuds")
-    group.add_argument("--migrate", nargs=2, metavar=("SRC", "DST"), help="Force la migration d’un nœud vers un autre")
-    group.add_argument("--report", action="store_true", help="Rapport JSON des actions récentes")
+    group.add_argument(
+        "--balance",
+        action="store_true",
+        help="Analyse et rééquilibre le cluster")
+    group.add_argument(
+        "--status",
+        action="store_true",
+        help="Affiche l’état des nœuds")
+    group.add_argument(
+        "--migrate",
+        nargs=2,
+        metavar=(
+            "SRC",
+            "DST"),
+        help="Force la migration d’un nœud vers un autre")
+    group.add_argument(
+        "--report",
+        action="store_true",
+        help="Rapport JSON des actions récentes")
     args = parser.parse_args()
 
     if args.balance:
@@ -216,6 +250,7 @@ def main() -> None:
         report()
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

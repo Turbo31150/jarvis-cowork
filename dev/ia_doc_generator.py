@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ia_doc_generator.py — Auto documentation from source (#251).
 
@@ -88,21 +89,28 @@ def scan_file(filepath):
             if isinstance(node, ast.FunctionDef):
                 doc = extract_docstring(node)
                 args = [a.arg for a in node.args.args if a.arg != "self"]
-                items.append({
-                    "type": "function", "name": node.name, "docstring": doc,
-                    "args": args, "lineno": node.lineno, "has_doc": doc is not None,
-                })
+                items.append({"type": "function",
+                              "name": node.name,
+                              "docstring": doc,
+                              "args": args,
+                              "lineno": node.lineno,
+                              "has_doc": doc is not None,
+                              })
             elif isinstance(node, ast.ClassDef):
                 class_doc = extract_docstring(node)
-                items.append({
-                    "type": "class", "name": node.name, "docstring": class_doc,
-                    "args": [], "lineno": node.lineno, "has_doc": class_doc is not None,
-                })
+                items.append({"type": "class",
+                              "name": node.name,
+                              "docstring": class_doc,
+                              "args": [],
+                              "lineno": node.lineno,
+                              "has_doc": class_doc is not None,
+                              })
                 # Class methods
                 for item in node.body:
                     if isinstance(item, ast.FunctionDef):
                         mdoc = extract_docstring(item)
-                        margs = [a.arg for a in item.args.args if a.arg != "self"]
+                        margs = [
+                            a.arg for a in item.args.args if a.arg != "self"]
                         items.append({
                             "type": "method", "name": f"{node.name}.{item.name}",
                             "docstring": mdoc, "args": margs, "lineno": item.lineno,
@@ -136,13 +144,15 @@ def generate_markdown(filepath, module_doc, items):
                 lines.append(f"\n{cls['docstring']}")
             lines.append(f"\n- Line: {cls['lineno']}")
             # Add methods for this class
-            cls_methods = [m for m in methods if m["name"].startswith(f"{cls['name']}.")]
+            cls_methods = [
+                m for m in methods if m["name"].startswith(f"{cls['name']}.")]
             if cls_methods:
                 lines.append("\n**Methods:**\n")
                 for m in cls_methods:
                     mname = m["name"].split(".")[-1]
                     args_str = ", ".join(m["args"]) if m["args"] else ""
-                    lines.append(f"- `{mname}({args_str})`" + (f" - {m['docstring'][:80]}" if m["docstring"] else ""))
+                    lines.append(f"- `{mname}({args_str})`" +
+                                 (f" - {m['docstring'][:80]}" if m["docstring"] else ""))
             lines.append("")
 
     if functions:
@@ -164,7 +174,8 @@ def generate_markdown(filepath, module_doc, items):
     lines.append(f"- Total items: {len(items)}")
     lines.append(f"- Documented: {documented}")
     lines.append(f"- Undocumented: {undocumented}")
-    lines.append(f"- Coverage: {round(documented / max(len(items), 1) * 100, 1)}%")
+    lines.append(
+        f"- Coverage: {round(documented / max(len(items), 1) * 100, 1)}%")
     lines.append("")
 
     return "\n".join(lines)
@@ -238,7 +249,8 @@ def do_generate():
             "INSERT INTO generated_docs (ts, source_file, doc_file, sections) VALUES (?,?,?,?)",
             (now.isoformat(), str(f), str(doc_path), len(items)),
         )
-        generated.append({"source": f.name, "doc": doc_path.name, "items": len(items)})
+        generated.append(
+            {"source": f.name, "doc": doc_path.name, "items": len(items)})
 
     db.commit()
     result = {
@@ -295,8 +307,11 @@ def do_export():
 def do_status():
     db = init_db()
     result = {
-        "ts": datetime.now().isoformat(), "script": "ia_doc_generator.py", "script_id": 251,
-        "db": str(DB_PATH), "docs_dir": str(DOCS_DIR),
+        "ts": datetime.now().isoformat(),
+        "script": "ia_doc_generator.py",
+        "script_id": 251,
+        "db": str(DB_PATH),
+        "docs_dir": str(DOCS_DIR),
         "documented_files": db.execute("SELECT COUNT(*) FROM documented_files").fetchone()[0],
         "doc_items": db.execute("SELECT COUNT(*) FROM doc_items").fetchone()[0],
         "generated_docs": db.execute("SELECT COUNT(*) FROM generated_docs").fetchone()[0],
@@ -307,12 +322,28 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ia_doc_generator.py — Auto documentation (#251)")
-    parser.add_argument("--scan", action="store_true", help="Scan files for documentation")
-    parser.add_argument("--generate", action="store_true", help="Generate markdown docs")
-    parser.add_argument("--format", action="store_true", help="Show format summary")
-    parser.add_argument("--export", action="store_true", help="Export documentation data")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="ia_doc_generator.py — Auto documentation (#251)")
+    parser.add_argument(
+        "--scan",
+        action="store_true",
+        help="Scan files for documentation")
+    parser.add_argument(
+        "--generate",
+        action="store_true",
+        help="Generate markdown docs")
+    parser.add_argument(
+        "--format",
+        action="store_true",
+        help="Show format summary")
+    parser.add_argument(
+        "--export",
+        action="store_true",
+        help="Export documentation data")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.scan:

@@ -26,7 +26,8 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
-# Ensure Unicode output works on Windows consoles (cp1252 cannot encode all chars)
+# Ensure Unicode output works on Windows consoles (cp1252 cannot encode
+# all chars)
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
@@ -46,6 +47,7 @@ CRITICAL_TEMP = 85  # °C
 # Helpers – base de données
 # ---------------------------------------------------------------------------
 
+
 def init_db(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute(
@@ -59,6 +61,7 @@ def init_db(conn: sqlite3.Connection):
     )
     conn.commit()
 
+
 def store_temp(conn: sqlite3.Connection, temperature: float):
     cur = conn.cursor()
     cur.execute(
@@ -67,28 +70,35 @@ def store_temp(conn: sqlite3.Connection, temperature: float):
     )
     conn.commit()
 
+
 def fetch_history(conn: sqlite3.Connection, limit: int = 20):
     cur = conn.cursor()
-    cur.execute("SELECT ts, temperature FROM temps ORDER BY ts DESC LIMIT ?", (limit,))
+    cur.execute(
+        "SELECT ts, temperature FROM temps ORDER BY ts DESC LIMIT ?", (limit,))
     return cur.fetchall()
 
 # ---------------------------------------------------------------------------
 # Notification Telegram
 # ---------------------------------------------------------------------------
 
+
 def telegram_alert(message: str):
     try:
-        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": message}).encode()
+        data = urllib.parse.urlencode(
+            {"chat_id": TELEGRAM_CHAT_ID, "text": message}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         req = urllib.request.Request(url, data=data)
         with urllib.request.urlopen(req, timeout=10):
             pass
     except Exception as e:
-        print(f"[gpu_thermal_guard] Erreur d'envoi Telegram : {e}", file=sys.stderr)
+        print(
+            f"[gpu_thermal_guard] Erreur d'envoi Telegram : {e}",
+            file=sys.stderr)
 
 # ---------------------------------------------------------------------------
 # Lecture de la température GPU via nvidia‑smi
 # ---------------------------------------------------------------------------
+
 
 def get_gpu_temperature() -> float:
     """Retourne la température maximale parmi les GPU détectés.
@@ -104,17 +114,21 @@ def get_gpu_temperature() -> float:
             text=True,
             timeout=10,
         )
-        temps = [int(line.strip()) for line in out.strip().splitlines() if line.strip()]
+        temps = [int(line.strip())
+                 for line in out.strip().splitlines() if line.strip()]
         if not temps:
             return -1.0
         return max(temps)
     except Exception as e:
-        print(f"[gpu_thermal_guard] Erreur lecture nvidia‑smi : {e}", file=sys.stderr)
+        print(
+            f"[gpu_thermal_guard] Erreur lecture nvidia‑smi : {e}",
+            file=sys.stderr)
         return -1.0
 
 # ---------------------------------------------------------------------------
 # Gestion des alertes & migration fictive
 # ---------------------------------------------------------------------------
+
 
 def handle_temperature(temp: float):
     if temp < 0:
@@ -124,7 +138,8 @@ def handle_temperature(temp: float):
         msg = f"⚠️ [GPU THERMAL] Température critique : {temp} °C > {CRITICAL_TEMP} °C. Migration des tâches vers M2/OL1."
         print(msg)
         telegram_alert(msg)
-        # Ici on pourrait déclencher un vrai ré‑affectation des jobs via le système de cron/agents.
+        # Ici on pourrait déclencher un vrai ré‑affectation des jobs via le
+        # système de cron/agents.
     elif temp > WARNING_TEMP:
         msg = f"🔔 [GPU THERMAL] Température élevée : {temp} °C > {WARNING_TEMP} °C."
         print(msg)
@@ -136,6 +151,7 @@ def handle_temperature(temp: float):
 # CLI actions
 # ---------------------------------------------------------------------------
 
+
 def run_once():
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
@@ -143,6 +159,7 @@ def run_once():
     store_temp(conn, temp)
     handle_temperature(temp)
     conn.close()
+
 
 def run_loop():
     print("[gpu_thermal_guard] Démarrage du monitoring continu (30 s). Ctrl‑C pour arrêter.")
@@ -155,6 +172,7 @@ def run_loop():
     except KeyboardInterrupt:
         print("[gpu_thermal_guard] Surveillance arrêtée par l'utilisateur.")
 
+
 def show_history(limit: int = 20):
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
@@ -163,12 +181,20 @@ def show_history(limit: int = 20):
         print(f"{ts} – {temp} °C")
     conn.close()
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Surveillance thermique GPU via nvidia‑smi.")
+    parser = argparse.ArgumentParser(
+        description="Surveillance thermique GPU via nvidia‑smi.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--once", action="store_true", help="Lecture unique")
-    group.add_argument("--loop", action="store_true", help="Boucle toutes les 30 s")
-    group.add_argument("--history", action="store_true", help="Afficher l'historique des mesures")
+    group.add_argument(
+        "--loop",
+        action="store_true",
+        help="Boucle toutes les 30 s")
+    group.add_argument(
+        "--history",
+        action="store_true",
+        help="Afficher l'historique des mesures")
     args = parser.parse_args()
 
     if args.once:
@@ -177,6 +203,7 @@ def main():
         run_loop()
     elif args.history:
         show_history()
+
 
 if __name__ == "__main__":
     main()

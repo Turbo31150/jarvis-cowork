@@ -40,14 +40,29 @@ TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT_ID = "2010747443"
 
 NODES = {
-    "M1":  {"url": "http://127.0.0.1:1234/api/v1/chat", "model": "qwen3-8b",
-            "ollama": False, "prefix": "/nothink\n", "timeout": 30},
-    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b",
-            "ollama": True, "timeout": 20},
-    "M2":  {"url": "http://192.168.1.26:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
-            "ollama": False, "max_tokens": 2048, "timeout": 60},
-    "M3":  {"url": "http://192.168.1.113:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
-            "ollama": False, "max_tokens": 2048, "timeout": 60},
+    "M1": {
+        "url": "http://127.0.0.1:1234/api/v1/chat",
+        "model": "qwen3-8b",
+        "ollama": False,
+        "prefix": "/nothink\n",
+        "timeout": 30},
+    "OL1": {
+        "url": "http://127.0.0.1:11434/api/chat",
+        "model": "qwen3:1.7b",
+        "ollama": True,
+        "timeout": 20},
+    "M2": {
+        "url": "http://192.168.1.26:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "ollama": False,
+        "max_tokens": 2048,
+        "timeout": 60},
+    "M3": {
+        "url": "http://192.168.1.113:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "ollama": False,
+        "max_tokens": 2048,
+        "timeout": 60},
 }
 
 WARMUP_PROMPTS = [
@@ -81,8 +96,9 @@ def dispatch_node(node_name, prompt, timeout=30):
                 "stream": False, "store": False,
             }).encode()
 
-        req = urllib.request.Request(node["url"], data=body,
-                                     headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            node["url"], data=body, headers={
+                "Content-Type": "application/json"})
         resp = urllib.request.urlopen(req, timeout=timeout)
         data = json.loads(resp.read())
         elapsed = int((time.time() - start) * 1000)
@@ -151,8 +167,11 @@ def warmup_full(report=False):
             results[name] = {"status": "online", "probe_ms": r["latency_ms"]}
             print(f"  + {name:4} online ({r['latency_ms']}ms)")
         else:
-            results[name] = {"status": "offline", "error": r.get("error", "") if r else "timeout"}
-            print(f"  - {name:4} offline ({r.get('error', 'timeout')[:40] if r else 'timeout'})")
+            results[name] = {
+                "status": "offline", "error": r.get(
+                    "error", "") if r else "timeout"}
+            print(
+                f"  - {name:4} offline ({r.get('error', 'timeout')[:40] if r else 'timeout'})")
 
     # Step 2: Mini benchmark on online nodes
     print("\n[2/5] Mini benchmark...")
@@ -168,7 +187,8 @@ def warmup_full(report=False):
                 total_lat += r["latency_ms"]
         results[name]["benchmark"] = f"{ok}/{len(WARMUP_PROMPTS)}"
         results[name]["avg_ms"] = total_lat // max(ok, 1)
-        print(f"  {name:4} {ok}/{len(WARMUP_PROMPTS)} OK  avg={results[name]['avg_ms']}ms")
+        print(
+            f"  {name:4} {ok}/{len(WARMUP_PROMPTS)} OK  avg={results[name]['avg_ms']}ms")
 
     # Step 3: Update latency baselines
     print("\n[3/5] Updating baselines...")
@@ -177,7 +197,9 @@ def warmup_full(report=False):
 
     # Step 4: Refresh reliability scores
     print("\n[4/5] Refreshing reliability...")
-    ok = run_script("node_reliability_scorer.py", ["--once", "--update"], timeout=30)
+    ok = run_script(
+        "node_reliability_scorer.py", [
+            "--once", "--update"], timeout=30)
     print(f"  {'OK' if ok else 'SKIP'}")
 
     # Step 5: Grade check

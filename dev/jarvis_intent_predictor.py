@@ -117,7 +117,8 @@ def do_predict():
     """Predict next likely intents based on Markov chain."""
     db = init_db()
 
-    cur = db.execute("SELECT intent FROM command_history ORDER BY ts DESC LIMIT 1")
+    cur = db.execute(
+        "SELECT intent FROM command_history ORDER BY ts DESC LIMIT 1")
     row = cur.fetchone()
     last_intent = row[0] if row else "status_check"
 
@@ -215,13 +216,16 @@ def do_history():
 def do_accuracy():
     """Calculate prediction accuracy."""
     db = init_db()
-    validated = db.execute("SELECT COUNT(*) FROM predictions WHERE correct >= 0").fetchone()[0]
-    correct = db.execute("SELECT COUNT(*) FROM predictions WHERE correct = 1").fetchone()[0]
+    validated = db.execute(
+        "SELECT COUNT(*) FROM predictions WHERE correct >= 0").fetchone()[0]
+    correct = db.execute(
+        "SELECT COUNT(*) FROM predictions WHERE correct = 1").fetchone()[0]
     total_preds = db.execute("SELECT COUNT(*) FROM predictions").fetchone()[0]
     accuracy = round(correct / validated, 4) if validated > 0 else 0.0
 
     total_trans = db.execute("SELECT COUNT(*) FROM transitions").fetchone()[0]
-    unique_from = db.execute("SELECT COUNT(DISTINCT from_intent) FROM transitions").fetchone()[0]
+    unique_from = db.execute(
+        "SELECT COUNT(DISTINCT from_intent) FROM transitions").fetchone()[0]
 
     result = {
         "ts": datetime.now().isoformat(),
@@ -250,7 +254,8 @@ def do_train():
     before_count = db.execute("SELECT COUNT(*) FROM transitions").fetchone()[0]
     _rebuild_transitions(db)
     after_count = db.execute("SELECT COUNT(*) FROM transitions").fetchone()[0]
-    total_cmds = db.execute("SELECT COUNT(*) FROM command_history").fetchone()[0]
+    total_cmds = db.execute(
+        "SELECT COUNT(*) FROM command_history").fetchone()[0]
     elapsed = round(time.time() - start, 3)
 
     cur = db.execute("SELECT from_intent, to_intent, count FROM transitions")
@@ -291,12 +296,28 @@ def do_train():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Intent predictor using Markov chains")
-    parser.add_argument("--predict", action="store_true", help="Predict next likely intents")
-    parser.add_argument("--history", action="store_true", help="Show command history")
-    parser.add_argument("--accuracy", action="store_true", help="Show prediction accuracy")
-    parser.add_argument("--train", action="store_true", help="Retrain Markov model")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="Intent predictor using Markov chains")
+    parser.add_argument(
+        "--predict",
+        action="store_true",
+        help="Predict next likely intents")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show command history")
+    parser.add_argument(
+        "--accuracy",
+        action="store_true",
+        help="Show prediction accuracy")
+    parser.add_argument(
+        "--train",
+        action="store_true",
+        help="Retrain Markov model")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.predict:

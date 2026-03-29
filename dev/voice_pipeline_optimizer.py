@@ -16,6 +16,7 @@ CORRECTIONS_FILE = TURBO / "data" / "voice_corrections.json"
 COMMANDS_FILE = TURBO / "src" / "commands.py"
 DOMINOS_FILE = TURBO / "data" / "dominos.json"
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS metrics (
@@ -28,6 +29,7 @@ def init_db():
     db.commit()
     return db
 
+
 def count_corrections():
     """Count voice corrections from JSON."""
     if not CORRECTIONS_FILE.exists():
@@ -37,10 +39,12 @@ def count_corrections():
         if isinstance(data, list):
             return len(data)
         if isinstance(data, dict):
-            return sum(len(v) if isinstance(v, list) else 1 for v in data.values())
+            return sum(len(v) if isinstance(v, list)
+                       else 1 for v in data.values())
     except Exception:
         pass
     return 0
+
 
 def count_commands():
     """Count voice commands from commands.py."""
@@ -51,6 +55,7 @@ def count_commands():
         return content.count("JarvisCommand(")
     except Exception:
         return 0
+
 
 def count_dominos():
     """Count domino definitions."""
@@ -64,6 +69,7 @@ def count_dominos():
             return len(data.get("dominos", data.get("commands", [])))
     except Exception:
         return 0
+
 
 def analyze_coverage(db):
     """Analyze voice system coverage and gaps."""
@@ -85,26 +91,41 @@ def analyze_coverage(db):
         "corrections": corrections,
         "commands": commands,
         "dominos": dominos,
-        "correction_coverage": f"{corr_coverage*100:.0f}%",
-        "command_coverage": f"{cmd_coverage*100:.0f}%",
+        "correction_coverage": f"{corr_coverage * 100:.0f}%",
+        "command_coverage": f"{cmd_coverage * 100:.0f}%",
     }
+
 
 def generate_suggestions(db, metrics):
     """Generate improvement suggestions based on metrics."""
     suggestions = []
 
     if metrics["corrections"] < 3000:
-        suggestions.append(("corrections", "Ajouter plus de corrections vocales (cible: 3000+)", "medium"))
+        suggestions.append(
+            ("corrections",
+             "Ajouter plus de corrections vocales (cible: 3000+)",
+             "medium"))
     if metrics["commands"] < 2500:
-        suggestions.append(("commands", f"Ajouter commandes vocales ({metrics['commands']} actuellement, cible: 2500+)", "medium"))
+        suggestions.append(
+            ("commands",
+             f"Ajouter commandes vocales ({
+                 metrics['commands']} actuellement, cible: 2500+)",
+                "medium"))
     if metrics["dominos"] < 400:
-        suggestions.append(("dominos", f"Creer plus de dominos ({metrics['dominos']} actuellement, cible: 400+)", "medium"))
+        suggestions.append(
+            ("dominos",
+             f"Creer plus de dominos ({
+                 metrics['dominos']} actuellement, cible: 400+)",
+                "medium"))
 
     # Check for common French phonetic issues
     phonetic_gaps = [
-        ("fillers", "Ajouter des fillers pour les hesitations courantes (euh, hm, ben)"),
-        ("homophones", "Verifier les homophones francais (a/à, ou/où, ce/se)"),
-        ("anglicismes", "Ajouter des corrections pour les anglicismes tech (debug→débogage, push→pousser)"),
+        ("fillers",
+         "Ajouter des fillers pour les hesitations courantes (euh, hm, ben)"),
+        ("homophones",
+         "Verifier les homophones francais (a/à, ou/où, ce/se)"),
+        ("anglicismes",
+         "Ajouter des corrections pour les anglicismes tech (debug→débogage, push→pousser)"),
     ]
     for cat, suggestion in phonetic_gaps:
         # Only suggest if not recently suggested
@@ -115,16 +136,23 @@ def generate_suggestions(db, metrics):
             suggestions.append((cat, suggestion, "low"))
 
     for cat, text, prio in suggestions:
-        db.execute("INSERT INTO suggestions (ts, category, suggestion, priority) VALUES (?,?,?,?)",
-                   (time.time(), cat, text, prio))
+        db.execute(
+            "INSERT INTO suggestions (ts, category, suggestion, priority) VALUES (?,?,?,?)",
+            (time.time(),
+             cat,
+             text,
+             prio))
     db.commit()
     return suggestions
+
 
 def check_whisper_model():
     """Check Whisper model availability."""
     whisper_dir = TURBO / "models"
-    models = list(whisper_dir.glob("*whisper*")) if whisper_dir.exists() else []
+    models = list(whisper_dir.glob("*whisper*")
+                  ) if whisper_dir.exists() else []
     return len(models), [m.name for m in models[:5]]
+
 
 def main():
     parser = argparse.ArgumentParser(description="Voice Pipeline Optimizer")
@@ -138,8 +166,14 @@ def main():
     if args.once or not args.loop:
         metrics = analyze_coverage(db)
         print("=== Voice Pipeline Metrics ===")
-        print(f"  Corrections: {metrics['corrections']} ({metrics['correction_coverage']})")
-        print(f"  Commands: {metrics['commands']} ({metrics['command_coverage']})")
+        print(
+            f"  Corrections: {
+                metrics['corrections']} ({
+                metrics['correction_coverage']})")
+        print(
+            f"  Commands: {
+                metrics['commands']} ({
+                metrics['command_coverage']})")
         print(f"  Dominos: {metrics['dominos']}")
 
         suggestions = generate_suggestions(db, metrics)
@@ -158,10 +192,12 @@ def main():
                 metrics = analyze_coverage(db)
                 suggestions = generate_suggestions(db, metrics)
                 ts = time.strftime('%H:%M')
-                print(f"[{ts}] Corrections: {metrics['corrections']} | Commands: {metrics['commands']} | +{len(suggestions)} suggestions")
+                print(
+                    f"[{ts}] Corrections: {metrics['corrections']} | Commands: {metrics['commands']} | +{len(suggestions)} suggestions")
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

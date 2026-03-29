@@ -60,8 +60,12 @@ def init_db():
     for ch in ["console", "file", "telegram"]:
         db.execute(
             "INSERT OR IGNORE INTO channels (name, enabled, config_json) VALUES (?,?,?)",
-            (ch, 1 if ch != "telegram" else 0, json.dumps(RATE_LIMITS.get(ch, {})))
-        )
+            (ch,
+             1 if ch != "telegram" else 0,
+             json.dumps(
+                 RATE_LIMITS.get(
+                     ch,
+                     {}))))
     db.commit()
     return db
 
@@ -79,8 +83,12 @@ def check_rate_limit(db, channel):
 
 def record_send(db, channel):
     """Record a send event for rate limiting."""
-    db.execute("INSERT INTO rate_log (channel, ts) VALUES (?,?)", (channel, time.time()))
-    db.execute("UPDATE channels SET send_count=send_count+1, last_send=? WHERE name=?", (time.time(), channel))
+    db.execute("INSERT INTO rate_log (channel, ts) VALUES (?,?)",
+               (channel, time.time()))
+    db.execute(
+        "UPDATE channels SET send_count=send_count+1, last_send=? WHERE name=?",
+        (time.time(),
+         channel))
     # Cleanup old rate log entries (older than 5 min)
     db.execute("DELETE FROM rate_log WHERE ts < ?", (time.time() - 300,))
     db.commit()
@@ -88,7 +96,12 @@ def record_send(db, channel):
 
 def send_console(message, priority):
     """Send to console."""
-    prefix = {"critical": "[!!!]", "warning": "[!]", "info": "[i]"}.get(priority, "[?]")
+    prefix = {
+        "critical": "[!!!]",
+        "warning": "[!]",
+        "info": "[i]"}.get(
+        priority,
+        "[?]")
     ts = datetime.now().strftime("%H:%M:%S")
     print(f"{prefix} [{ts}] {message}")
     return True
@@ -106,7 +119,8 @@ def send_file(message, priority):
 def send_telegram(message, priority):
     """Telegram placeholder — returns False (not configured)."""
     # Placeholder: would call Telegram Bot API
-    # curl -s "https://api.telegram.org/bot{TOKEN}/sendMessage" -d "chat_id={CHAT_ID}&text={message}"
+    # curl -s "https://api.telegram.org/bot{TOKEN}/sendMessage" -d
+    # "chat_id={CHAT_ID}&text={message}"
     return False
 
 
@@ -127,7 +141,8 @@ def send_notification(db, message, priority="info", source="manual"):
     channels_blocked = []
     channels_failed = []
 
-    enabled = db.execute("SELECT name FROM channels WHERE enabled=1").fetchall()
+    enabled = db.execute(
+        "SELECT name FROM channels WHERE enabled=1").fetchall()
 
     for (ch_name,) in enabled:
         if not check_rate_limit(db, ch_name):
@@ -150,9 +165,14 @@ def send_notification(db, message, priority="info", source="manual"):
 
     db.execute(
         "INSERT INTO notifications (ts, message, priority, priority_level, channels_sent, source) VALUES (?,?,?,?,?,?)",
-        (time.time(), message, priority, PRIORITY_LEVELS.get(priority, 1),
-         json.dumps(channels_sent), source)
-    )
+        (time.time(),
+         message,
+         priority,
+         PRIORITY_LEVELS.get(
+            priority,
+            1),
+            json.dumps(channels_sent),
+            source))
     db.commit()
 
     return {
@@ -164,7 +184,8 @@ def send_notification(db, message, priority="info", source="manual"):
 
 def list_channels(db):
     """List all notification channels."""
-    rows = db.execute("SELECT name, enabled, config_json, send_count, last_send FROM channels").fetchall()
+    rows = db.execute(
+        "SELECT name, enabled, config_json, send_count, last_send FROM channels").fetchall()
     channels = []
     for r in rows:
         channels.append({
@@ -199,11 +220,13 @@ def once(db):
     total = db.execute("SELECT COUNT(*) FROM notifications").fetchone()[0]
     by_priority = {}
     for p in PRIORITY_LEVELS:
-        cnt = db.execute("SELECT COUNT(*) FROM notifications WHERE priority=?", (p,)).fetchone()[0]
+        cnt = db.execute(
+            "SELECT COUNT(*) FROM notifications WHERE priority=?", (p,)).fetchone()[0]
         by_priority[p] = cnt
 
     # Send a test info notification
-    test_result = send_notification(db, "Notification hub health check", "info", "once_check")
+    test_result = send_notification(
+        db, "Notification hub health check", "info", "once_check")
 
     return {
         "status": "ok", "mode": "once",
@@ -215,13 +238,30 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Notification Hub (#184) — Multi-channel notifications")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Notification Hub (#184) — Multi-channel notifications")
     parser.add_argument("--send", type=str, help="Send a notification message")
-    parser.add_argument("--priority", type=str, default="info", choices=["critical", "warning", "info"],
-                        help="Notification priority")
-    parser.add_argument("--channels", action="store_true", help="List notification channels")
-    parser.add_argument("--history", action="store_true", help="Show notification history")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument(
+        "--priority",
+        type=str,
+        default="info",
+        choices=[
+            "critical",
+            "warning",
+            "info"],
+        help="Notification priority")
+    parser.add_argument(
+        "--channels",
+        action="store_true",
+        help="List notification channels")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show notification history")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     db = init_db()

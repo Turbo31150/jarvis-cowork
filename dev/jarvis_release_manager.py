@@ -82,7 +82,10 @@ def _bump_version(version, bump_type="patch"):
     match = re.match(r'v?(\d+)\.(\d+)\.(\d+)', version)
     if not match:
         return "v1.0.0"
-    major, minor, patch = int(match.group(1)), int(match.group(2)), int(match.group(3))
+    major, minor, patch = int(
+        match.group(1)), int(
+        match.group(2)), int(
+            match.group(3))
     if bump_type == "major":
         major += 1
         minor = 0
@@ -102,7 +105,8 @@ def do_prepare(bump_type="patch"):
     new_version = _bump_version(current, bump_type)
 
     # Get commits since last tag
-    stdout, rc = _run_git(["log", f"{current}..HEAD", "--oneline", "--no-decorate"])
+    stdout, rc = _run_git(
+        ["log", f"{current}..HEAD", "--oneline", "--no-decorate"])
     if rc != 0 or not stdout:
         # Fallback: last 20 commits
         stdout, rc = _run_git(["log", "-20", "--oneline", "--no-decorate"])
@@ -115,7 +119,13 @@ def do_prepare(bump_type="patch"):
                 commits.append({"hash": parts[0], "message": parts[1]})
 
     # Categorize commits
-    categories = {"feat": [], "fix": [], "refactor": [], "docs": [], "test": [], "other": []}
+    categories = {
+        "feat": [],
+        "fix": [],
+        "refactor": [],
+        "docs": [],
+        "test": [],
+        "other": []}
     for c in commits:
         msg = c["message"].lower()
         if any(kw in msg for kw in ["feat", "add", "new", "implement"]):
@@ -133,7 +143,9 @@ def do_prepare(bump_type="patch"):
 
     # Generate changelog text
     changelog_lines = [f"# Changelog {new_version}\n"]
-    changelog_lines.append(f"Released: {datetime.now().strftime('%Y-%m-%d')}\n")
+    changelog_lines.append(
+        f"Released: {
+            datetime.now().strftime('%Y-%m-%d')}\n")
     for cat, items in categories.items():
         if items:
             changelog_lines.append(f"\n## {cat.capitalize()}")
@@ -144,8 +156,12 @@ def do_prepare(bump_type="patch"):
     # Save release
     cur = db.execute(
         "INSERT INTO releases (ts, version, tag, changelog, commit_count, status) VALUES (?,?,?,?,?,?)",
-        (time.time(), new_version, new_version, changelog, len(commits), "prepared")
-    )
+        (time.time(),
+         new_version,
+         new_version,
+         changelog,
+         len(commits),
+         "prepared"))
     release_id = cur.lastrowid
 
     db.execute(
@@ -181,7 +197,10 @@ def do_changelog():
     )
     row = cur.fetchone()
     if not row:
-        return {"ts": datetime.now().isoformat(), "action": "changelog", "error": "no releases prepared"}
+        return {
+            "ts": datetime.now().isoformat(),
+            "action": "changelog",
+            "error": "no releases prepared"}
 
     # Also show recent git log
     stdout, _ = _run_git(["log", "-10", "--oneline", "--no-decorate"])
@@ -207,12 +226,18 @@ def do_tag(version):
     # Check if tag already exists
     stdout, rc = _run_git(["tag", "-l", version])
     if stdout.strip() == version:
-        return {"ts": datetime.now().isoformat(), "action": "tag", "error": f"Tag {version} already exists"}
+        return {
+            "ts": datetime.now().isoformat(),
+            "action": "tag",
+            "error": f"Tag {version} already exists"}
 
     # Create tag
     stdout, rc = _run_git(["tag", "-a", version, "-m", f"Release {version}"])
     if rc != 0:
-        return {"ts": datetime.now().isoformat(), "action": "tag", "error": f"Failed to create tag: {stdout}"}
+        return {
+            "ts": datetime.now().isoformat(),
+            "action": "tag",
+            "error": f"Failed to create tag: {stdout}"}
 
     # Update release status
     db.execute("UPDATE releases SET status='tagged' WHERE version=?", (version,))
@@ -240,7 +265,10 @@ def do_deploy():
     )
     release = cur.fetchone()
     if not release:
-        return {"ts": datetime.now().isoformat(), "action": "deploy", "error": "no releases found"}
+        return {
+            "ts": datetime.now().isoformat(),
+            "action": "deploy",
+            "error": "no releases found"}
 
     # Check git status
     stdout_status, _ = _run_git(["status", "--short"])
@@ -254,7 +282,8 @@ def do_deploy():
     if not is_clean:
         steps.append("WARN: Working directory has uncommitted changes")
     if not tag_exists:
-        steps.append(f"Create tag: git tag -a {release[2]} -m 'Release {release[2]}'")
+        steps.append(
+            f"Create tag: git tag -a {release[2]} -m 'Release {release[2]}'")
     steps.append(f"Push tag: git push origin {release[2]}")
     steps.append("Push commits: git push")
 
@@ -279,11 +308,27 @@ def do_deploy():
 
 def main():
     parser = argparse.ArgumentParser(description="Release manager for JARVIS")
-    parser.add_argument("--prepare", action="store_true", help="Prepare a new release")
-    parser.add_argument("--changelog", action="store_true", help="Show latest changelog")
-    parser.add_argument("--tag", type=str, metavar="VERSION", help="Create git tag for version")
-    parser.add_argument("--deploy", action="store_true", help="Show deployment steps")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument(
+        "--prepare",
+        action="store_true",
+        help="Prepare a new release")
+    parser.add_argument(
+        "--changelog",
+        action="store_true",
+        help="Show latest changelog")
+    parser.add_argument(
+        "--tag",
+        type=str,
+        metavar="VERSION",
+        help="Create git tag for version")
+    parser.add_argument(
+        "--deploy",
+        action="store_true",
+        help="Show deployment steps")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.prepare:

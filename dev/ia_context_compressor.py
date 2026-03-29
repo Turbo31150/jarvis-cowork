@@ -37,11 +37,16 @@ def init_db():
 def query_m1(prompt, timeout=20):
     """Query M1 for compression."""
     try:
-        data = json.dumps({
-            "model": "qwen3-8b", "input": f"/nothink\n{prompt}",
-            "temperature": 0.2, "max_output_tokens": 1024, "stream": False, "store": False,
-        }).encode()
-        req = urllib.request.Request(M1_URL, data=data, headers={"Content-Type": "application/json"})
+        data = json.dumps({"model": "qwen3-8b",
+                           "input": f"/nothink\n{prompt}",
+                           "temperature": 0.2,
+                           "max_output_tokens": 1024,
+                           "stream": False,
+                           "store": False,
+                           }).encode()
+        req = urllib.request.Request(
+            M1_URL, data=data, headers={
+                "Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             result = json.loads(r.read().decode())
             for item in reversed(result.get("output", [])):
@@ -59,8 +64,24 @@ def extract_keywords(text, top_n=20):
     import re
     words = re.findall(r'[a-zA-Z_][a-zA-Z0-9_]{3,}', text.lower())
     # Filter common words
-    stop = {"this", "that", "with", "from", "have", "been", "will", "would", "could",
-            "should", "there", "their", "about", "which", "when", "what", "your"}
+    stop = {
+        "this",
+        "that",
+        "with",
+        "from",
+        "have",
+        "been",
+        "will",
+        "would",
+        "could",
+        "should",
+        "there",
+        "their",
+        "about",
+        "which",
+        "when",
+        "what",
+        "your"}
     filtered = [w for w in words if w not in stop]
 
     # Count frequency
@@ -96,7 +117,8 @@ TEXTE:
 
     # Evaluate keyword preservation
     compressed_keywords = set(extract_keywords(current))
-    preserved = len(original_keywords & compressed_keywords) / max(len(original_keywords), 1)
+    preserved = len(original_keywords & compressed_keywords) / \
+        max(len(original_keywords), 1)
 
     return {
         "compressed": current,
@@ -125,9 +147,12 @@ OpenWakeWord avec Whisper large-v3-turbo CUDA et TTS Edge fr-FR-HenriNeural avec
 
     db.execute(
         "INSERT INTO compressions (ts, original_len, compressed_len, ratio, passes, keywords_preserved) VALUES (?,?,?,?,?,?)",
-        (time.time(), result["original_len"], result["compressed_len"],
-         result["ratio"], result["passes"], result["keywords_preserved"])
-    )
+        (time.time(),
+         result["original_len"],
+         result["compressed_len"],
+         result["ratio"],
+         result["passes"],
+         result["keywords_preserved"]))
     db.commit()
     db.close()
 
@@ -161,7 +186,10 @@ def main():
     parser.add_argument("--once", action="store_true", help="Demo compression")
     parser.add_argument("--compress", metavar="TEXT", help="Compress text")
     parser.add_argument("--ratio", action="store_true", help="Show ratios")
-    parser.add_argument("--evaluate", action="store_true", help="Evaluate quality")
+    parser.add_argument(
+        "--evaluate",
+        action="store_true",
+        help="Evaluate quality")
     args = parser.parse_args()
 
     if args.ratio:

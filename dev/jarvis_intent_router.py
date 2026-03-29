@@ -171,7 +171,8 @@ def classify_intent(text):
 
     best_intent = max(scores, key=scores.get)
     total_score = sum(scores.values())
-    confidence = round(scores[best_intent] / max(total_score, 1), 2) if total_score > 0 else 0.5
+    confidence = round(scores[best_intent] /
+                       max(total_score, 1), 2) if total_score > 0 else 0.5
 
     return best_intent, confidence, matched.get(best_intent, []), scores
 
@@ -181,7 +182,8 @@ def route_text(db, text):
     intent, confidence, matched_kw, all_scores = classify_intent(text)
     agents = MAO_ROUTING.get(intent, MAO_ROUTING["general"])
 
-    primary = agents[0] if agents else {"agent": "OL1", "weight": 1.0, "role": "primary"}
+    primary = agents[0] if agents else {
+        "agent": "OL1", "weight": 1.0, "role": "primary"}
 
     # Log
     db.execute(
@@ -294,11 +296,24 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Intent Router (#198) — Classify and route to agents")
-    parser.add_argument("--route", type=str, help="Route a text to the best agent")
-    parser.add_argument("--rules", action="store_true", help="Show intent rules")
-    parser.add_argument("--stats", action="store_true", help="Show routing statistics")
-    parser.add_argument("--once", action="store_true", help="Run once with demo")
+    parser = argparse.ArgumentParser(
+        description="Intent Router (#198) — Classify and route to agents")
+    parser.add_argument(
+        "--route",
+        type=str,
+        help="Route a text to the best agent")
+    parser.add_argument(
+        "--rules",
+        action="store_true",
+        help="Show intent rules")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show routing statistics")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once with demo")
     args = parser.parse_args()
 
     db = init_db()

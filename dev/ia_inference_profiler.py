@@ -78,7 +78,10 @@ def profile_endpoint(name, config):
                     for c in item.get("content", []):
                         if c.get("type") == "output_text":
                             text = c.get("text", "")
-            tokens = data.get("usage", {}).get("output_tokens", len(text.split()))
+            tokens = data.get(
+                "usage", {}).get(
+                "output_tokens", len(
+                    text.split()))
         else:  # ollama
             text = data.get("message", {}).get("content", "")
             tokens = data.get("eval_count", len(text.split()))
@@ -119,8 +122,14 @@ def do_profile():
         r = profile_endpoint(name, config)
         results.append(r)
         if r.get("online"):
-            db.execute("INSERT INTO profiles (ts, node, latency_ms, tokens, tok_per_s, quality_score) VALUES (?,?,?,?,?,?)",
-                       (time.time(), name, r["latency_ms"], r["tokens"], r["tok_per_s"], r["quality_score"]))
+            db.execute(
+                "INSERT INTO profiles (ts, node, latency_ms, tokens, tok_per_s, quality_score) VALUES (?,?,?,?,?,?)",
+                (time.time(),
+                 name,
+                 r["latency_ms"],
+                    r["tokens"],
+                    r["tok_per_s"],
+                    r["quality_score"]))
 
     db.commit()
     db.close()
@@ -137,8 +146,15 @@ def do_profile():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Inference Profiler")
-    parser.add_argument("--once", "--profile", action="store_true", help="Profile")
-    parser.add_argument("--compare", action="store_true", help="Compare models")
+    parser.add_argument(
+        "--once",
+        "--profile",
+        action="store_true",
+        help="Profile")
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        help="Compare models")
     parser.add_argument("--optimize", action="store_true", help="Optimize")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()

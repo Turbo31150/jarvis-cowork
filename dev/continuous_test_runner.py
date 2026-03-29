@@ -32,6 +32,7 @@ TEST_SUITES = [
     ("test_telegram_bot", "Telegram Bot"),
 ]
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS suite_results (
@@ -44,6 +45,7 @@ def init_db():
         duration_s REAL, grade TEXT)""")
     db.commit()
     return db
+
 
 def run_suite(suite_name):
     """Run a single test suite via pytest."""
@@ -68,19 +70,34 @@ def run_suite(suite_name):
                 f = re.search(r"(\d+) failed", line)
                 e = re.search(r"(\d+) error", line)
                 s = re.search(r"(\d+) skipped", line)
-                if p: passed = int(p.group(1))
-                if f: failed = int(f.group(1))
-                if e: errors = int(e.group(1))
-                if s: skipped = int(s.group(1))
+                if p:
+                    passed = int(p.group(1))
+                if f:
+                    failed = int(f.group(1))
+                if e:
+                    errors = int(e.group(1))
+                if s:
+                    skipped = int(s.group(1))
 
         return {
             "passed": passed, "failed": failed, "errors": errors,
             "skipped": skipped, "output": output[-500:]
         }
     except subprocess.TimeoutExpired:
-        return {"passed": 0, "failed": 0, "errors": 1, "skipped": 0, "output": "TIMEOUT"}
+        return {
+            "passed": 0,
+            "failed": 0,
+            "errors": 1,
+            "skipped": 0,
+            "output": "TIMEOUT"}
     except OSError as e:
-        return {"passed": 0, "failed": 0, "errors": 1, "skipped": 0, "output": str(e)}
+        return {
+            "passed": 0,
+            "failed": 0,
+            "errors": 1,
+            "skipped": 0,
+            "output": str(e)}
+
 
 def run_all_suites(db):
     """Run all test suites and store results."""
@@ -104,11 +121,23 @@ def run_all_suites(db):
         db.execute(
             "INSERT INTO suite_results (ts, suite, display_name, passed, failed, errors, skipped, duration_s, output) "
             "VALUES (?,?,?,?,?,?,?,?,?)",
-            (time.time(), suite_name, display_name, result["passed"], result["failed"],
-             result["errors"], result["skipped"], duration, result["output"]))
+            (time.time(),
+             suite_name,
+             display_name,
+             result["passed"],
+                result["failed"],
+                result["errors"],
+                result["skipped"],
+                duration,
+                result["output"]))
 
         status = "✓" if result["failed"] == 0 and result["errors"] == 0 else "✗"
-        print(f"  {status} {display_name}: {result['passed']}✓ {result['failed']}✗ {result['errors']}E ({duration:.1f}s)")
+        print(
+            f"  {status} {display_name}: {
+                result['passed']}✓ {
+                result['failed']}✗ {
+                result['errors']}E ({
+                    duration:.1f}s)")
 
     total_duration = time.time() - start
     total = total_passed + total_failed + total_errors
@@ -118,13 +147,24 @@ def run_all_suites(db):
     db.execute(
         "INSERT INTO runs (ts, total_suites, total_passed, total_failed, total_errors, duration_s, grade) "
         "VALUES (?,?,?,?,?,?,?)",
-        (time.time(), suite_count, total_passed, total_failed, total_errors, total_duration, grade))
+        (time.time(),
+         suite_count,
+         total_passed,
+         total_failed,
+         total_errors,
+         total_duration,
+         grade))
     db.commit()
 
     return {
-        "suites": suite_count, "passed": total_passed, "failed": total_failed,
-        "errors": total_errors, "duration": total_duration, "grade": grade, "pct": pct
-    }
+        "suites": suite_count,
+        "passed": total_passed,
+        "failed": total_failed,
+        "errors": total_errors,
+        "duration": total_duration,
+        "grade": grade,
+        "pct": pct}
+
 
 def detect_regressions(db):
     """Compare with previous run."""
@@ -135,16 +175,22 @@ def detect_regressions(db):
         return None
     curr, prev = runs
     if curr[1] > prev[1]:
-        return f"REGRESSION: {curr[1]} failures (was {prev[1]}), grade {prev[2]}→{curr[2]}"
+        return f"REGRESSION: {
+            curr[1]} failures (was {
+            prev[1]}), grade {
+            prev[2]}→{
+                curr[2]}"
     if curr[0] > prev[0]:
         return f"IMPROVEMENT: +{curr[0] - prev[0]} tests passing"
     return None
+
 
 def send_telegram_report(result, regression=None):
     """Send test results to Telegram."""
     try:
         edb = sqlite3.connect(str(TURBO / "data" / "etoile.db"))
-        row = edb.execute("SELECT value FROM memories WHERE key='telegram_bot_token'").fetchone()
+        row = edb.execute(
+            "SELECT value FROM memories WHERE key='telegram_bot_token'").fetchone()
         token = row[0] if row else ""
         edb.close()
     except Exception:
@@ -153,7 +199,14 @@ def send_telegram_report(result, regression=None):
     if not token:
         return
 
-    icon = {"A": "🟢", "B": "🟡", "C": "🟠", "D": "🔴", "F": "⛔"}.get(result["grade"], "⚪")
+    icon = {
+        "A": "🟢",
+        "B": "🟡",
+        "C": "🟠",
+        "D": "🔴",
+        "F": "⛔"}.get(
+        result["grade"],
+        "⚪")
     msg = (
         f"{icon} *Tests JARVIS — Grade {result['grade']}*\n"
         f"✅ {result['passed']} | ❌ {result['failed']} | ⚠️ {result['errors']}\n"
@@ -163,7 +216,8 @@ def send_telegram_report(result, regression=None):
         msg += f"\n📊 {regression}"
 
     try:
-        body = json.dumps({"chat_id": "2010747443", "text": msg, "parse_mode": "Markdown"}).encode()
+        body = json.dumps({"chat_id": "2010747443", "text": msg,
+                          "parse_mode": "Markdown"}).encode()
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{token}/sendMessage",
             data=body, headers={"Content-Type": "application/json"})
@@ -172,12 +226,20 @@ def send_telegram_report(result, regression=None):
     except Exception:
         pass
 
+
 def main():
     parser = argparse.ArgumentParser(description="Continuous Test Runner")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
-    parser.add_argument("--interval", type=int, default=86400, help="Seconds between runs (default: daily)")
-    parser.add_argument("--notify", action="store_true", help="Send Telegram notification")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=86400,
+        help="Seconds between runs (default: daily)")
+    parser.add_argument(
+        "--notify",
+        action="store_true",
+        help="Send Telegram notification")
     args = parser.parse_args()
 
     db = init_db()
@@ -185,7 +247,13 @@ def main():
     if args.once or not args.loop:
         print("=== JARVIS Test Runner ===")
         result = run_all_suites(db)
-        print(f"\nGrade: {result['grade']} | {result['passed']}/{result['passed']+result['failed']+result['errors']} ({result['pct']:.0f}%) in {result['duration']:.0f}s")
+        print(
+            f"\nGrade: {
+                result['grade']} | {
+                result['passed']}/{
+                result['passed'] + result['failed'] + result['errors']} ({
+                    result['pct']:.0f}%) in {
+                        result['duration']:.0f}s")
         regression = detect_regressions(db)
         if regression:
             print(f"📊 {regression}")
@@ -199,12 +267,18 @@ def main():
                 result = run_all_suites(db)
                 regression = detect_regressions(db)
                 ts = time.strftime('%H:%M')
-                print(f"\n[{ts}] Grade {result['grade']}: {result['passed']}✓ {result['failed']}✗ ({result['pct']:.0f}%)")
+                print(
+                    f"\n[{ts}] Grade {
+                        result['grade']}: {
+                        result['passed']}✓ {
+                        result['failed']}✗ ({
+                        result['pct']:.0f}%)")
                 if regression:
                     print(f"  📊 {regression}")
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

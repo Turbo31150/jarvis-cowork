@@ -34,6 +34,8 @@ CLUSTER_URL_OL1 = "http://127.0.0.1:11434/api/chat"
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -63,11 +65,13 @@ def init_db():
 # ---------------------------------------------------------------------------
 # Code Analysis
 # ---------------------------------------------------------------------------
+
+
 def analyze_file(filepath: Path) -> dict:
     """Analyse statique d'un fichier Python."""
     try:
         code = filepath.read_text(encoding="utf-8", errors="ignore")
-    except:
+    except BaseException:
         return {"error": f"Cannot read {filepath}"}
 
     lines = code.split("\n")
@@ -88,17 +92,29 @@ def analyze_file(filepath: Path) -> dict:
     try:
         tree = ast.parse(code)
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+            if isinstance(
+                    node,
+                    ast.FunctionDef) or isinstance(
+                    node,
+                    ast.AsyncFunctionDef):
                 result["functions"] += 1
                 # Check function length
                 end = getattr(node, "end_lineno", node.lineno + 20)
                 func_lines = end - node.lineno
                 if func_lines > 50:
-                    result["issues"].append(f"Fonction '{node.name}' trop longue ({func_lines} lignes)")
+                    result["issues"].append(
+                        f"Fonction '{
+                            node.name}' trop longue ({func_lines} lignes)")
                 # Check missing docstring
-                if not (node.body and isinstance(node.body[0], ast.Expr)
-                        and isinstance(node.body[0].value, (ast.Constant, ast.Str))):
-                    result["suggestions"].append(f"Ajouter docstring a '{node.name}'")
+                if not (
+                    node.body and isinstance(
+                        node.body[0],
+                        ast.Expr) and isinstance(
+                        node.body[0].value,
+                        (ast.Constant,
+                         ast.Str))):
+                    result["suggestions"].append(
+                        f"Ajouter docstring a '{node.name}'")
             elif isinstance(node, ast.ClassDef):
                 result["classes"] += 1
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
@@ -116,23 +132,35 @@ def analyze_file(filepath: Path) -> dict:
         max_depth = max(max_depth, depth)
 
     result["max_indent_depth"] = max_depth
-    result["complexity_score"] = round(
-        (result["functions"] * 2 + result["classes"] * 3 + max_depth * 5 + len(result["issues"]) * 10) / max(result["lines"], 1) * 100, 1
-    )
+    result["complexity_score"] = round((result["functions"] *
+                                        2 +
+                                        result["classes"] *
+                                        3 +
+                                        max_depth *
+                                        5 +
+                                        len(result["issues"]) *
+                                        10) /
+                                       max(result["lines"], 1) *
+                                       100, 1)
 
     # Check for common issues
     if "import *" in code:
-        result["issues"].append("Utilise 'import *' — preferer imports explicites")
+        result["issues"].append(
+            "Utilise 'import *' — preferer imports explicites")
     if "except:" in code and "except Exception" not in code:
-        result["issues"].append("'except:' nu — attrape tout, utiliser 'except Exception'")
+        result["issues"].append(
+            "'except:' nu — attrape tout, utiliser 'except Exception'")
     if "eval(" in code:
         result["issues"].append("Utilise eval() — risque de securite")
     if "os.system(" in code:
-        result["issues"].append("Utilise os.system() — preferer subprocess.run()")
+        result["issues"].append(
+            "Utilise os.system() — preferer subprocess.run()")
     if result["lines"] > 500 and result["functions"] < 5:
-        result["suggestions"].append("Fichier long avec peu de fonctions — decomposer")
+        result["suggestions"].append(
+            "Fichier long avec peu de fonctions — decomposer")
 
     return result
+
 
 def analyze_workspace(dev_path: Path = DEV) -> list:
     """Analyse tous les fichiers Python du workspace."""
@@ -147,6 +175,8 @@ def analyze_workspace(dev_path: Path = DEV) -> list:
 # ---------------------------------------------------------------------------
 # Cluster AI interaction
 # ---------------------------------------------------------------------------
+
+
 def ask_cluster(prompt: str, node: str = "M1") -> dict:
     """Interroge un noeud du cluster."""
     try:
@@ -159,16 +189,18 @@ def ask_cluster(prompt: str, node: str = "M1") -> dict:
                 "stream": False,
                 "store": False,
             }).encode()
-            req = urllib.request.Request(CLUSTER_URL_M1, data=data,
-                                         headers={"Content-Type": "application/json"})
+            req = urllib.request.Request(
+                CLUSTER_URL_M1, data=data, headers={
+                    "Content-Type": "application/json"})
         else:  # OL1
             data = json.dumps({
                 "model": "qwen3:1.7b",
                 "messages": [{"role": "user", "content": prompt}],
                 "stream": False,
             }).encode()
-            req = urllib.request.Request(CLUSTER_URL_OL1, data=data,
-                                         headers={"Content-Type": "application/json"})
+            req = urllib.request.Request(
+                CLUSTER_URL_OL1, data=data, headers={
+                    "Content-Type": "application/json"})
 
         with urllib.request.urlopen(req, timeout=60) as resp:
             result = json.loads(resp.read().decode())
@@ -176,12 +208,23 @@ def ask_cluster(prompt: str, node: str = "M1") -> dict:
                 # Extract last message block from output
                 for block in reversed(result.get("output", [])):
                     if block.get("type") == "message":
-                        return {"content": block.get("content", [{}])[0].get("text", ""), "node": node}
+                        return {
+                            "content": block.get(
+                                "content", [
+                                    {}])[0].get(
+                                "text", ""), "node": node}
                 return {"content": str(result.get("output", "")), "node": node}
             else:
-                return {"content": result.get("message", {}).get("content", ""), "node": node}
+                return {
+                    "content": result.get(
+                        "message",
+                        {}).get(
+                        "content",
+                        ""),
+                    "node": node}
     except Exception as e:
         return {"error": str(e), "node": node}
+
 
 def generate_improvement(filepath: Path, analysis: dict) -> dict:
     """Genere une amelioration via le cluster IA."""
@@ -215,6 +258,8 @@ Reponds en JSON: {{"description": "...", "patch": "code ameliore ou correction"}
 # ---------------------------------------------------------------------------
 # Feed cycle
 # ---------------------------------------------------------------------------
+
+
 def run_feed_cycle(db) -> dict:
     """Execute un cycle complet d'auto-alimentation."""
     start = time.time()
@@ -253,8 +298,14 @@ def run_feed_cycle(db) -> dict:
     duration = time.time() - start
     db.execute(
         "INSERT INTO feed_cycles (ts, files_analyzed, issues_found, improvements_generated, improvements_applied, duration_s) VALUES (?,?,?,?,?,?)",
-        (time.time(), len(analyses), issues_count, improvements, applied, round(duration, 1))
-    )
+        (time.time(),
+         len(analyses),
+         issues_count,
+         improvements,
+         applied,
+         round(
+            duration,
+            1)))
     db.commit()
 
     return {
@@ -265,15 +316,19 @@ def run_feed_cycle(db) -> dict:
         "duration_s": round(duration, 1),
         "timestamp": datetime.now().isoformat(),
         "top_issues": [{"file": a["file"], "issues": len(a.get("issues", [])),
-                         "score": a.get("complexity_score", 0)}
-                        for a in sorted(analyses, key=lambda x: len(x.get("issues", [])), reverse=True)[:5]],
+                        "score": a.get("complexity_score", 0)}
+                       for a in sorted(analyses, key=lambda x: len(x.get("issues", [])), reverse=True)[:5]],
     }
+
 
 def get_metrics(db) -> dict:
     """Metriques d'evolution."""
-    cycles = db.execute("SELECT COUNT(*), SUM(files_analyzed), SUM(issues_found), SUM(improvements_generated), SUM(improvements_applied) FROM feed_cycles").fetchone()
-    last = db.execute("SELECT ts, files_analyzed, issues_found, improvements_generated, duration_s FROM feed_cycles ORDER BY ts DESC LIMIT 1").fetchone()
-    trend = db.execute("SELECT ts, issues_found FROM feed_cycles ORDER BY ts DESC LIMIT 10").fetchall()
+    cycles = db.execute(
+        "SELECT COUNT(*), SUM(files_analyzed), SUM(issues_found), SUM(improvements_generated), SUM(improvements_applied) FROM feed_cycles").fetchone()
+    last = db.execute(
+        "SELECT ts, files_analyzed, issues_found, improvements_generated, duration_s FROM feed_cycles ORDER BY ts DESC LIMIT 1").fetchone()
+    trend = db.execute(
+        "SELECT ts, issues_found FROM feed_cycles ORDER BY ts DESC LIMIT 10").fetchall()
 
     return {
         "total_cycles": cycles[0] or 0,
@@ -290,6 +345,7 @@ def get_metrics(db) -> dict:
         } if last else None,
         "trend": [{"ts": datetime.fromtimestamp(t).isoformat(), "issues": i} for t, i in trend],
     }
+
 
 def review_code(db) -> dict:
     """Review automatique du code."""
@@ -324,14 +380,35 @@ def review_code(db) -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Self-Feeding Engine — Auto-alimentation IA")
-    parser.add_argument("--analyze", action="store_true", help="Analyser tout le code")
-    parser.add_argument("--improve", type=str, help="Ameliorer un fichier specifique")
-    parser.add_argument("--generate", type=str, help="Generer un nouveau script")
-    parser.add_argument("--review", action="store_true", help="Review automatique")
-    parser.add_argument("--metrics", action="store_true", help="Metriques d'evolution")
-    parser.add_argument("--feed", action="store_true", help="Cycle complet d'alimentation")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Self-Feeding Engine — Auto-alimentation IA")
+    parser.add_argument(
+        "--analyze",
+        action="store_true",
+        help="Analyser tout le code")
+    parser.add_argument(
+        "--improve",
+        type=str,
+        help="Ameliorer un fichier specifique")
+    parser.add_argument(
+        "--generate",
+        type=str,
+        help="Generer un nouveau script")
+    parser.add_argument(
+        "--review",
+        action="store_true",
+        help="Review automatique")
+    parser.add_argument(
+        "--metrics",
+        action="store_true",
+        help="Metriques d'evolution")
+    parser.add_argument(
+        "--feed",
+        action="store_true",
+        help="Cycle complet d'alimentation")
     parser.add_argument("--once", action="store_true", help="Un cycle")
     args = parser.parse_args()
 
@@ -356,7 +433,10 @@ def main():
             filepath = DEV / args.improve
         analysis = analyze_file(filepath)
         improvement = generate_improvement(filepath, analysis)
-        print(json.dumps({"analysis": analysis, "improvement": improvement}, indent=2, ensure_ascii=False))
+        print(json.dumps({"analysis": analysis,
+                          "improvement": improvement},
+                         indent=2,
+                         ensure_ascii=False))
     elif args.generate:
         prompt = f"""Genere un script Python complet pour JARVIS:
 Description: {args.generate}
@@ -379,6 +459,7 @@ Reponds avec le code Python complet."""
         print(json.dumps(result, indent=2, ensure_ascii=False))
 
     db.close()
+
 
 if __name__ == "__main__":
     main()

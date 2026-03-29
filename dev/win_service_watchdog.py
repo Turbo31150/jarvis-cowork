@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_service_watchdog.py (#195) — Service watchdog for critical services.
 
@@ -23,14 +24,38 @@ DB_PATH = DEV / "data" / "service_watchdog.db"
 
 # Critical services to monitor
 CRITICAL_SERVICES = {
-    "M1_LMStudio": {"host": "127.0.0.1", "port": 1234, "description": "M1 LM Studio (qwen3-8b)"},
-    "M2_LMStudio": {"host": "192.168.1.26", "port": 1234, "description": "M2 LM Studio (deepseek-coder)"},
-    "M3_LMStudio": {"host": "192.168.1.113", "port": 1234, "description": "M3 LM Studio (mistral-7b)"},
-    "Ollama": {"host": "127.0.0.1", "port": 11434, "description": "Ollama (qwen3 + cloud models)"},
-    "FastAPI_WS": {"host": "127.0.0.1", "port": 9742, "description": "FastAPI WebSocket backend"},
-    "Electron_Dashboard": {"host": "127.0.0.1", "port": 8080, "description": "Electron dashboard"},
-    "Webhook_Server": {"host": "127.0.0.1", "port": 9801, "description": "Webhook server"},
-    "OpenClaw_Proxy": {"host": "127.0.0.1", "port": 18800, "description": "OpenClaw direct-proxy"},
+    "M1_LMStudio": {
+        "host": "127.0.0.1",
+        "port": 1234,
+        "description": "M1 LM Studio (qwen3-8b)"},
+    "M2_LMStudio": {
+        "host": "192.168.1.26",
+        "port": 1234,
+        "description": "M2 LM Studio (deepseek-coder)"},
+    "M3_LMStudio": {
+        "host": "192.168.1.113",
+                "port": 1234,
+                "description": "M3 LM Studio (mistral-7b)"},
+    "Ollama": {
+        "host": "127.0.0.1",
+        "port": 11434,
+        "description": "Ollama (qwen3 + cloud models)"},
+    "FastAPI_WS": {
+        "host": "127.0.0.1",
+        "port": 9742,
+        "description": "FastAPI WebSocket backend"},
+    "Electron_Dashboard": {
+        "host": "127.0.0.1",
+        "port": 8080,
+        "description": "Electron dashboard"},
+    "Webhook_Server": {
+        "host": "127.0.0.1",
+        "port": 9801,
+        "description": "Webhook server"},
+    "OpenClaw_Proxy": {
+        "host": "127.0.0.1",
+        "port": 18800,
+        "description": "OpenClaw direct-proxy"},
 }
 
 
@@ -80,7 +105,8 @@ def check_port(host, port, timeout=3):
         if result == 0:
             return True, round(latency, 1), None
         else:
-            return False, round(latency, 1), f"Connection refused (code {result})"
+            return False, round(
+                latency, 1), f"Connection refused (code {result})"
     except socket.timeout:
         return False, timeout * 1000, "Timeout"
     except Exception as e:
@@ -124,7 +150,10 @@ def watch_services(db):
         ).fetchone()
         if row and row[0] > 0:
             uptime_pct = round(row[1] / row[0] * 100, 1)
-            db.execute("UPDATE service_state SET uptime_pct=? WHERE service=?", (uptime_pct, svc_name))
+            db.execute(
+                "UPDATE service_state SET uptime_pct=? WHERE service=?",
+                (uptime_pct,
+                 svc_name))
 
         results.append({
             "service": svc_name,
@@ -148,8 +177,7 @@ def watch_services(db):
         "services_down": down_count,
         "total": len(results),
         "health": "healthy" if down_count == 0 else "degraded" if down_count <= 2 else "critical",
-        "services": results
-    }
+        "services": results}
 
 
 def get_critical(db):
@@ -157,8 +185,7 @@ def get_critical(db):
     rows = db.execute(
         """SELECT service, current_status, consecutive_fails, last_down, uptime_pct
            FROM service_state WHERE current_status='down' OR consecutive_fails>0
-           ORDER BY consecutive_fails DESC"""
-    ).fetchall()
+           ORDER BY consecutive_fails DESC""").fetchall()
 
     critical = []
     for r in rows:
@@ -173,7 +200,10 @@ def get_critical(db):
         })
 
     if not critical:
-        return {"status": "ok", "message": "All services healthy", "critical_count": 0}
+        return {
+            "status": "ok",
+            "message": "All services healthy",
+            "critical_count": 0}
 
     return {
         "status": "warning",
@@ -187,8 +217,7 @@ def get_report(db):
     rows = db.execute(
         """SELECT service, current_status, last_check, total_checks, total_up, uptime_pct,
                   consecutive_fails, last_up, last_down
-           FROM service_state ORDER BY uptime_pct ASC"""
-    ).fetchall()
+           FROM service_state ORDER BY uptime_pct ASC""").fetchall()
 
     report = []
     for r in rows:
@@ -207,7 +236,8 @@ def get_report(db):
         })
 
     total_checks = db.execute("SELECT COUNT(*) FROM checks").fetchone()[0]
-    overall_uptime = db.execute("SELECT COALESCE(AVG(uptime_pct), 0) FROM service_state").fetchone()[0]
+    overall_uptime = db.execute(
+        "SELECT COALESCE(AVG(uptime_pct), 0) FROM service_state").fetchone()[0]
 
     return {
         "status": "ok",
@@ -233,11 +263,24 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Service Watchdog (#195) — Critical service monitoring")
-    parser.add_argument("--watch", action="store_true", help="Check all services now")
-    parser.add_argument("--critical", action="store_true", help="Show only critical/down services")
-    parser.add_argument("--report", action="store_true", help="Full health report")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="Service Watchdog (#195) — Critical service monitoring")
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Check all services now")
+    parser.add_argument(
+        "--critical",
+        action="store_true",
+        help="Show only critical/down services")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Full health report")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     db = init_db()

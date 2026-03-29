@@ -27,6 +27,7 @@ TEST_PROMPTS = [
     ("raisonnement", "Si A implique B, et B implique C, et non-C est vrai, que peut-on deduire?"),
 ]
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS benchmarks (
@@ -37,6 +38,7 @@ def init_db():
         new_weight REAL, reason TEXT)""")
     db.commit()
     return db
+
 
 def bench_node(node_name, node_cfg, prompt_cat, prompt_text):
     """Benchmark a single node with a prompt."""
@@ -50,7 +52,8 @@ def bench_node(node_name, node_cfg, prompt_cat, prompt_text):
             "stream": False, "think": False,
         }).encode()
     else:
-        model = {"M1": "qwen3-8b", "M2": "deepseek-coder-v2-lite-instruct", "M3": "mistral-7b-instruct-v0.3"}.get(node_name, "qwen3-8b")
+        model = {"M1": "qwen3-8b", "M2": "deepseek-coder-v2-lite-instruct",
+                 "M3": "mistral-7b-instruct-v0.3"}.get(node_name, "qwen3-8b")
         body = json.dumps({
             "model": model,
             "input": f"/nothink\n{prompt_text}" if node_name == "M1" else prompt_text,
@@ -59,7 +62,9 @@ def bench_node(node_name, node_cfg, prompt_cat, prompt_text):
 
     start = time.time()
     try:
-        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            url, data=body, headers={
+                "Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read())
         latency = (time.time() - start) * 1000
@@ -75,10 +80,14 @@ def bench_node(node_name, node_cfg, prompt_cat, prompt_text):
                     break
 
         tokens = len(text.split())
-        quality = min(1.0, tokens / 20) if tokens > 5 else 0.2  # Simple heuristic
+        quality = min(
+            1.0,
+            tokens /
+            20) if tokens > 5 else 0.2  # Simple heuristic
         return latency, tokens, quality, True
     except Exception:
         return (time.time() - start) * 1000, 0, 0.0, False
+
 
 def get_autolearn_scores():
     """Fetch autolearn scores from canvas proxy."""
@@ -89,13 +98,19 @@ def get_autolearn_scores():
     except Exception:
         return {}
 
+
 def run_benchmark(db):
     """Run full benchmark across all nodes."""
     results = {}
     for node_name, node_cfg in NODES.items():
-        results[node_name] = {"total_latency": 0, "total_quality": 0, "success": 0, "fail": 0}
+        results[node_name] = {
+            "total_latency": 0,
+            "total_quality": 0,
+            "success": 0,
+            "fail": 0}
         for cat, prompt in TEST_PROMPTS:
-            latency, tokens, quality, ok = bench_node(node_name, node_cfg, cat, prompt)
+            latency, tokens, quality, ok = bench_node(
+                node_name, node_cfg, cat, prompt)
             db.execute(
                 "INSERT INTO benchmarks (ts, node, category, latency_ms, tokens, quality_score, success) VALUES (?,?,?,?,?,?,?)",
                 (time.time(), node_name, cat, latency, tokens, quality, 1 if ok else 0))
@@ -107,6 +122,7 @@ def run_benchmark(db):
                 results[node_name]["fail"] += 1
     db.commit()
     return results
+
 
 def compute_weights(results, db):
     """Compute new weights based on benchmark results."""
@@ -134,11 +150,16 @@ def compute_weights(results, db):
     db.commit()
     return new_weights
 
+
 def main():
     parser = argparse.ArgumentParser(description="Cluster AutoTuner")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
-    parser.add_argument("--interval", type=int, default=7200, help="Seconds between benchmarks")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=7200,
+        help="Seconds between benchmarks")
     args = parser.parse_args()
 
     db = init_db()
@@ -153,10 +174,22 @@ def main():
             total = r["success"] + r["fail"]
             avg_lat = r["total_latency"] / r["success"] if r["success"] else 0
             avg_q = r["total_quality"] / r["success"] if r["success"] else 0
-            print(f"  {node}: {r['success']}/{total} OK | avg {avg_lat:.0f}ms | quality {avg_q:.2f} | weight → {weights.get(node, '?')}")
+            print(
+                f"  {node}: {
+                    r['success']}/{total} OK | avg {
+                    avg_lat:.0f}ms | quality {
+                    avg_q:.2f} | weight → {
+                    weights.get(
+                        node,
+                        '?')}")
 
         if autolearn:
-            print(f"\nAutolearn scores: {json.dumps(autolearn, indent=2)[:500]}")
+            print(
+                f"\nAutolearn scores: {
+                    json.dumps(
+                        autolearn,
+                        indent=2)[
+                        :500]}")
 
     if args.loop:
         print("AutoTuner en boucle continue...")
@@ -170,6 +203,7 @@ def main():
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

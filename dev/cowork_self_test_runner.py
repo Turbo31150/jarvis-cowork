@@ -92,7 +92,8 @@ def test_level2_imports(script_path):
     for node in ast.walk(tree):
         if isinstance(node, ast.Try):
             for handler in node.handlers:
-                if handler.type and getattr(handler.type, 'id', '') == 'ImportError':
+                if handler.type and getattr(
+                        handler.type, 'id', '') == 'ImportError':
                     for n in ast.walk(node):
                         if isinstance(n, ast.Import):
                             for alias in n.names:
@@ -276,8 +277,19 @@ def action_stats():
 def main():
     parser = argparse.ArgumentParser(description="COWORK Self-Test Runner")
     parser.add_argument("--once", action="store_true", help="Full test run")
-    parser.add_argument("--level", type=int, choices=[1, 2, 3, 4], help="Specific level")
-    parser.add_argument("--failed", action="store_true", help="Show only failures")
+    parser.add_argument(
+        "--level",
+        type=int,
+        choices=[
+            1,
+            2,
+            3,
+            4],
+        help="Specific level")
+    parser.add_argument(
+        "--failed",
+        action="store_true",
+        help="Show only failures")
     parser.add_argument("--stats", action="store_true", help="Show history")
     args = parser.parse_args()
 

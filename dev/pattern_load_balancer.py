@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """pattern_load_balancer.py — Distribute dispatch load evenly across cluster nodes.
 
@@ -149,7 +150,7 @@ def analyze_load():
                     "from_load": over_data["current_pct"],
                     "to_load": under_data["current_pct"],
                     "patterns_to_move": movable[:5],
-                    "expected_improvement": f"Reduce {over_node} by ~{len(movable)*2}%"
+                    "expected_improvement": f"Reduce {over_node} by ~{len(movable) * 2}%"
                 })
 
     return {
@@ -169,12 +170,19 @@ def apply_rebalancing(analysis):
 
     for sug in analysis.get("suggestions", []):
         for pat in sug.get("patterns_to_move", []):
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO load_balance_rules
                 (timestamp, pattern, from_node, to_node, reason, applied)
                 VALUES (?, ?, ?, ?, ?, 1)
-            """, (ts, pat["pattern"], sug["from"], sug["to"],
-                  f"Rebalance: {sug['from']} overloaded at {sug['from_load']}%"))
+            """,
+                (ts,
+                 pat["pattern"],
+                    sug["from"],
+                    sug["to"],
+                    f"Rebalance: {
+                     sug['from']} overloaded at {
+                     sug['from_load']}%"))
             count += 1
 
     conn.commit()
@@ -185,7 +193,10 @@ def apply_rebalancing(analysis):
 def main():
     parser = argparse.ArgumentParser(description="Pattern Load Balancer")
     parser.add_argument("--once", action="store_true", help="Analyze load")
-    parser.add_argument("--apply", action="store_true", help="Apply rebalancing")
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Apply rebalancing")
     parser.add_argument("--stats", action="store_true", help="Show stats")
     args = parser.parse_args()
 

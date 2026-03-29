@@ -84,7 +84,8 @@ def predict_node_failures(gaps_db, edb):
 
             # Latency increasing
             if n["recent_lat"] and n["older_lat"] and n["older_lat"] > 0:
-                lat_increase = (n["recent_lat"] - n["older_lat"]) / n["older_lat"] * 100
+                lat_increase = (
+                    n["recent_lat"] - n["older_lat"]) / n["older_lat"] * 100
                 if lat_increase > 50:
                     risk += 30
                     reasons.append(f"latency +{lat_increase:.0f}%")
@@ -130,7 +131,8 @@ def predict_node_failures(gaps_db, edb):
             for n in nodes:
                 if n["recent_rate"] is not None and n["older_rate"] is not None:
                     if n["older_rate"] > 0:
-                        change = (n["recent_rate"] - n["older_rate"]) / n["older_rate"] * 100
+                        change = (
+                            n["recent_rate"] - n["older_rate"]) / n["older_rate"] * 100
                         if change < -20:
                             risk = min(abs(change), 80)
                             predictions.append({
@@ -216,14 +218,15 @@ def predict_pattern_issues(gaps_db):
 
         for c in configs:
             if c["p95_latency_ms"] and c["recommended_timeout_s"]:
-                ratio = c["p95_latency_ms"] / (c["recommended_timeout_s"] * 1000)
+                ratio = c["p95_latency_ms"] / \
+                    (c["recommended_timeout_s"] * 1000)
                 if ratio > 0.8:
                     predictions.append({
                         "category": "timeout_risk",
                         "target": f"{c['pattern']}/{c['node']}",
                         "risk_score": int(ratio * 80),
                         "risk_level": "HIGH" if ratio > 0.9 else "MEDIUM",
-                        "description": f"P95 at {ratio*100:.0f}% of timeout ({c['pattern']}/{c['node']})",
+                        "description": f"P95 at {ratio * 100:.0f}% of timeout ({c['pattern']}/{c['node']})",
                         "action": "Increase timeout or optimize prompt size",
                     })
     except Exception:
@@ -257,7 +260,8 @@ def run_prediction_cycle():
 
     # Store predictions (clear old ones first to avoid accumulation)
     ts = datetime.now().isoformat()
-    gaps_db.execute("DELETE FROM failure_predictions WHERE timestamp < datetime('now', '-2 hours')")
+    gaps_db.execute(
+        "DELETE FROM failure_predictions WHERE timestamp < datetime('now', '-2 hours')")
     for p in all_predictions:
         gaps_db.execute("""
             INSERT INTO failure_predictions
@@ -287,7 +291,8 @@ def format_risk_report(predictions):
 
     for p in predictions:
         emoji = "!!" if p["risk_level"] == "CRITICAL" else "!" if p["risk_level"] == "HIGH" else "~"
-        lines.append(f"\n{emoji} <b>{p['target']}</b> [{p['risk_level']}] {p['risk_score']}/100")
+        lines.append(
+            f"\n{emoji} <b>{p['target']}</b> [{p['risk_level']}] {p['risk_score']}/100")
         lines.append(f"  {p['description']}")
         lines.append(f"  Action: {p['action']}")
 
@@ -313,11 +318,27 @@ def send_telegram(text):
 
 def main():
     parser = argparse.ArgumentParser(description="Failure Predictor")
-    parser.add_argument("--once", action="store_true", help="Single prediction")
-    parser.add_argument("--watch", action="store_true", help="Continuous prediction")
-    parser.add_argument("--interval", type=int, default=15, help="Interval (min)")
-    parser.add_argument("--risk", action="store_true", help="Show risk assessment")
-    parser.add_argument("--telegram", action="store_true", help="Send Telegram")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Single prediction")
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Continuous prediction")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=15,
+        help="Interval (min)")
+    parser.add_argument(
+        "--risk",
+        action="store_true",
+        help="Show risk assessment")
+    parser.add_argument(
+        "--telegram",
+        action="store_true",
+        help="Send Telegram")
     args = parser.parse_args()
 
     if not any([args.once, args.watch, args.risk, args.telegram]):
@@ -327,14 +348,28 @@ def main():
     if args.risk:
         predictions = run_prediction_cycle()
         for p in sorted(predictions, key=lambda x: -x["risk_score"]):
-            print(f"  [{p['risk_level']:8}] {p['risk_score']:3}/100 {p['target']:20} {p['description']}")
+            print(
+                f"  [{
+                    p['risk_level']:8}] {
+                    p['risk_score']:3}/100 {
+                    p['target']:20} {
+                    p['description']}")
         print(f"\nTotal: {len(predictions)} risks identified")
         return
 
     if args.once or args.telegram:
         predictions = run_prediction_cycle()
         report = format_risk_report(predictions)
-        print(report.replace("<b>", "").replace("</b>", "").replace("<code>", "").replace("</code>", ""))
+        print(
+            report.replace(
+                "<b>",
+                "").replace(
+                "</b>",
+                "").replace(
+                "<code>",
+                "").replace(
+                    "</code>",
+                ""))
 
         if args.telegram:
             send_telegram(report)
@@ -343,7 +378,10 @@ def main():
         result = {
             "timestamp": datetime.now().isoformat(),
             "total_risks": len(predictions),
-            "high_risks": sum(1 for p in predictions if p["risk_level"] in ["HIGH", "CRITICAL"]),
+            "high_risks": sum(
+                1 for p in predictions if p["risk_level"] in [
+                    "HIGH",
+                    "CRITICAL"]),
             "predictions": predictions,
         }
         print(json.dumps(result, indent=2))
@@ -354,7 +392,9 @@ def main():
         while True:
             predictions = run_prediction_cycle()
             ts = datetime.now().strftime("%H:%M:%S")
-            high = sum(1 for p in predictions if p["risk_level"] in ["HIGH", "CRITICAL"])
+            high = sum(
+                1 for p in predictions if p["risk_level"] in [
+                    "HIGH", "CRITICAL"])
             print(f"[{ts}] {len(predictions)} risks ({high} high)")
 
             # Send alert only if high risks

@@ -481,7 +481,8 @@ def action_stats(conn: sqlite3.Connection) -> None:
     rows = cur.fetchall()
 
     total = conn.execute("SELECT COUNT(*) FROM config_drifts").fetchone()[0]
-    snapshots = conn.execute("SELECT COUNT(*) FROM config_snapshots").fetchone()[0]
+    snapshots = conn.execute(
+        "SELECT COUNT(*) FROM config_snapshots").fetchone()[0]
 
     by_type: dict[str, int] = {}
     by_severity: dict[str, int] = {}

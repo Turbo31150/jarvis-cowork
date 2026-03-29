@@ -37,9 +37,14 @@ def init_db():
 def get_public_functions(filepath):
     funcs = []
     try:
-        tree = ast.parse(filepath.read_text(encoding="utf-8", errors="replace"))
+        tree = ast.parse(
+            filepath.read_text(
+                encoding="utf-8",
+                errors="replace"))
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
+            if isinstance(
+                    node,
+                    ast.FunctionDef) and not node.name.startswith("_"):
                 args = [a.arg for a in node.args.args if a.arg != "self"]
                 funcs.append({
                     "name": node.name,
@@ -124,12 +129,18 @@ def do_scan():
     tested = sum(1 for r in results if r["has_tests"])
     coverage = tested / max(testable, 1) * 100
 
-    db.execute("INSERT INTO test_reports (ts, scripts_scanned, testable, has_tests, coverage_pct) VALUES (?,?,?,?,?)",
-               (time.time(), total, testable, tested, coverage))
+    db.execute(
+        "INSERT INTO test_reports (ts, scripts_scanned, testable, has_tests, coverage_pct) VALUES (?,?,?,?,?)",
+        (time.time(),
+         total,
+         testable,
+         tested,
+         coverage))
     db.commit()
     db.close()
 
-    missing_tests = [r["script"] for r in results if r["testable"] > 0 and not r["has_tests"]]
+    missing_tests = [r["script"]
+                     for r in results if r["testable"] > 0 and not r["has_tests"]]
 
     return {
         "ts": datetime.now().isoformat(),
@@ -143,9 +154,19 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Test Writer")
-    parser.add_argument("--once", "--coverage", action="store_true", help="Coverage report")
-    parser.add_argument("--generate", metavar="FILE", help="Generate tests for file")
-    parser.add_argument("--edge-cases", action="store_true", help="Include edge cases")
+    parser.add_argument(
+        "--once",
+        "--coverage",
+        action="store_true",
+        help="Coverage report")
+    parser.add_argument(
+        "--generate",
+        metavar="FILE",
+        help="Generate tests for file")
+    parser.add_argument(
+        "--edge-cases",
+        action="store_true",
+        help="Include edge cases")
     parser.add_argument("--run", action="store_true", help="Run tests")
     args = parser.parse_args()
     print(json.dumps(do_scan(), ensure_ascii=False, indent=2))

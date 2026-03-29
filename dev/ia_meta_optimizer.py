@@ -7,7 +7,13 @@ Usage:
     python dev/ia_meta_optimizer.py --best
     python dev/ia_meta_optimizer.py --once
 """
-import argparse, json, sqlite3, time, math, urllib.request, os
+import argparse
+import json
+import sqlite3
+import time
+import math
+import urllib.request
+import os
 from datetime import datetime
 from pathlib import Path
 from itertools import product
@@ -16,13 +22,24 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "meta_optimizer.db"
 
 # Standard test prompts for evaluation
-STANDARD_PROMPTS = [
-    {"id": "p1", "prompt": "Write a Python function to check if a number is prime. Return only the function.", "expected_contains": ["def ", "return"]},
-    {"id": "p2", "prompt": "Explain what a REST API is in 2 sentences.", "expected_min_len": 50},
-    {"id": "p3", "prompt": "Fix this code: def add(a,b) return a+b", "expected_contains": ["def add", ":"]},
-    {"id": "p4", "prompt": "List 5 sorting algorithms.", "expected_min_len": 30},
-    {"id": "p5", "prompt": "What is 17 * 23?", "expected_contains": ["391"]},
-]
+STANDARD_PROMPTS = [{"id": "p1",
+                     "prompt": "Write a Python function to check if a number is prime. Return only the function.",
+                     "expected_contains": ["def ",
+                                           "return"]},
+                    {"id": "p2",
+                     "prompt": "Explain what a REST API is in 2 sentences.",
+                     "expected_min_len": 50},
+                    {"id": "p3",
+                     "prompt": "Fix this code: def add(a,b) return a+b",
+                     "expected_contains": ["def add",
+                                           ":"]},
+                    {"id": "p4",
+                     "prompt": "List 5 sorting algorithms.",
+                     "expected_min_len": 30},
+                    {"id": "p5",
+                     "prompt": "What is 17 * 23?",
+                     "expected_contains": ["391"]},
+                    ]
 
 DEFAULT_SEARCH_SPACE = {
     "temperature": [0.1, 0.3, 0.5, 0.7],
@@ -168,7 +185,8 @@ def run_grid_search(db, search_space=None):
         latencies = []
 
         for p in STANDARD_PROMPTS:
-            output, latency, error = _call_m1(p["prompt"], temperature=temp, max_tokens=max_tok)
+            output, latency, error = _call_m1(
+                p["prompt"], temperature=temp, max_tokens=max_tok)
             success = 1 if not error and output else 0
             quality = _score_output(output, p) if success else 0
 
@@ -200,23 +218,30 @@ def run_grid_search(db, search_space=None):
     if best_config:
         db.execute(
             "INSERT INTO best_configs (model, temperature, max_tokens, avg_score, avg_latency, trials) VALUES (?,?,?,?,?,?)",
-            ("M1/qwen3-8b", best_config["temperature"], best_config["max_tokens"],
-             best_config["avg_score"], best_config["avg_latency_ms"], len(STANDARD_PROMPTS))
-        )
+            ("M1/qwen3-8b",
+             best_config["temperature"],
+             best_config["max_tokens"],
+             best_config["avg_score"],
+             best_config["avg_latency_ms"],
+             len(STANDARD_PROMPTS)))
 
     db.execute(
         "UPDATE search_runs SET completed=?, best_config=?, best_score=?, status='completed', finished_at=datetime('now','localtime') WHERE id=?",
-        (len(combos), json.dumps(best_config) if best_config else None, best_avg_score, run_id)
-    )
+        (len(combos),
+         json.dumps(best_config) if best_config else None,
+         best_avg_score,
+         run_id))
     db.commit()
 
     return {
         "run_id": run_id,
         "total_combos": len(combos),
-        "results": sorted(combo_results, key=lambda x: x["avg_score"], reverse=True),
+        "results": sorted(
+            combo_results,
+            key=lambda x: x["avg_score"],
+            reverse=True),
         "best": best_config,
-        "status": "completed"
-    }
+        "status": "completed"}
 
 
 def show_hyperparams(db):
@@ -225,8 +250,7 @@ def show_hyperparams(db):
         "default_search_space": DEFAULT_SEARCH_SPACE,
         "standard_prompts": len(STANDARD_PROMPTS),
         "target_model": "M1/qwen3-8b (127.0.0.1:1234)",
-        "scoring": "quality(0-100) based on expected patterns + length + coherence"
-    }
+        "scoring": "quality(0-100) based on expected patterns + length + coherence"}
 
 
 def get_best(db):
@@ -245,7 +269,8 @@ def get_best(db):
 
 def do_status(db):
     total_runs = db.execute("SELECT COUNT(*) FROM search_runs").fetchone()[0]
-    total_trials = db.execute("SELECT COUNT(*) FROM trial_results").fetchone()[0]
+    total_trials = db.execute(
+        "SELECT COUNT(*) FROM trial_results").fetchone()[0]
     best = db.execute(
         "SELECT temperature, max_tokens, avg_score FROM best_configs ORDER BY avg_score DESC LIMIT 1"
     ).fetchone()
@@ -255,18 +280,34 @@ def do_status(db):
         "db": str(DB_PATH),
         "total_search_runs": total_runs,
         "total_trials": total_trials,
-        "best_config": {"temp": best[0], "max_tokens": best[1], "score": best[2]} if best else None,
+        "best_config": {
+            "temp": best[0],
+            "max_tokens": best[1],
+            "score": best[2]} if best else None,
         "search_space": DEFAULT_SEARCH_SPACE,
-        "ts": datetime.now().isoformat()
-    }
+        "ts": datetime.now().isoformat()}
 
 
 def main():
-    parser = argparse.ArgumentParser(description="IA Meta Optimizer — grid search hyperparameters")
-    parser.add_argument("--optimize", action="store_true", help="Run default grid search")
-    parser.add_argument("--hyperparams", action="store_true", help="Show search space")
-    parser.add_argument("--search", type=str, metavar="JSON", help="Custom search space")
-    parser.add_argument("--best", action="store_true", help="Show best configs found")
+    parser = argparse.ArgumentParser(
+        description="IA Meta Optimizer — grid search hyperparameters")
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Run default grid search")
+    parser.add_argument(
+        "--hyperparams",
+        action="store_true",
+        help="Show search space")
+    parser.add_argument(
+        "--search",
+        type=str,
+        metavar="JSON",
+        help="Custom search space")
+    parser.add_argument(
+        "--best",
+        action="store_true",
+        help="Show best configs found")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

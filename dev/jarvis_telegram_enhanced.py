@@ -70,14 +70,28 @@ def init_db():
     count = db.execute("SELECT COUNT(*) FROM templates").fetchone()[0]
     if count == 0:
         defaults = [
-            ("status_report", "JARVIS Status Report\n- Cluster: {cluster}\n- GPU: {gpu}\n- Services: {services}", "system"),
-            ("trading_alert", "Trading Alert\n- Pair: {pair}\n- Signal: {signal}\n- Score: {score}/100", "trading"),
-            ("error_alert", "Error Alert\n- Source: {source}\n- Error: {error}\n- Time: {time}", "alert"),
-            ("daily_summary", "Daily Summary\n- Tasks: {tasks}\n- Trades: {trades}\n- Uptime: {uptime}", "daily"),
-            ("health_check", "Health Check\n- M1: {m1}\n- M2: {m2}\n- OL1: {ol1}\n- GEMINI: {gemini}", "system"),
+            ("status_report",
+             "JARVIS Status Report\n- Cluster: {cluster}\n- GPU: {gpu}\n- Services: {services}",
+             "system"),
+            ("trading_alert",
+             "Trading Alert\n- Pair: {pair}\n- Signal: {signal}\n- Score: {score}/100",
+             "trading"),
+            ("error_alert",
+             "Error Alert\n- Source: {source}\n- Error: {error}\n- Time: {time}",
+             "alert"),
+            ("daily_summary",
+             "Daily Summary\n- Tasks: {tasks}\n- Trades: {trades}\n- Uptime: {uptime}",
+             "daily"),
+            ("health_check",
+             "Health Check\n- M1: {m1}\n- M2: {m2}\n- OL1: {ol1}\n- GEMINI: {gemini}",
+             "system"),
         ]
         for name, text, cat in defaults:
-            db.execute("INSERT INTO templates (name, text, category) VALUES (?,?,?)", (name, text, cat))
+            db.execute(
+                "INSERT INTO templates (name, text, category) VALUES (?,?,?)",
+                (name,
+                 text,
+                 cat))
 
     db.commit()
     return db
@@ -91,7 +105,9 @@ def telegram_api(method, data=None):
     try:
         if data:
             payload = json.dumps(data).encode("utf-8")
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+            req = urllib.request.Request(
+                url, data=payload, headers={
+                    "Content-Type": "application/json"})
         else:
             req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -152,9 +168,15 @@ def do_inline_menu():
     status = "sent" if resp.get("ok") else "failed"
     db.execute(
         "INSERT INTO messages (ts, direction, chat_id, text, message_id, reply_markup, status) VALUES (?,?,?,?,?,?,?)",
-        (now.isoformat(), "outgoing", CHAT_ID, "inline_menu",
-         resp.get("result", {}).get("message_id") if resp.get("ok") else None,
-         json.dumps(keyboard), status),
+        (now.isoformat(),
+         "outgoing",
+         CHAT_ID,
+         "inline_menu",
+         resp.get(
+            "result",
+            {}).get("message_id") if resp.get("ok") else None,
+            json.dumps(keyboard),
+            status),
     )
     db.commit()
 
@@ -174,9 +196,12 @@ def do_history():
         "SELECT ts, direction, text, message_id, status FROM messages ORDER BY id DESC LIMIT 30"
     ).fetchall()
     total = db.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
-    sent = db.execute("SELECT COUNT(*) FROM messages WHERE direction='outgoing'").fetchone()[0]
-    received = db.execute("SELECT COUNT(*) FROM messages WHERE direction='incoming'").fetchone()[0]
-    templates = db.execute("SELECT name, category, usage_count FROM templates ORDER BY usage_count DESC").fetchall()
+    sent = db.execute(
+        "SELECT COUNT(*) FROM messages WHERE direction='outgoing'").fetchone()[0]
+    received = db.execute(
+        "SELECT COUNT(*) FROM messages WHERE direction='incoming'").fetchone()[0]
+    templates = db.execute(
+        "SELECT name, category, usage_count FROM templates ORDER BY usage_count DESC").fetchall()
 
     result = {
         "ts": datetime.now().isoformat(), "action": "history",
@@ -194,8 +219,12 @@ def do_history():
 def do_status():
     db = init_db()
     result = {
-        "ts": datetime.now().isoformat(), "script": "jarvis_telegram_enhanced.py", "script_id": 255,
-        "db": str(DB_PATH), "chat_id": CHAT_ID, "bot_token_set": bool(BOT_TOKEN),
+        "ts": datetime.now().isoformat(),
+        "script": "jarvis_telegram_enhanced.py",
+        "script_id": 255,
+        "db": str(DB_PATH),
+        "chat_id": CHAT_ID,
+        "bot_token_set": bool(BOT_TOKEN),
         "total_messages": db.execute("SELECT COUNT(*) FROM messages").fetchone()[0],
         "templates": db.execute("SELECT COUNT(*) FROM templates").fetchone()[0],
         "pending_scheduled": db.execute("SELECT COUNT(*) FROM scheduled WHERE sent=0").fetchone()[0],
@@ -207,12 +236,26 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="jarvis_telegram_enhanced.py — Enhanced Telegram (#255)")
+    parser = argparse.ArgumentParser(
+        description="jarvis_telegram_enhanced.py — Enhanced Telegram (#255)")
     parser.add_argument("--status", action="store_true", help="Show status")
-    parser.add_argument("--send", type=str, metavar="MSG", help="Send a message")
-    parser.add_argument("--inline-menu", action="store_true", help="Send inline menu")
-    parser.add_argument("--history", action="store_true", help="Show message history")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument(
+        "--send",
+        type=str,
+        metavar="MSG",
+        help="Send a message")
+    parser.add_argument(
+        "--inline-menu",
+        action="store_true",
+        help="Send inline menu")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show message history")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.send:

@@ -66,7 +66,8 @@ def call_m1(prompt, max_tokens=2048):
 
         data = json.loads(result.stdout)
 
-        # Extract from output[].type==message -> content[].type==output_text -> .text
+        # Extract from output[].type==message -> content[].type==output_text ->
+        # .text
         for output_item in data.get("output", []):
             if output_item.get("type") == "message":
                 for content_item in output_item.get("content", []):
@@ -117,7 +118,8 @@ def decompose_problem(problem):
         pass
 
     # Fallback: split by numbered lines
-    lines = [l.strip() for l in text.split("\n") if l.strip() and any(c.isalpha() for c in l)]
+    lines = [l.strip() for l in text.split("\n") if l.strip()
+             and any(c.isalpha() for c in l)]
     if lines:
         return lines[:5], None
 
@@ -142,7 +144,10 @@ def solve_problem(db, problem):
     # Step 1: Decompose
     steps, err = decompose_problem(problem)
     if err:
-        return {"status": "error", "error": f"Decomposition failed: {err}", "agent": "M1/qwen3-8b"}
+        return {
+            "status": "error",
+            "error": f"Decomposition failed: {err}",
+            "agent": "M1/qwen3-8b"}
 
     # Step 2: Solve each step
     solved_steps = []
@@ -174,8 +179,12 @@ def solve_problem(db, problem):
     # Save to DB
     db.execute(
         "INSERT INTO cot_sessions (ts, problem, steps_json, final_answer, total_time, step_count) VALUES (?,?,?,?,?,?)",
-        (time.time(), problem, json.dumps(solved_steps), final_answer or "", total_time, len(steps))
-    )
+        (time.time(),
+         problem,
+         json.dumps(solved_steps),
+         final_answer or "",
+         total_time,
+         len(steps)))
     db.commit()
 
     return {
@@ -228,11 +237,14 @@ def verify_answer(db, answer):
 def once(db):
     """Run once: show stats and do a simple demo solve."""
     total = db.execute("SELECT COUNT(*) FROM cot_sessions").fetchone()[0]
-    avg_time = db.execute("SELECT COALESCE(AVG(total_time), 0) FROM cot_sessions").fetchone()[0]
-    avg_steps = db.execute("SELECT COALESCE(AVG(step_count), 0) FROM cot_sessions").fetchone()[0]
+    avg_time = db.execute(
+        "SELECT COALESCE(AVG(total_time), 0) FROM cot_sessions").fetchone()[0]
+    avg_steps = db.execute(
+        "SELECT COALESCE(AVG(step_count), 0) FROM cot_sessions").fetchone()[0]
 
     # Quick demo
-    demo = solve_problem(db, "What are the 3 main benefits of using SQLite for local data storage?")
+    demo = solve_problem(
+        db, "What are the 3 main benefits of using SQLite for local data storage?")
 
     return {
         "status": "ok", "mode": "once",
@@ -244,11 +256,21 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Chain-of-Thought Solver (#186) — M1/qwen3-8b reasoning")
-    parser.add_argument("--solve", type=str, help="Solve a problem with chain-of-thought")
-    parser.add_argument("--steps", action="store_true", help="Show recent CoT sessions")
+    parser = argparse.ArgumentParser(
+        description="Chain-of-Thought Solver (#186) — M1/qwen3-8b reasoning")
+    parser.add_argument(
+        "--solve",
+        type=str,
+        help="Solve a problem with chain-of-thought")
+    parser.add_argument(
+        "--steps",
+        action="store_true",
+        help="Show recent CoT sessions")
     parser.add_argument("--verify", type=str, help="Verify an answer")
-    parser.add_argument("--once", action="store_true", help="Run once with demo")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once with demo")
     args = parser.parse_args()
 
     db = init_db()

@@ -54,7 +54,8 @@ def init_db():
         total_consumed INTEGER DEFAULT 0
     )""")
     db.execute("CREATE INDEX IF NOT EXISTS idx_events_topic ON events(topic)")
-    db.execute("CREATE INDEX IF NOT EXISTS idx_events_consumed ON events(consumed)")
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_events_consumed ON events(consumed)")
     # Migrate: add missing columns if table existed before
     try:
         db.execute("ALTER TABLE events ADD COLUMN consumed_ts REAL")
@@ -110,7 +111,8 @@ def publish_event(db, event_data):
     )
 
     # Update topic stats
-    existing = db.execute("SELECT id FROM topics WHERE name = ?", (topic,)).fetchone()
+    existing = db.execute(
+        "SELECT id FROM topics WHERE name = ?", (topic,)).fetchone()
     if existing:
         db.execute(
             "UPDATE topics SET last_event_ts = ?, total_published = total_published + 1 WHERE name = ?",
@@ -135,8 +137,7 @@ def publish_event(db, event_data):
         "event_id": event_id,
         "topic": topic,
         "ttl_expires": datetime.fromtimestamp(ttl_expires).strftime("%Y-%m-%d %H:%M:%S"),
-        "pending_in_topic": pending
-    }
+        "pending_in_topic": pending}
 
 
 def subscribe_topic(db, topic, consumer="default"):
@@ -326,12 +327,18 @@ def main():
     parser = argparse.ArgumentParser(
         description="jarvis_event_stream.py (#193) — Event bus SQLite-based"
     )
-    parser.add_argument("--publish", type=str, metavar="EVENT",
-                        help="Publish event JSON (or plain text to 'default' topic)")
+    parser.add_argument(
+        "--publish",
+        type=str,
+        metavar="EVENT",
+        help="Publish event JSON (or plain text to 'default' topic)")
     parser.add_argument("--subscribe", type=str, metavar="TOPIC",
                         help="Subscribe and consume events from topic")
-    parser.add_argument("--consumer", type=str, default="default",
-                        help="Consumer name for subscribe (default: 'default')")
+    parser.add_argument(
+        "--consumer",
+        type=str,
+        default="default",
+        help="Consumer name for subscribe (default: 'default')")
     parser.add_argument("--history", action="store_true",
                         help="Show recent events across all topics")
     parser.add_argument("--stats", action="store_true",

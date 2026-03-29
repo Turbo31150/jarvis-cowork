@@ -7,7 +7,14 @@ Usage:
     python dev/win_app_usage_tracker.py --weekly
     python dev/win_app_usage_tracker.py --once
 """
-import argparse, json, sqlite3, time, os, ctypes, ctypes.wintypes, re
+import argparse
+import json
+import sqlite3
+import time
+import os
+import ctypes
+import ctypes.wintypes
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -67,9 +74,13 @@ def _get_active_window():
         if not title:
             return "Desktop", "desktop"
         # Extract app name from title
-        app = title.split(" - ")[-1].strip() if " - " in title else title.split(" — ")[-1].strip() if " — " in title else title
+        app = title.split(" - ")[-1].strip() if " - " in title else title.split(
+            " — ")[-1].strip() if " — " in title else title
         # Clean up common suffixes
-        for suffix in [" - Google Chrome", " - Mozilla Firefox", " - Microsoft Edge"]:
+        for suffix in [
+            " - Google Chrome",
+            " - Mozilla Firefox",
+                " - Microsoft Edge"]:
             if title.endswith(suffix):
                 app = suffix.replace(" - ", "").strip()
                 break
@@ -109,9 +120,11 @@ def track_usage(db, duration=300):
                 sess_dur = int(time.time() - session_start)
                 db.execute(
                     "INSERT INTO sessions (app_name, window_title, started_at, ended_at, duration_sec) VALUES (?,?,?,?,?)",
-                    (last_app, last_title, datetime.fromtimestamp(session_start).isoformat(),
-                     datetime.now().isoformat(), sess_dur)
-                )
+                    (last_app,
+                     last_title,
+                     datetime.fromtimestamp(session_start).isoformat(),
+                     datetime.now().isoformat(),
+                        sess_dur))
             session_start = time.time()
             last_app = app
             last_title = title
@@ -155,27 +168,42 @@ def get_report(db, date=None):
     by_cat = {}
     apps = []
     for app, dur, cat in rows:
-        apps.append({
-            "app": app,
-            "duration_sec": dur,
-            "duration_human": f"{dur//3600}h{(dur%3600)//60}m" if dur >= 3600 else f"{dur//60}m{dur%60}s",
-            "pct": round(dur / total * 100, 1) if total else 0,
-            "category": cat
-        })
+        apps.append(
+            {
+                "app": app,
+                "duration_sec": dur,
+                "duration_human": f"{
+                    dur //
+                    3600}h{
+                    (
+                        dur %
+                        3600) //
+                    60}m" if dur >= 3600 else f"{
+                    dur //
+                    60}m{
+                    dur %
+                    60}s",
+                "pct": round(
+                    dur /
+                    total *
+                    100,
+                    1) if total else 0,
+                "category": cat})
         by_cat[cat] = by_cat.get(cat, 0) + dur
 
     prod = by_cat.get("productive", 0)
     dist = by_cat.get("distraction", 0)
     score = round(prod / (prod + dist) * 100) if (prod + dist) > 0 else 50
 
-    return {
-        "date": date,
-        "total_tracked_sec": total,
-        "total_human": f"{total//3600}h{(total%3600)//60}m",
-        "apps": apps[:15],
-        "by_category": {k: {"seconds": v, "pct": round(v/total*100, 1) if total else 0} for k, v in by_cat.items()},
-        "productivity_score": score
-    }
+    return {"date": date,
+            "total_tracked_sec": total,
+            "total_human": f"{total // 3600}h{(total % 3600) // 60}m",
+            "apps": apps[:15],
+            "by_category": {k: {"seconds": v,
+                                "pct": round(v / total * 100,
+                                             1) if total else 0} for k,
+                            v in by_cat.items()},
+            "productivity_score": score}
 
 
 def get_top(db, days=7):
@@ -187,8 +215,8 @@ def get_top(db, days=7):
     ).fetchall()
     return {
         "period": f"last {days} days",
-        "top_apps": [{"rank": i+1, "app": r[0], "total_sec": r[1],
-                       "hours": round(r[1]/3600, 1)} for i, r in enumerate(rows)]
+        "top_apps": [{"rank": i + 1, "app": r[0], "total_sec": r[1],
+                      "hours": round(r[1] / 3600, 1)} for i, r in enumerate(rows)]
     }
 
 
@@ -198,8 +226,9 @@ def get_weekly(db):
     for i in range(7):
         d = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
         row = db.execute(
-            "SELECT SUM(duration_sec), COUNT(DISTINCT app_name) FROM usage WHERE date=?", (d,)
-        ).fetchone()
+            "SELECT SUM(duration_sec), COUNT(DISTINCT app_name) FROM usage WHERE date=?",
+            (d,
+             )).fetchone()
         total = row[0] or 0
         apps = row[1] or 0
         prod = db.execute(
@@ -232,19 +261,32 @@ def do_status(db):
         "current_title": title[:100],
         "current_category": cat,
         "today_tracked_sec": today_total,
-        "today_human": f"{today_total//3600}h{(today_total%3600)//60}m",
+        "today_human": f"{today_total // 3600}h{(today_total % 3600) // 60}m",
         "total_entries": total_entries,
         "ts": datetime.now().isoformat()
     }
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Windows App Usage Tracker — track active window time")
-    parser.add_argument("--track", action="store_true", help="Track usage (5 min loop)")
+    parser = argparse.ArgumentParser(
+        description="Windows App Usage Tracker — track active window time")
+    parser.add_argument(
+        "--track",
+        action="store_true",
+        help="Track usage (5 min loop)")
     parser.add_argument("--report", action="store_true", help="Daily report")
-    parser.add_argument("--top", action="store_true", help="Top 10 apps (7 days)")
-    parser.add_argument("--weekly", action="store_true", help="Weekly breakdown")
-    parser.add_argument("--once", action="store_true", help="Single capture + status")
+    parser.add_argument(
+        "--top",
+        action="store_true",
+        help="Top 10 apps (7 days)")
+    parser.add_argument(
+        "--weekly",
+        action="store_true",
+        help="Weekly breakdown")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Single capture + status")
     args = parser.parse_args()
 
     db = init_db()

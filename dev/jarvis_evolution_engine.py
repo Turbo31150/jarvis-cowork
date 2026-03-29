@@ -7,7 +7,13 @@ Usage:
     python dev/jarvis_evolution_engine.py --report
     python dev/jarvis_evolution_engine.py --once
 """
-import argparse, json, sqlite3, time, os, ast, re
+import argparse
+import json
+import sqlite3
+import time
+import os
+import ast
+import re
 from datetime import datetime
 from pathlib import Path
 from collections import Counter
@@ -160,11 +166,17 @@ def _get_test_results():
             (run_id,)
         ).fetchall()
         conn.close()
-        return {
-            "run_id": run_id, "total": run[1], "passed": run[2],
-            "failed": run[3], "errors": run[4], "pass_rate": run[5], "grade": run[6],
-            "failures": [{"script": f[0], "test": f[1], "status": f[2], "message": f[3]} for f in failures]
-        }
+        return {"run_id": run_id,
+                "total": run[1],
+                "passed": run[2],
+                "failed": run[3],
+                "errors": run[4],
+                "pass_rate": run[5],
+                "grade": run[6],
+                "failures": [{"script": f[0],
+                              "test": f[1],
+                              "status": f[2],
+                              "message": f[3]} for f in failures]}
     except Exception:
         return None
 
@@ -234,7 +246,8 @@ def evolve(db):
 
     if test_data and test_data.get("failures"):
         for f in test_data["failures"]:
-            error_type, severity, fix_hint = _classify_error(f.get("message", ""))
+            error_type, severity, fix_hint = _classify_error(
+                f.get("message", ""))
             all_issues.append({
                 "script": f["script"], "error_type": error_type,
                 "severity": severity, "message": (f.get("message", "") or "")[:300],
@@ -253,18 +266,28 @@ def evolve(db):
             error_type_counts[issue["type"]] += 1
 
     total_scripts = len(scripts)
-    failing_set = set(i["script"] for i in all_issues if i["severity"] in ("critical", "high"))
+    failing_set = set(
+        i["script"] for i in all_issues if i["severity"] in (
+            "critical", "high"))
     failing_count = len(failing_set)
-    evolution_score = round((1 - failing_count / total_scripts) * 100, 1) if total_scripts else 0
+    evolution_score = round(
+        (1 - failing_count / total_scripts) * 100,
+        1) if total_scripts else 0
 
-    prev = db.execute("SELECT evolution_score FROM evolution_runs ORDER BY id DESC LIMIT 1").fetchone()
+    prev = db.execute(
+        "SELECT evolution_score FROM evolution_runs ORDER BY id DESC LIMIT 1").fetchone()
     previous_score = prev[0] if prev else 0
     delta = round(evolution_score - previous_score, 1)
 
     cur = db.execute(
         "INSERT INTO evolution_runs (total_scripts, failing_scripts, error_types, evolution_score, previous_score, delta) VALUES (?,?,?,?,?,?)",
-        (total_scripts, failing_count, json.dumps(dict(error_type_counts)), evolution_score, previous_score, delta)
-    )
+        (total_scripts,
+         failing_count,
+         json.dumps(
+             dict(error_type_counts)),
+            evolution_score,
+            previous_score,
+            delta))
     run_id = cur.lastrowid
 
     for issue in all_issues:
@@ -276,17 +299,32 @@ def evolve(db):
     grade = "A" if evolution_score >= 95 else "B" if evolution_score >= 85 else "C" if evolution_score >= 75 else "D" if evolution_score >= 60 else "F"
     db.execute(
         "INSERT INTO evolution_history (score, scripts_total, scripts_passing, grade) VALUES (?,?,?,?)",
-        (evolution_score, total_scripts, total_scripts - failing_count, grade)
-    )
+        (evolution_score,
+         total_scripts,
+         total_scripts -
+         failing_count,
+         grade))
     db.commit()
 
-    priority_issues = sorted(all_issues, key=lambda x: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(x["severity"], 4))
-    return {
-        "run_id": run_id, "evolution_score": evolution_score, "previous_score": previous_score,
-        "delta": delta, "grade": grade, "total_scripts": total_scripts,
-        "failing_scripts": failing_count, "error_types": dict(error_type_counts),
-        "priority_issues": priority_issues[:15], "total_issues": len(all_issues)
-    }
+    priority_issues = sorted(
+        all_issues,
+        key=lambda x: {
+            "critical": 0,
+            "high": 1,
+            "medium": 2,
+            "low": 3}.get(
+            x["severity"],
+            4))
+    return {"run_id": run_id,
+            "evolution_score": evolution_score,
+            "previous_score": previous_score,
+            "delta": delta,
+            "grade": grade,
+            "total_scripts": total_scripts,
+            "failing_scripts": failing_count,
+            "error_types": dict(error_type_counts),
+            "priority_issues": priority_issues[:15],
+            "total_issues": len(all_issues)}
 
 
 def get_evolution_status(db):
@@ -300,10 +338,12 @@ def get_evolution_status(db):
             trend = "improving"
         elif history[0][0] < history[1][0]:
             trend = "declining"
-    return {
-        "history": [{"score": h[0], "grade": h[1], "total": h[2], "passing": h[3], "ts": h[4]} for h in history],
-        "trend": trend
-    }
+    return {"history": [{"score": h[0],
+                         "grade": h[1],
+                         "total": h[2],
+                         "passing": h[3],
+                         "ts": h[4]} for h in history],
+            "trend": trend}
 
 
 def rollback_info(db, run_id):
@@ -316,13 +356,15 @@ def rollback_info(db, run_id):
         "SELECT evolution_score, total_scripts, failing_scripts FROM evolution_runs WHERE id=?",
         (run_id,)
     ).fetchone()
-    return {
-        "run_id": run_id,
-        "evolution_score": run[0] if run else None,
-        "total": run[1] if run else None,
-        "failing": run[2] if run else None,
-        "issues": [{"script": i[0], "type": i[1], "severity": i[2], "message": i[3][:200], "fix": i[4]} for i in issues]
-    }
+    return {"run_id": run_id,
+            "evolution_score": run[0] if run else None,
+            "total": run[1] if run else None,
+            "failing": run[2] if run else None,
+            "issues": [{"script": i[0],
+                        "type": i[1],
+                        "severity": i[2],
+                        "message": i[3][:200],
+                        "fix": i[4]} for i in issues]}
 
 
 def full_report(db):
@@ -345,8 +387,10 @@ def full_report(db):
 
 
 def do_status(db):
-    total_runs = db.execute("SELECT COUNT(*) FROM evolution_runs").fetchone()[0]
-    latest = db.execute("SELECT evolution_score, delta FROM evolution_runs ORDER BY id DESC LIMIT 1").fetchone()
+    total_runs = db.execute(
+        "SELECT COUNT(*) FROM evolution_runs").fetchone()[0]
+    latest = db.execute(
+        "SELECT evolution_score, delta FROM evolution_runs ORDER BY id DESC LIMIT 1").fetchone()
     return {
         "script": "jarvis_evolution_engine.py",
         "id": 218,
@@ -361,11 +405,25 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Evolution Engine -- analyze failures, suggest fixes, track evolution")
-    parser.add_argument("--evolve", action="store_true", help="Run evolution analysis")
-    parser.add_argument("--status", action="store_true", help="Evolution status history")
-    parser.add_argument("--rollback", type=int, metavar="RUN_ID", help="Rollback analysis for a run")
-    parser.add_argument("--report", action="store_true", help="Full evolution report")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Evolution Engine -- analyze failures, suggest fixes, track evolution")
+    parser.add_argument(
+        "--evolve",
+        action="store_true",
+        help="Run evolution analysis")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Evolution status history")
+    parser.add_argument(
+        "--rollback",
+        type=int,
+        metavar="RUN_ID",
+        help="Rollback analysis for a run")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Full evolution report")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

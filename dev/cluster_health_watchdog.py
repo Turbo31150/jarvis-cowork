@@ -29,17 +29,17 @@ DB_PATH = DATA_DIR / "cowork_gaps.db"
 
 CLUSTER_NODES = {
     "M1": {
-        "url": "http://127.0.0.1:1234/api/v1/models",
+        "url": "http://127.0.0.1:1234/v1/models",
         "type": "lmstudio",
         "timeout": 5,
     },
     "M2": {
-        "url": "http://192.168.1.26:1234/api/v1/models",
+        "url": "http://192.168.1.26:1234/v1/models",
         "type": "lmstudio",
         "timeout": 5,
     },
     "M3": {
-        "url": "http://192.168.1.113:1234/api/v1/models",
+        "url": "http://192.168.1.113:1234/v1/models",
         "type": "lmstudio",
         "timeout": 5,
     },
@@ -125,7 +125,12 @@ def check_node(name, config):
             "status": "offline",
             "response_ms": elapsed_ms,
             "models_loaded": 0,
-            "error": str(e.reason)[:100] if hasattr(e, 'reason') else str(e)[:100],
+            "error": str(
+                e.reason)[
+                :100] if hasattr(
+                e,
+                'reason') else str(e)[
+                    :100],
         }
     except Exception as e:
         elapsed_ms = int((time.time() - t0) * 1000)
@@ -168,9 +173,9 @@ def action_once():
 
             if recent >= HEALTH_THRESHOLDS["consecutive_failures_alert"]:
                 alert = {
-                    "node": name, "type": "persistent_offline",
-                    "message": f"{name} offline for {recent}+ checks — consider restart"
-                }
+                    "node": name,
+                    "type": "persistent_offline",
+                    "message": f"{name} offline for {recent}+ checks — consider restart"}
                 alerts.append(alert)
                 conn.execute("""
                     INSERT INTO health_alerts (timestamp, node, alert_type, message)
@@ -179,9 +184,10 @@ def action_once():
 
         elif result["status"] == "degraded":
             alert = {
-                "node": name, "type": "high_latency",
-                "message": f"{name} response time {result['response_ms']}ms — degraded performance"
-            }
+                "node": name,
+                "type": "high_latency",
+                "message": f"{name} response time {
+                    result['response_ms']}ms — degraded performance"}
             alerts.append(alert)
 
         if result["models_loaded"] == 0 and result["status"] == "healthy":
@@ -235,7 +241,10 @@ def action_alerts():
 
 def main():
     parser = argparse.ArgumentParser(description="Cluster Health Watchdog")
-    parser.add_argument("--once", action="store_true", help="Single health check")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Single health check")
     parser.add_argument("--history", action="store_true", help="Show history")
     parser.add_argument("--alerts", action="store_true", help="Show alerts")
     args = parser.parse_args()

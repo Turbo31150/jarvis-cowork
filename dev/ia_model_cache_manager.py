@@ -49,12 +49,13 @@ def get_lms_models(name, url):
         if out.stdout.strip():
             data = json.loads(out.stdout)
             for m in data.get("data", data.get("models", [])):
-                models.append({
-                    "node": name,
-                    "model": m.get("id", "?"),
-                    "loaded": bool(m.get("loaded_instances")),
-                    "vram_gb": round(m.get("size_on_disk", 0) / 1e9, 1) if m.get("loaded_instances") else 0,
-                })
+                models.append(
+                    {
+                        "node": name, "model": m.get(
+                            "id", "?"), "loaded": bool(
+                            m.get("loaded_instances")), "vram_gb": round(
+                            m.get(
+                                "size_on_disk", 0) / 1e9, 1) if m.get("loaded_instances") else 0, })
     except Exception:
         pass
     return models
@@ -115,10 +116,17 @@ def do_status():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Model Cache Manager")
-    parser.add_argument("--once", "--status", action="store_true", help="Cache status")
+    parser.add_argument(
+        "--once",
+        "--status",
+        action="store_true",
+        help="Cache status")
     parser.add_argument("--preload", metavar="MODEL", help="Preload model")
     parser.add_argument("--evict", action="store_true", help="Evict unused")
-    parser.add_argument("--optimize", action="store_true", help="Optimize cache")
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Optimize cache")
     args = parser.parse_args()
     print(json.dumps(do_status(), ensure_ascii=False, indent=2))
 

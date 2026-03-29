@@ -41,12 +41,22 @@ def find_repeated_patterns(min_count=5):
 
     try:
         db = sqlite3.connect(str(ETOILE_DB))
-        for t in [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]:
-            cols = [c[1] for c in db.execute(f"PRAGMA table_info([{t}])").fetchall()]
-            cmd_col = next((c for c in cols if c in ("action", "command", "tool", "input")), None)
+        for t in [t[0] for t in db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]:
+            cols = [
+                c[1] for c in db.execute(
+                    f"PRAGMA table_info([{t}])").fetchall()]
+            cmd_col = next(
+                (c for c in cols if c in (
+                    "action",
+                    "command",
+                    "tool",
+                    "input")),
+                None)
             if cmd_col:
                 try:
-                    rows = db.execute(f"SELECT [{cmd_col}] FROM [{t}] WHERE [{cmd_col}] IS NOT NULL LIMIT 5000").fetchall()
+                    rows = db.execute(
+                        f"SELECT [{cmd_col}] FROM [{t}] WHERE [{cmd_col}] IS NOT NULL LIMIT 5000").fetchall()
                     for r in rows:
                         val = (r[0] or "").strip()
                         if val and len(val) > 3:
@@ -85,9 +95,16 @@ def do_synthesize():
     candidates = generate_skill_candidates(patterns)
 
     for c in candidates:
-        db.execute("INSERT INTO synthesized_skills (ts, name, triggers, action, source_pattern, confidence) VALUES (?,?,?,?,?,?)",
-                   (time.time(), c["name"], json.dumps(c["triggers"]),
-                    f"execute_{c['name']}", c["pattern"], c["confidence"]))
+        db.execute(
+            "INSERT INTO synthesized_skills (ts, name, triggers, action, source_pattern, confidence) VALUES (?,?,?,?,?,?)",
+            (time.time(),
+             c["name"],
+                json.dumps(
+                c["triggers"]),
+                f"execute_{
+                c['name']}",
+                c["pattern"],
+                c["confidence"]))
 
     db.commit()
     db.close()
@@ -103,7 +120,11 @@ def do_synthesize():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Skill Synthesizer")
-    parser.add_argument("--once", "--synthesize", action="store_true", help="Synthesize")
+    parser.add_argument(
+        "--once",
+        "--synthesize",
+        action="store_true",
+        help="Synthesize")
     parser.add_argument("--from-logs", action="store_true", help="From logs")
     parser.add_argument("--test", action="store_true", help="Test skills")
     parser.add_argument("--deploy", action="store_true", help="Deploy")

@@ -185,8 +185,14 @@ def action_hit_rate():
 
 def main():
     parser = argparse.ArgumentParser(description="Quick Answer Cache")
-    parser.add_argument("--once", action="store_true", help="Analyze cacheable queries")
-    parser.add_argument("--hit-rate", action="store_true", help="Show hit rate")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Analyze cacheable queries")
+    parser.add_argument(
+        "--hit-rate",
+        action="store_true",
+        help="Show hit rate")
     parser.add_argument("--stats", action="store_true", help="Show stats")
     args = parser.parse_args()
 

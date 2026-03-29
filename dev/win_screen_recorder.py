@@ -9,13 +9,20 @@ Usage:
     python dev/win_screen_recorder.py --config
     python dev/win_screen_recorder.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, ctypes
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import ctypes
 from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "screen_recorder.db"
 SCREENSHOTS_DIR = DEV / "data" / "screenshots"
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -58,15 +65,23 @@ def init_db():
         "quality": "high"
     }
     for k, v in defaults.items():
-        if db.execute("SELECT COUNT(*) FROM recorder_config WHERE key=?", (k,)).fetchone()[0] == 0:
-            db.execute("INSERT INTO recorder_config (key, value, updated_at) VALUES (?,?,?)",
-                       (k, v, datetime.now().isoformat()))
+        if db.execute(
+            "SELECT COUNT(*) FROM recorder_config WHERE key=?",
+            (k,
+             )).fetchone()[0] == 0:
+            db.execute(
+                "INSERT INTO recorder_config (key, value, updated_at) VALUES (?,?,?)",
+                (k,
+                 v,
+                 datetime.now().isoformat()))
     db.commit()
     return db
+
 
 def get_config(db):
     rows = db.execute("SELECT key, value FROM recorder_config").fetchall()
     return {r[0]: r[1] for r in rows}
+
 
 def get_screen_size():
     """Get screen size via ctypes."""
@@ -77,6 +92,7 @@ def get_screen_size():
         return w, h
     except Exception:
         return 1920, 1080
+
 
 def take_screenshot(output_path):
     """Take a screenshot using powershell."""
@@ -92,10 +108,16 @@ $graphics.Dispose()
 $bitmap.Dispose()
 Write-Output OK
 "'''
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         return "OK" in r.stdout
     except Exception:
         return False
+
 
 def do_start():
     db = init_db()
@@ -103,17 +125,22 @@ def do_start():
     w, h = get_screen_size()
 
     # Deactivate any existing sessions
-    db.execute("UPDATE recording_sessions SET status='stopped', ended_at=? WHERE status='active'",
-               (datetime.now().isoformat(),))
+    db.execute(
+        "UPDATE recording_sessions SET status='stopped', ended_at=? WHERE status='active'",
+        (datetime.now().isoformat(),
+         ))
 
     now = datetime.now()
     session_dir = SCREENSHOTS_DIR / now.strftime("%Y%m%d_%H%M%S")
     session_dir.mkdir(parents=True, exist_ok=True)
 
-    cursor = db.execute("""INSERT INTO recording_sessions (started_at, status, interval_ms, region, format, output_dir)
-                          VALUES (?,?,?,?,?,?)""",
-                        (now.isoformat(), "active", int(config.get("interval_ms", 1000)),
-                         config.get("region", "fullscreen"), config.get("format", "png"), str(session_dir)))
+    cursor = db.execute(
+        """INSERT INTO recording_sessions (started_at, status, interval_ms, region, format, output_dir)
+                          VALUES (?,?,?,?,?,?)""", (now.isoformat(), "active", int(
+            config.get(
+                "interval_ms", 1000)), config.get(
+            "region", "fullscreen"), config.get(
+                    "format", "png"), str(session_dir)))
     session_id = cursor.lastrowid
 
     # Take first screenshot as proof of concept
@@ -122,10 +149,11 @@ def do_start():
 
     if success and os.path.exists(frame_path):
         size = os.path.getsize(frame_path)
-        db.execute("""INSERT INTO frames (session_id, ts, frame_num, file_path, width, height, size_bytes)
-                      VALUES (?,?,?,?,?,?,?)""",
-                   (session_id, now.isoformat(), 1, frame_path, w, h, size))
-        db.execute("UPDATE recording_sessions SET frames_captured=1 WHERE id=?", (session_id,))
+        db.execute(
+            """INSERT INTO frames (session_id, ts, frame_num, file_path, width, height, size_bytes)
+                      VALUES (?,?,?,?,?,?,?)""", (session_id, now.isoformat(), 1, frame_path, w, h, size))
+        db.execute(
+            "UPDATE recording_sessions SET frames_captured=1 WHERE id=?", (session_id,))
     db.commit()
 
     result = {
@@ -143,15 +171,20 @@ def do_start():
     db.close()
     return result
 
+
 def do_stop():
     db = init_db()
-    session = db.execute("SELECT id, started_at, frames_captured FROM recording_sessions WHERE status='active' ORDER BY id DESC LIMIT 1").fetchone()
+    session = db.execute(
+        "SELECT id, started_at, frames_captured FROM recording_sessions WHERE status='active' ORDER BY id DESC LIMIT 1").fetchone()
     if not session:
         db.close()
         return {"error": "No active recording session"}
 
     now = datetime.now().isoformat()
-    db.execute("UPDATE recording_sessions SET status='stopped', ended_at=? WHERE id=?", (now, session[0]))
+    db.execute(
+        "UPDATE recording_sessions SET status='stopped', ended_at=? WHERE id=?",
+        (now,
+         session[0]))
     db.commit()
 
     result = {
@@ -165,9 +198,11 @@ def do_stop():
     db.close()
     return result
 
+
 def do_list():
     db = init_db()
-    sessions = db.execute("""SELECT id, started_at, ended_at, status, frames_captured, interval_ms, output_dir
+    sessions = db.execute(
+        """SELECT id, started_at, ended_at, status, frames_captured, interval_ms, output_dir
                             FROM recording_sessions ORDER BY id DESC LIMIT 20""").fetchall()
     result = {
         "action": "list",
@@ -180,6 +215,7 @@ def do_list():
     }
     db.close()
     return result
+
 
 def do_config():
     db = init_db()
@@ -196,11 +232,14 @@ def do_config():
     db.close()
     return result
 
+
 def do_once():
     db = init_db()
-    active = db.execute("SELECT COUNT(*) FROM recording_sessions WHERE status='active'").fetchone()[0]
+    active = db.execute(
+        "SELECT COUNT(*) FROM recording_sessions WHERE status='active'").fetchone()[0]
     total = db.execute("SELECT COUNT(*) FROM recording_sessions").fetchone()[0]
-    total_frames = db.execute("SELECT SUM(frames_captured) FROM recording_sessions").fetchone()[0] or 0
+    total_frames = db.execute(
+        "SELECT SUM(frames_captured) FROM recording_sessions").fetchone()[0] or 0
     w, h = get_screen_size()
     result = {
         "status": "ok",
@@ -214,13 +253,30 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Screen Recorder — COWORK #239")
-    parser.add_argument("--start", action="store_true", help="Start recording session")
-    parser.add_argument("--stop", action="store_true", help="Stop recording session")
-    parser.add_argument("--list", action="store_true", help="List recording sessions")
-    parser.add_argument("--config", action="store_true", help="Show recorder config")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="Screen Recorder — COWORK #239")
+    parser.add_argument(
+        "--start",
+        action="store_true",
+        help="Start recording session")
+    parser.add_argument(
+        "--stop",
+        action="store_true",
+        help="Stop recording session")
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List recording sessions")
+    parser.add_argument(
+        "--config",
+        action="store_true",
+        help="Show recorder config")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.start:
@@ -233,6 +289,7 @@ def main():
         print(json.dumps(do_config(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

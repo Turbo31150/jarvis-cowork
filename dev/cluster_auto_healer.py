@@ -151,15 +151,23 @@ def heal_timeout(prediction):
             if row:
                 current = row["recommended_timeout_s"]
                 new_timeout = int(current * 1.5)  # Increase by 50%
-                db.execute("""
+                db.execute(
+                    """
                     INSERT INTO timeout_configs
                     (timestamp, pattern, node, recommended_timeout_s, p50_latency_ms,
                      p95_latency_ms, max_latency_ms, sample_count, applied)
                     VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1)
-                """, (datetime.now().isoformat(), pattern, node, new_timeout,
-                      row["p95_latency_ms"], row["p95_latency_ms"], row["p95_latency_ms"]))
+                """,
+                    (datetime.now().isoformat(),
+                     pattern,
+                     node,
+                     new_timeout,
+                     row["p95_latency_ms"],
+                        row["p95_latency_ms"],
+                        row["p95_latency_ms"]))
                 db.commit()
-                fixes.append(f"Increased {pattern}/{node} timeout: {current}s -> {new_timeout}s")
+                fixes.append(
+                    f"Increased {pattern}/{node} timeout: {current}s -> {new_timeout}s")
         except Exception as e:
             fixes.append(f"Timeout fix failed: {e}")
         db.close()
@@ -248,11 +256,27 @@ def send_telegram(text):
 
 def main():
     parser = argparse.ArgumentParser(description="Cluster Auto Healer")
-    parser.add_argument("--once", action="store_true", help="Single healing cycle")
-    parser.add_argument("--watch", action="store_true", help="Continuous healing")
-    parser.add_argument("--interval", type=int, default=15, help="Interval (min)")
-    parser.add_argument("--diagnose", action="store_true", help="Show issues only")
-    parser.add_argument("--force", action="store_true", help="Fix LOW risk too")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Single healing cycle")
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Continuous healing")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=15,
+        help="Interval (min)")
+    parser.add_argument(
+        "--diagnose",
+        action="store_true",
+        help="Show issues only")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Fix LOW risk too")
     args = parser.parse_args()
 
     if not any([args.once, args.watch, args.diagnose]):
@@ -266,7 +290,12 @@ def main():
             return
         print(f"=== Current Issues ({len(predictions)}) ===")
         for p in predictions:
-            print(f"  [{p['risk_level']:8}] {p['risk_score']:3}/100 {p['target']:20} {p['description']}")
+            print(
+                f"  [{
+                    p['risk_level']:8}] {
+                    p['risk_score']:3}/100 {
+                    p['target']:20} {
+                    p['description']}")
             print(f"           Action: {p['recommended_action']}")
         return
 
@@ -279,7 +308,8 @@ def main():
             return
 
         total_fixes = sum(len(h["fixes"]) for h in healed)
-        print(f"[{ts}] Predictions: {len(predictions)} | Healed: {len(healed)} | Fixes: {total_fixes}")
+        print(
+            f"[{ts}] Predictions: {len(predictions)} | Healed: {len(healed)} | Fixes: {total_fixes}")
         for h in healed:
             print(f"  {h['prediction']['target']}:")
             for f in h["fixes"]:

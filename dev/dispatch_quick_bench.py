@@ -46,7 +46,8 @@ async def run_benchmark():
         from src.pattern_agents import PatternAgentRegistry
         import httpx
     except ImportError:
-        print(json.dumps({"error": "Cannot import pattern_agents"}, ensure_ascii=False))
+        print(json.dumps(
+            {"error": "Cannot import pattern_agents"}, ensure_ascii=False))
         return
 
     registry = PatternAgentRegistry()
@@ -57,7 +58,8 @@ async def run_benchmark():
         for pattern, prompt in BENCH_PROMPTS.items():
             agent = registry.agents.get(pattern)
             if not agent:
-                results.append({"pattern": pattern, "ok": False, "error": "no agent"})
+                results.append(
+                    {"pattern": pattern, "ok": False, "error": "no agent"})
                 continue
             try:
                 r = await agent.execute(client, prompt)
@@ -72,7 +74,8 @@ async def run_benchmark():
                     "content_len": len(r.content),
                 })
             except Exception as e:
-                results.append({"pattern": pattern, "ok": False, "error": str(e)[:100]})
+                results.append(
+                    {"pattern": pattern, "ok": False, "error": str(e)[:100]})
 
     duration = round(time.time() - t0, 1)
     ok_count = sum(1 for r in results if r.get("ok"))
@@ -83,7 +86,7 @@ async def run_benchmark():
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "total": total,
         "ok": ok_count,
-        "rate": f"{rate*100:.1f}%",
+        "rate": f"{rate * 100:.1f}%",
         "duration_s": duration,
         "results": results,
         "failed_patterns": [r["pattern"] for r in results if not r.get("ok")],
@@ -102,7 +105,13 @@ async def run_benchmark():
         """)
         db.execute(
             "INSERT INTO benchmark_quick (ok, total, rate, duration_s, details) VALUES (?,?,?,?,?)",
-            (ok_count, total, rate, duration, json.dumps(results, ensure_ascii=False)),
+            (ok_count,
+             total,
+             rate,
+             duration,
+             json.dumps(
+                 results,
+                 ensure_ascii=False)),
         )
         db.commit()
         db.close()
@@ -114,8 +123,12 @@ async def run_benchmark():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Quick dispatch benchmark (14 patterns)")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="Quick dispatch benchmark (14 patterns)")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     parser.add_argument("--json", action="store_true", help="JSON output only")
     args = parser.parse_args()
 

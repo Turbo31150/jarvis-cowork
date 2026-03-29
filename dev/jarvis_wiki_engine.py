@@ -1,8 +1,16 @@
+
 #!/usr/bin/env python3
 """jarvis_wiki_engine.py — Wiki engine. Internal wiki with articles (topic, content, tags). Full-text search.
 Usage: python dev/jarvis_wiki_engine.py --create "TOPIC" --once
 """
-import argparse, json, os, sqlite3, subprocess, time, hashlib, re
+import argparse
+import json
+import os
+import sqlite3
+import subprocess
+import time
+import hashlib
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -164,19 +172,26 @@ def do_update(article_id=None, topic=None, content=None, tags=None):
 
     if article_id:
         row = db.execute(
-            "SELECT id, topic, content, version FROM articles WHERE id=?", (article_id,)
-        ).fetchone()
+            "SELECT id, topic, content, version FROM articles WHERE id=?",
+            (article_id,
+             )).fetchone()
     elif topic:
         row = db.execute(
             "SELECT id, topic, content, version FROM articles WHERE topic=?", (topic,)
         ).fetchone()
     else:
         db.close()
-        return {"ts": datetime.now().isoformat(), "action": "update", "error": "Provide --article-id or topic"}
+        return {
+            "ts": datetime.now().isoformat(),
+            "action": "update",
+            "error": "Provide --article-id or topic"}
 
     if not row:
         db.close()
-        return {"ts": datetime.now().isoformat(), "action": "update", "error": "Article not found"}
+        return {
+            "ts": datetime.now().isoformat(),
+            "action": "update",
+            "error": "Article not found"}
 
     art_id, art_topic, old_content, version = row
     new_version = version + 1
@@ -246,29 +261,56 @@ def do_export():
     with open(export_path, "w", encoding="utf-8") as f:
         json.dump(articles, f, ensure_ascii=False, indent=2)
 
-    all_tags = db.execute("SELECT tag, article_count FROM tags ORDER BY article_count DESC").fetchall()
+    all_tags = db.execute(
+        "SELECT tag, article_count FROM tags ORDER BY article_count DESC").fetchall()
     db.close()
 
-    return {
-        "ts": datetime.now().isoformat(),
-        "action": "export",
-        "total_articles": len(articles),
-        "export_path": str(export_path),
-        "tags": [{"tag": t[0], "count": t[1]} for t in all_tags],
-        "articles": [{"id": a["id"], "topic": a["topic"], "version": a["version"]} for a in articles[:20]]
-    }
+    return {"ts": datetime.now().isoformat(),
+            "action": "export",
+            "total_articles": len(articles),
+            "export_path": str(export_path),
+            "tags": [{"tag": t[0],
+                      "count": t[1]} for t in all_tags],
+            "articles": [{"id": a["id"],
+                          "topic": a["topic"],
+                          "version": a["version"]} for a in articles[:20]]}
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Wiki engine — Internal wiki with full-text search")
-    parser.add_argument("--create", metavar="TOPIC", help="Create a new article")
-    parser.add_argument("--content", metavar="TEXT", help="Article content (for --create or --update)")
+    parser = argparse.ArgumentParser(
+        description="Wiki engine — Internal wiki with full-text search")
+    parser.add_argument(
+        "--create",
+        metavar="TOPIC",
+        help="Create a new article")
+    parser.add_argument(
+        "--content",
+        metavar="TEXT",
+        help="Article content (for --create or --update)")
     parser.add_argument("--tags", metavar="TAGS", help="Comma-separated tags")
-    parser.add_argument("--search", nargs="?", const="", metavar="QUERY", help="Search articles")
-    parser.add_argument("--update", action="store_true", help="Update an article")
-    parser.add_argument("--article-id", type=int, metavar="ID", help="Article ID for update")
-    parser.add_argument("--export", action="store_true", help="Export all articles")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument(
+        "--search",
+        nargs="?",
+        const="",
+        metavar="QUERY",
+        help="Search articles")
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Update an article")
+    parser.add_argument(
+        "--article-id",
+        type=int,
+        metavar="ID",
+        help="Article ID for update")
+    parser.add_argument(
+        "--export",
+        action="store_true",
+        help="Export all articles")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.create:
@@ -276,7 +318,10 @@ def main():
     elif args.search is not None:
         result = do_search(args.search if args.search else None)
     elif args.update:
-        result = do_update(article_id=args.article_id, content=args.content, tags=args.tags)
+        result = do_update(
+            article_id=args.article_id,
+            content=args.content,
+            tags=args.tags)
     elif args.export:
         result = do_export()
     else:
@@ -287,8 +332,7 @@ def main():
             "db": str(DB_PATH),
             "total_articles": db.execute("SELECT COUNT(*) FROM articles").fetchone()[0],
             "total_tags": db.execute("SELECT COUNT(*) FROM tags").fetchone()[0],
-            "help": "Use --create TOPIC / --search [QUERY] / --update / --export"
-        }
+            "help": "Use --create TOPIC / --search [QUERY] / --update / --export"}
         db.close()
 
     print(json.dumps(result, ensure_ascii=False, indent=2))

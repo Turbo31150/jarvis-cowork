@@ -60,7 +60,11 @@ def get_boot_time():
         if boot_str:
             boot_dt = datetime.strptime(boot_str, "%Y-%m-%d %H:%M:%S")
             uptime_s = (datetime.now() - boot_dt).total_seconds()
-            return {"boot_time": boot_str, "uptime_hours": round(uptime_s / 3600, 1)}
+            return {
+                "boot_time": boot_str,
+                "uptime_hours": round(
+                    uptime_s / 3600,
+                    1)}
     except Exception:
         pass
     return {"boot_time": "unknown", "uptime_hours": 0}
@@ -132,14 +136,20 @@ def do_analyze():
 
     db.execute(
         "INSERT INTO boot_times (ts, boot_time_s, services_auto, services_running) VALUES (?,?,?,?)",
-        (time.time(), boot["uptime_hours"] * 3600, len(services), running)
-    )
+        (time.time(),
+         boot["uptime_hours"] *
+         3600,
+         len(services),
+         running))
 
     for s in suggestions:
         db.execute(
             "INSERT INTO suggestions (ts, service, current_start, suggested_start, reason) VALUES (?,?,?,?,?)",
-            (time.time(), s["service"], s["current"], s["suggested"], s["reason"])
-        )
+            (time.time(),
+             s["service"],
+                s["current"],
+                s["suggested"],
+                s["reason"]))
 
     db.commit()
     db.close()
@@ -157,7 +167,11 @@ def do_analyze():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Boot Optimizer")
-    parser.add_argument("--once", "--analyze", action="store_true", help="Analyze boot")
+    parser.add_argument(
+        "--once",
+        "--analyze",
+        action="store_true",
+        help="Analyze boot")
     parser.add_argument("--benchmark", action="store_true", help="Benchmark")
     parser.add_argument("--disable", metavar="SERVICE", help="Disable service")
     parser.add_argument("--report", action="store_true", help="Report")

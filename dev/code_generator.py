@@ -55,11 +55,9 @@ M1_TIMEOUT = 120  # secondes
 # Templates predefinis (pattern COWORK_QUEUE)
 # ---------------------------------------------------------------------------
 
-TEMPLATES = {
-    "jarvis-script": {
-        "name": "Script JARVIS CLI",
-        "description": "Script Python CLI avec argparse, sortie JSON et stockage SQLite",
-        "code": textwrap.dedent('''\
+TEMPLATES = {"jarvis-script": {"name": "Script JARVIS CLI",
+                               "description": "Script Python CLI avec argparse, sortie JSON et stockage SQLite",
+                               "code": textwrap.dedent('''\
             #!/usr/bin/env python3
             """__NAME__.py
 
@@ -150,11 +148,10 @@ TEMPLATES = {
             if __name__ == "__main__":
                 main()
         '''),
-    },
-    "mcp-tool": {
-        "name": "Outil MCP",
-        "description": "Outil MCP avec handler, schema JSON et integration JARVIS",
-        "code": textwrap.dedent('''\
+                               },
+             "mcp-tool": {"name": "Outil MCP",
+                          "description": "Outil MCP avec handler, schema JSON et integration JARVIS",
+                          "code": textwrap.dedent('''\
             #!/usr/bin/env python3
             """mcp___NAME__.py
 
@@ -214,11 +211,10 @@ TEMPLATES = {
             if __name__ == "__main__":
                 main()
         '''),
-    },
-    "api-endpoint": {
-        "name": "Endpoint API",
-        "description": "Endpoint HTTP avec serveur integre, modele de donnees et stockage SQLite",
-        "code": textwrap.dedent('''\
+                          },
+             "api-endpoint": {"name": "Endpoint API",
+                              "description": "Endpoint HTTP avec serveur integre, modele de donnees et stockage SQLite",
+                              "code": textwrap.dedent('''\
             #!/usr/bin/env python3
             """api___NAME__.py
 
@@ -326,12 +322,13 @@ TEMPLATES = {
             if __name__ == "__main__":
                 main()
         '''),
-    },
-}
+                              },
+             }
 
 # ---------------------------------------------------------------------------
 # Base de donnees SQLite
 # ---------------------------------------------------------------------------
+
 
 def _ensure_db_dir():
     """Cree le repertoire data/ s'il n'existe pas."""
@@ -369,6 +366,7 @@ def _init_tables(conn: sqlite3.Connection):
 # ---------------------------------------------------------------------------
 # Appel au cluster IA (M1 via LM Studio Responses API)
 # ---------------------------------------------------------------------------
+
 
 def _call_m1(prompt: str) -> dict:
     """Appelle M1 (qwen3-8b) et retourne le contenu genere.
@@ -483,6 +481,7 @@ def _extract_python_code(raw: str) -> str:
 # Validation et test
 # ---------------------------------------------------------------------------
 
+
 def _validate_syntax(code: str) -> dict:
     """Valide la syntaxe Python avec ast.parse."""
     try:
@@ -569,6 +568,7 @@ def _test_file(filepath: str) -> dict:
 # Commandes CLI
 # ---------------------------------------------------------------------------
 
+
 def cmd_generate(description: str):
     """Genere un script Python a partir d'une description en langage naturel."""
     # Construire le prompt pour M1
@@ -611,9 +611,15 @@ def cmd_generate(description: str):
     cur.execute(
         """INSERT INTO generations (ts, description, code, valid, model, latency_ms, error)
            VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (ts, description, code, 1 if syntax["valid"] else 0,
-         m1_result.get("model", M1_MODEL), m1_result["latency_ms"],
-         syntax["error"]),
+        (ts,
+         description,
+         code,
+         1 if syntax["valid"] else 0,
+         m1_result.get(
+             "model",
+             M1_MODEL),
+            m1_result["latency_ms"],
+            syntax["error"]),
     )
     gen_id = cur.lastrowid
     conn.commit()
@@ -658,8 +664,13 @@ def cmd_template(template_type: str):
     cur.execute(
         """INSERT INTO generations (ts, description, template, code, valid, model, latency_ms)
            VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (ts, tpl["description"], template_type, code,
-         1 if syntax["valid"] else 0, "template", 0),
+        (ts,
+         tpl["description"],
+         template_type,
+         code,
+         1 if syntax["valid"] else 0,
+         "template",
+         0),
     )
     gen_id = cur.lastrowid
     conn.commit()
@@ -691,7 +702,9 @@ def cmd_validate(filepath: str):
     """Valide la syntaxe d'un fichier Python avec ast.parse."""
     path = Path(filepath)
     if not path.exists():
-        result = {"status": "error", "message": f"Fichier introuvable : {filepath}"}
+        result = {
+            "status": "error",
+            "message": f"Fichier introuvable : {filepath}"}
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
 
@@ -712,6 +725,7 @@ def cmd_validate(filepath: str):
 # Point d'entree
 # ---------------------------------------------------------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generateur de code Python JARVIS — utilise le cluster IA (M1/qwen3-8b) pour generer, valider et tester du code.",
@@ -728,13 +742,23 @@ Templates disponibles : jarvis-script, mcp-tool, api-endpoint
 """,
     )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--generate", type=str, metavar="DESCRIPTION",
-                       help="Generer un script a partir d'une description en langage naturel")
-    group.add_argument("--template", type=str, metavar="TYPE",
-                       choices=list(TEMPLATES.keys()),
-                       help="Generer a partir d'un template (jarvis-script, mcp-tool, api-endpoint)")
-    group.add_argument("--test", type=str, metavar="FILE",
-                       help="Tester un fichier Python (syntaxe + --help + compilation)")
+    group.add_argument(
+        "--generate",
+        type=str,
+        metavar="DESCRIPTION",
+        help="Generer un script a partir d'une description en langage naturel")
+    group.add_argument(
+        "--template",
+        type=str,
+        metavar="TYPE",
+        choices=list(
+            TEMPLATES.keys()),
+        help="Generer a partir d'un template (jarvis-script, mcp-tool, api-endpoint)")
+    group.add_argument(
+        "--test",
+        type=str,
+        metavar="FILE",
+        help="Tester un fichier Python (syntaxe + --help + compilation)")
     group.add_argument("--validate", type=str, metavar="FILE",
                        help="Valider la syntaxe Python avec ast.parse")
 

@@ -143,9 +143,13 @@ def do_prioritize():
     for s in scored:
         db.execute(
             "INSERT INTO priorities (ts, script_name, impact, urgency, effort_inv, score, quadrant) VALUES (?,?,?,?,?,?,?)",
-            (time.time(), s["name"], s["impact"], s["urgency"],
-             s["effort_inv"], s["score"], s["quadrant"])
-        )
+            (time.time(),
+             s["name"],
+                s["impact"],
+                s["urgency"],
+                s["effort_inv"],
+                s["score"],
+                s["quadrant"]))
 
     db.execute(
         "INSERT INTO runs (ts, pending_count, prioritized_count) VALUES (?,?,?)",
@@ -162,19 +166,25 @@ def do_prioritize():
             by_quadrant[q] = []
         by_quadrant[q].append({"name": s["name"], "score": s["score"]})
 
-    return {
-        "ts": datetime.now().isoformat(),
-        "total_pending": len(tasks),
-        "prioritized": len(scored),
-        "quadrants": {q: len(items) for q, items in by_quadrant.items()},
-        "top_priority": [{"name": s["name"], "score": s["score"], "quadrant": s["quadrant"]} for s in scored[:15]],
-        "by_quadrant": by_quadrant,
-    }
+    return {"ts": datetime.now().isoformat(),
+            "total_pending": len(tasks),
+            "prioritized": len(scored),
+            "quadrants": {q: len(items) for q,
+                          items in by_quadrant.items()},
+            "top_priority": [{"name": s["name"],
+                              "score": s["score"],
+                              "quadrant": s["quadrant"]} for s in scored[:15]],
+            "by_quadrant": by_quadrant,
+            }
 
 
 def main():
     parser = argparse.ArgumentParser(description="IA Task Prioritizer")
-    parser.add_argument("--once", "--prioritize", action="store_true", help="Prioritize tasks")
+    parser.add_argument(
+        "--once",
+        "--prioritize",
+        action="store_true",
+        help="Prioritize tasks")
     parser.add_argument("--queue", action="store_true", help="Show queue")
     parser.add_argument("--reorder", action="store_true", help="Reorder queue")
     parser.add_argument("--stats", action="store_true", help="Stats")

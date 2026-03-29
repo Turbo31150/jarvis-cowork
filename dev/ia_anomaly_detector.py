@@ -49,7 +49,8 @@ def load_metrics():
 
     try:
         db = sqlite3.connect(str(ETOILE_DB))
-        tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        tables = [t[0] for t in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
 
         if "tool_metrics" in tables:
             rows = db.execute(
@@ -132,9 +133,13 @@ def do_scan():
     for a in anomalies:
         db.execute(
             "INSERT INTO anomalies (ts, agent, metric, value, expected_mean, deviation, severity) VALUES (?,?,?,?,?,?,?)",
-            (time.time(), a["agent"], a["metric"], a["value"],
-             a["mean"], a["deviation"], a["severity"])
-        )
+            (time.time(),
+             a["agent"],
+                a["metric"],
+                a["value"],
+                a["mean"],
+                a["deviation"],
+                a["severity"]))
 
     # Unique anomalies by agent+metric
     unique = {}
@@ -150,27 +155,44 @@ def do_scan():
         "ts": datetime.now().isoformat(),
         "agents_analyzed": len(metrics),
         "anomalies_detected": len(unique),
-        "high_severity": sum(1 for a in unique.values() if a["severity"] == "high"),
-        "anomalies": list(unique.values())[:15],
+        "high_severity": sum(
+            1 for a in unique.values() if a["severity"] == "high"),
+        "anomalies": list(
+            unique.values())[
+                :15],
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description="IA Anomaly Detector")
-    parser.add_argument("--once", "--scan", action="store_true", help="Scan for anomalies")
-    parser.add_argument("--baseline", action="store_true", help="Show baselines")
+    parser.add_argument(
+        "--once",
+        "--scan",
+        action="store_true",
+        help="Scan for anomalies")
+    parser.add_argument(
+        "--baseline",
+        action="store_true",
+        help="Show baselines")
     parser.add_argument("--alerts", action="store_true", help="Show alerts")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()
 
     if args.baseline:
         db = init_db()
-        rows = db.execute("SELECT agent, metric, mean, stddev, samples FROM baselines ORDER BY ts DESC LIMIT 20").fetchall()
+        rows = db.execute(
+            "SELECT agent, metric, mean, stddev, samples FROM baselines ORDER BY ts DESC LIMIT 20").fetchall()
         db.close()
-        print(json.dumps([{"agent": r[0], "metric": r[1], "mean": r[2], "stddev": r[3], "n": r[4]} for r in rows], indent=2))
+        print(json.dumps([{"agent": r[0],
+                           "metric": r[1],
+                           "mean": r[2],
+                           "stddev": r[3],
+                           "n": r[4]} for r in rows],
+                         indent=2))
     elif args.alerts:
         db = init_db()
-        rows = db.execute("SELECT ts, agent, metric, deviation, severity FROM anomalies ORDER BY ts DESC LIMIT 20").fetchall()
+        rows = db.execute(
+            "SELECT ts, agent, metric, deviation, severity FROM anomalies ORDER BY ts DESC LIMIT 20").fetchall()
         db.close()
         print(json.dumps([{
             "ts": datetime.fromtimestamp(r[0]).isoformat(),

@@ -7,7 +7,12 @@ Usage:
     python dev/jarvis_usage_analytics.py --trends
     python dev/jarvis_usage_analytics.py --once
 """
-import argparse, json, sqlite3, time, os, glob as globmod
+import argparse
+import json
+import sqlite3
+import time
+import os
+import glob as globmod
 from datetime import datetime, timedelta
 from pathlib import Path
 from collections import defaultdict
@@ -66,7 +71,8 @@ def _scan_databases():
             table_details = []
             for (tname,) in tables:
                 try:
-                    cnt = conn.execute(f"SELECT COUNT(*) FROM [{tname}]").fetchone()[0]
+                    cnt = conn.execute(
+                        f"SELECT COUNT(*) FROM [{tname}]").fetchone()[0]
                     total_rows += cnt
                     table_details.append({"table": tname, "rows": cnt})
                 except Exception:
@@ -103,21 +109,40 @@ def take_snapshot(db):
     dbs = _scan_databases()
     total_rows = sum(d.get("rows", 0) for d in dbs)
     total_size = sum(d.get("size_bytes", 0) for d in dbs)
-    most_active = max(dbs, key=lambda d: d.get("rows", 0)) if dbs else {"name": "none", "rows": 0}
+    most_active = max(
+        dbs, key=lambda d: d.get(
+            "rows", 0)) if dbs else {
+        "name": "none", "rows": 0}
 
     cur = db.execute(
         "INSERT INTO snapshots (date, total_dbs, total_rows, total_size_bytes, most_active_db, most_active_rows) VALUES (?,?,?,?,?,?)",
-        (datetime.now().strftime("%Y-%m-%d"), len(dbs), total_rows, total_size,
-         most_active.get("name", ""), most_active.get("rows", 0))
-    )
+        (datetime.now().strftime("%Y-%m-%d"),
+         len(dbs),
+         total_rows,
+         total_size,
+         most_active.get(
+            "name",
+            ""),
+            most_active.get(
+            "rows",
+            0)))
     snap_id = cur.lastrowid
 
     for d in dbs:
         if "error" not in d:
             db.execute(
                 "INSERT INTO db_stats (snapshot_id, db_name, table_count, row_count, size_bytes) VALUES (?,?,?,?,?)",
-                (snap_id, d["name"], d.get("tables", 0), d.get("rows", 0), d.get("size_bytes", 0))
-            )
+                (snap_id,
+                 d["name"],
+                    d.get(
+                     "tables",
+                     0),
+                    d.get(
+                     "rows",
+                     0),
+                    d.get(
+                     "size_bytes",
+                     0)))
     db.commit()
     return snap_id, dbs
 
@@ -128,8 +153,10 @@ def generate_report(db):
     total_rows = sum(d.get("rows", 0) for d in dbs)
     total_size = sum(d.get("size_bytes", 0) for d in dbs)
 
-    sorted_by_rows = sorted([d for d in dbs if "error" not in d], key=lambda x: x.get("rows", 0), reverse=True)
-    sorted_by_size = sorted([d for d in dbs if "error" not in d], key=lambda x: x.get("size_bytes", 0), reverse=True)
+    sorted_by_rows = sorted([d for d in dbs if "error" not in d],
+                            key=lambda x: x.get("rows", 0), reverse=True)
+    sorted_by_size = sorted([d for d in dbs if "error" not in d],
+                            key=lambda x: x.get("size_bytes", 0), reverse=True)
 
     return {
         "total_databases": len(dbs),
@@ -154,9 +181,12 @@ def daily_report(db):
             continue
         try:
             conn = sqlite3.connect(d["path"])
-            tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+            tables = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()
             for (tname,) in tables:
-                cols = [c[1] for c in conn.execute(f"PRAGMA table_info([{tname}])").fetchall()]
+                cols = [
+                    c[1] for c in conn.execute(
+                        f"PRAGMA table_info([{tname}])").fetchall()]
                 for date_col in ["ts", "created_at", "date", "timestamp"]:
                     if date_col in cols:
                         try:
@@ -164,7 +194,8 @@ def daily_report(db):
                                 f"SELECT COUNT(*) FROM [{tname}] WHERE DATE([{date_col}])=?", (today,)
                             ).fetchone()[0]
                             if cnt > 0:
-                                daily_activity.append({"db": d["name"], "table": tname, "today_rows": cnt})
+                                daily_activity.append(
+                                    {"db": d["name"], "table": tname, "today_rows": cnt})
                         except Exception:
                             pass
                         break
@@ -190,7 +221,7 @@ def weekly_report(db):
     ).fetchall()
     return {
         "weekly_snapshots": [
-            {"date": s[0], "dbs": s[1], "rows": s[2], "size_mb": round(s[3]/(1024*1024), 2)}
+            {"date": s[0], "dbs": s[1], "rows": s[2], "size_mb": round(s[3] / (1024 * 1024), 2)}
             for s in snapshots
         ]
     }
@@ -241,11 +272,24 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Usage Analytics — aggregate all DB stats")
-    parser.add_argument("--report", action="store_true", help="Full analytics report")
-    parser.add_argument("--daily", action="store_true", help="Today's activity")
-    parser.add_argument("--weekly", action="store_true", help="7-day snapshots")
-    parser.add_argument("--trends", action="store_true", help="ASCII trend graph")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Usage Analytics — aggregate all DB stats")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Full analytics report")
+    parser.add_argument(
+        "--daily",
+        action="store_true",
+        help="Today's activity")
+    parser.add_argument(
+        "--weekly",
+        action="store_true",
+        help="7-day snapshots")
+    parser.add_argument(
+        "--trends",
+        action="store_true",
+        help="ASCII trend graph")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

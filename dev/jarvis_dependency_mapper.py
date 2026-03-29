@@ -163,9 +163,13 @@ def do_map():
 
     db.execute(
         "INSERT INTO maps (ts, total_files, total_deps, circular, orphans, score, graph) VALUES (?,?,?,?,?,?,?)",
-        (time.time(), len(all_files), total_deps, len(circular),
-         len(orphans), coupling_score, json.dumps(json_graph))
-    )
+        (time.time(),
+         len(all_files),
+         total_deps,
+         len(circular),
+         len(orphans),
+         coupling_score,
+         json.dumps(json_graph)))
     db.commit()
     db.close()
     return report
@@ -173,16 +177,28 @@ def do_map():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Dependency Mapper")
-    parser.add_argument("--once", "--map", action="store_true", help="Full mapping")
-    parser.add_argument("--circular", action="store_true", help="Show circular deps only")
-    parser.add_argument("--orphans", action="store_true", help="Show orphan files")
+    parser.add_argument(
+        "--once",
+        "--map",
+        action="store_true",
+        help="Full mapping")
+    parser.add_argument(
+        "--circular",
+        action="store_true",
+        help="Show circular deps only")
+    parser.add_argument(
+        "--orphans",
+        action="store_true",
+        help="Show orphan files")
     args = parser.parse_args()
 
     result = do_map()
     if args.circular:
-        print(json.dumps({"circular": result["circular_details"]}, ensure_ascii=False, indent=2))
+        print(json.dumps(
+            {"circular": result["circular_details"]}, ensure_ascii=False, indent=2))
     elif args.orphans:
-        print(json.dumps({"orphans": result["orphans"]}, ensure_ascii=False, indent=2))
+        print(json.dumps(
+            {"orphans": result["orphans"]}, ensure_ascii=False, indent=2))
     else:
         print(json.dumps(result, ensure_ascii=False, indent=2))
 

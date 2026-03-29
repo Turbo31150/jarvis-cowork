@@ -115,7 +115,8 @@ def get_protection_status():
         )
         count = int(r.stdout.strip()) if r.stdout.strip().isdigit() else 0
         status["restore_point_count"] = count
-        status["enabled"] = count > 0 or True  # System Restore might be enabled with 0 points
+        # System Restore might be enabled with 0 points
+        status["enabled"] = count > 0 or True
     except Exception:
         status["restore_point_count"] = 0
 
@@ -147,7 +148,8 @@ def create_restore_point(db, description="JARVIS Checkpoint"):
             details = "Restore point created successfully"
         else:
             result = "error"
-            details = r.stderr.strip()[:300] or "Unknown error (may need admin privileges)"
+            details = r.stderr.strip()[
+                :300] or "Unknown error (may need admin privileges)"
 
     except subprocess.TimeoutExpired:
         result = "timeout"
@@ -175,14 +177,18 @@ def list_restore_points(db):
     points, err = get_restore_points()
 
     if err:
-        return {"status": "error", "error": err, "note": "May require admin privileges"}
+        return {"status": "error", "error": err,
+                "note": "May require admin privileges"}
 
     # Cache to DB
     for pt in points:
         db.execute(
             "INSERT OR REPLACE INTO restore_points_cache (ts, seq_number, description, creation_time, restore_type) VALUES (?,?,?,?,?)",
-            (time.time(), pt["sequence"], pt["description"], pt["creation_time"], pt["type"])
-        )
+            (time.time(),
+             pt["sequence"],
+                pt["description"],
+                pt["creation_time"],
+                pt["type"]))
     db.commit()
 
     return {
@@ -229,20 +235,34 @@ def once(db):
     db.commit()
 
     return {
-        "status": "ok", "mode": "once",
+        "status": "ok",
+        "mode": "once",
         "protection_status": status["protection"],
         "restore_points": points,
-        "our_log_count": db.execute("SELECT COUNT(*) FROM restore_log").fetchone()[0]
-    }
+        "our_log_count": db.execute("SELECT COUNT(*) FROM restore_log").fetchone()[0]}
 
 
 def main():
-    parser = argparse.ArgumentParser(description="System Restore Manager (#197) — Windows restore points")
-    parser.add_argument("--create", type=str, nargs="?", const="JARVIS Checkpoint",
-                        help="Create a restore point")
-    parser.add_argument("--list", action="store_true", help="List restore points")
-    parser.add_argument("--status", action="store_true", help="Show protection status")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="System Restore Manager (#197) — Windows restore points")
+    parser.add_argument(
+        "--create",
+        type=str,
+        nargs="?",
+        const="JARVIS Checkpoint",
+        help="Create a restore point")
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List restore points")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Show protection status")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     db = init_db()

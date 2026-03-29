@@ -23,7 +23,14 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "file_watcher.db"
 
 DEFAULT_WATCH_DIR = str(DEV)
-DEFAULT_PATTERNS = ["*.py", "*.json", "*.md", "*.yaml", "*.yml", "*.toml", "*.cfg"]
+DEFAULT_PATTERNS = [
+    "*.py",
+    "*.json",
+    "*.md",
+    "*.yaml",
+    "*.yml",
+    "*.toml",
+    "*.cfg"]
 
 
 def init_db():
@@ -70,7 +77,10 @@ def scan_directory(directory, patterns=None, recursive=False):
             for root, dirs, filenames in os.walk(directory):
                 for name in filenames:
                     full = os.path.join(root, name)
-                    if patterns and not any(fnmatch.fnmatch(name, p) for p in patterns):
+                    if patterns and not any(
+                        fnmatch.fnmatch(
+                            name,
+                            p) for p in patterns):
                         continue
                     try:
                         stat = os.stat(full)
@@ -85,7 +95,10 @@ def scan_directory(directory, patterns=None, recursive=False):
             with os.scandir(directory) as entries:
                 for entry in entries:
                     if entry.is_file():
-                        if patterns and not any(fnmatch.fnmatch(entry.name, p) for p in patterns):
+                        if patterns and not any(
+                            fnmatch.fnmatch(
+                                entry.name,
+                                p) for p in patterns):
                             continue
                         try:
                             stat = entry.stat()
@@ -174,7 +187,8 @@ def detect_changes(old_files, new_files):
     for p in old_paths & new_paths:
         old = old_files[p]
         new = new_files[p]
-        if old["size"] != new["size"] or abs(old["mtime"] - new["mtime"]) > 0.01:
+        if old["size"] != new["size"] or abs(
+                old["mtime"] - new["mtime"]) > 0.01:
             changes.append({
                 "type": "modified",
                 "path": p,
@@ -245,12 +259,27 @@ def list_patterns():
         "status": "ok",
         "default_patterns": DEFAULT_PATTERNS,
         "common_patterns": {
-            "code": ["*.py", "*.js", "*.ts", "*.rs", "*.go"],
-            "config": ["*.json", "*.yaml", "*.yml", "*.toml", "*.cfg", "*.ini"],
-            "docs": ["*.md", "*.txt", "*.rst"],
-            "data": ["*.db", "*.sqlite", "*.csv"]
-        }
-    }
+            "code": [
+                "*.py",
+                "*.js",
+                "*.ts",
+                "*.rs",
+                "*.go"],
+            "config": [
+                "*.json",
+                "*.yaml",
+                "*.yml",
+                "*.toml",
+                "*.cfg",
+                "*.ini"],
+            "docs": [
+                "*.md",
+                "*.txt",
+                "*.rst"],
+            "data": [
+                "*.db",
+                "*.sqlite",
+                "*.csv"]}}
 
 
 def get_history(db, limit=50):
@@ -290,7 +319,8 @@ def once(db):
     """Run once: watch default dir."""
     result = watch_directory(db, DEFAULT_WATCH_DIR)
     total_changes = db.execute("SELECT COUNT(*) FROM changes").fetchone()[0]
-    total_snapshots = db.execute("SELECT COUNT(*) FROM snapshots").fetchone()[0]
+    total_snapshots = db.execute(
+        "SELECT COUNT(*) FROM snapshots").fetchone()[0]
     result["mode"] = "once"
     result["total_changes_logged"] = total_changes
     result["total_snapshots"] = total_snapshots
@@ -298,12 +328,26 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="File Watcher (#196) — File change detection")
-    parser.add_argument("--watch", type=str, nargs="?", const=DEFAULT_WATCH_DIR,
-                        help="Watch a directory for changes")
-    parser.add_argument("--patterns", type=str, help="Comma-separated glob patterns")
-    parser.add_argument("--history", action="store_true", help="Show change history")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="File Watcher (#196) — File change detection")
+    parser.add_argument(
+        "--watch",
+        type=str,
+        nargs="?",
+        const=DEFAULT_WATCH_DIR,
+        help="Watch a directory for changes")
+    parser.add_argument(
+        "--patterns",
+        type=str,
+        help="Comma-separated glob patterns")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show change history")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     db = init_db()

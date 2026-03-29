@@ -36,7 +36,8 @@ import time
 from pathlib import Path
 from typing import Dict, Any
 
-# Ensure Unicode output works on Windows consoles (cp1252 cannot encode all chars)
+# Ensure Unicode output works on Windows consoles (cp1252 cannot encode
+# all chars)
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
@@ -51,6 +52,8 @@ TELEGRAM_CHAT_ID = "2010747443"
 # ---------------------------------------------------------------------------
 # Helper – exécuter une commande et récupérer la sortie (texte)
 # ---------------------------------------------------------------------------
+
+
 def run_cmd(command: list, timeout: int = 10) -> str:
     try:
         out = subprocess.check_output(command, text=True, timeout=timeout)
@@ -61,10 +64,14 @@ def run_cmd(command: list, timeout: int = 10) -> str:
 # ---------------------------------------------------------------------------
 # Telegram notification
 # ---------------------------------------------------------------------------
+
+
 def telegram_send(message: str):
-    import urllib.parse, urllib.request
+    import urllib.parse
+    import urllib.request
     try:
-        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": message}).encode()
+        data = urllib.parse.urlencode(
+            {"chat_id": TELEGRAM_CHAT_ID, "text": message}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         req = urllib.request.Request(url, data=data)
         urllib.request.urlopen(req, timeout=10)
@@ -75,6 +82,7 @@ def telegram_send(message: str):
 # Individual checks – each returns a dict with 'score' and optional details
 # ---------------------------------------------------------------------------
 
+
 def check_cluster() -> Dict[str, Any]:
     nodes = {
         "M1": "http://127.0.0.1:1234/v1/chat/completions",
@@ -83,11 +91,14 @@ def check_cluster() -> Dict[str, Any]:
     }
     reachable = 0
     for name, url in nodes.items():
-        out = run_cmd(["curl.exe", "-s", "-o", "NUL", "-w", "%{http_code}", url])
+        out = run_cmd(["curl.exe", "-s", "-o", "NUL",
+                      "-w", "%{http_code}", url])
         if out == "200":
             reachable += 1
     score = int(100 * reachable / len(nodes))
-    return {"score": score, "details": f"{reachable}/{len(nodes)} nodes reachable"}
+    return {"score": score,
+            "details": f"{reachable}/{len(nodes)} nodes reachable"}
+
 
 def check_databases() -> Dict[str, Any]:
     db_paths = {
@@ -103,9 +114,11 @@ def check_databases() -> Dict[str, Any]:
     score = int(100 * exists / total)
     return {"score": score, "details": f"{exists}/{total} DB existent(s)"}
 
+
 def check_cron() -> Dict[str, Any]:
     # Attempt to list cron jobs via the OpenClaw CLI (if available)
-    out = run_cmd(["openclaw", "cron", "list", "--includeDisabled", "true"], timeout=20)
+    out = run_cmd(["openclaw", "cron", "list",
+                  "--includeDisabled", "true"], timeout=20)
     if not out:
         score = 0
         details = "cron command unavailable"
@@ -124,6 +137,7 @@ def check_cron() -> Dict[str, Any]:
             details = f"{cnt} job(s) (parsed)"
     return {"score": score, "details": details}
 
+
 def check_services() -> Dict[str, Any]:
     # Re‑utilise le script service_watcher.py en mode --status
     out = run_cmd([sys.executable, "service_watcher.py", "--list"], timeout=15)
@@ -133,6 +147,7 @@ def check_services() -> Dict[str, Any]:
     score = int(100 * running / total) if total else 0
     details = f"{running}/{total} services running"
     return {"score": score, "details": details}
+
 
 def check_disk() -> Dict[str, Any]:
     # Check free space on C: (and F: if exists)
@@ -147,9 +162,11 @@ def check_disk() -> Dict[str, Any]:
         total_gb += usage.total / (1024 ** 3)
     free_percent = free_total_gb / total_gb * 100 if total_gb else 0
     # Score : 100 if >30% libre, linéaire jusqu'à 0%.
-    score = int(min(100, max(0, (free_percent - 30) * (100/70)))) if free_percent >= 30 else int(free_percent * (100/30))
+    score = int(min(100, max(0, (free_percent - 30) * (100 / 70)))
+                ) if free_percent >= 30 else int(free_percent * (100 / 30))
     details = f"{free_percent:.1f}% libre sur {', '.join(drives)}"
     return {"score": score, "details": details}
+
 
 def check_ram() -> Dict[str, Any]:
     try:
@@ -175,8 +192,10 @@ def check_ram() -> Dict[str, Any]:
     details = f"RAM used {used_percent:.1f}%"
     return {"score": score, "details": details}
 
+
 def check_gpu() -> Dict[str, Any]:
-    out = run_cmd(["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"], timeout=10)
+    out = run_cmd(["nvidia-smi", "--query-gpu=temperature.gpu",
+                  "--format=csv,noheader,nounits"], timeout=10)
     try:
         temps = [int(t) for t in out.splitlines() if t.strip()]
         max_temp = max(temps) if temps else 0
@@ -191,6 +210,7 @@ def check_gpu() -> Dict[str, Any]:
         score = int(100 * (90 - max_temp) / 20)
     details = f"Max GPU temp {max_temp}°C"
     return {"score": score, "details": details}
+
 
 def check_network() -> Dict[str, Any]:
     # Ping google.com 4 times, measure avg latency.
@@ -223,6 +243,7 @@ def check_network() -> Dict[str, Any]:
 # Aggregate health assessment
 # ---------------------------------------------------------------------------
 
+
 def aggregate(scores: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     total = sum(item["score"] for item in scores.values())
     count = len(scores)
@@ -243,6 +264,8 @@ def aggregate(scores: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Main execution
 # ---------------------------------------------------------------------------
+
+
 def perform_check() -> Dict[str, Any]:
     checks = {
         "cluster": check_cluster(),
@@ -257,18 +280,30 @@ def perform_check() -> Dict[str, Any]:
     result = aggregate(checks)
     return result
 
+
 def display_result(res: Dict[str, Any]):
     print("=== Health Check JARVIS ===")
-    print(f"Score global : {res['overall_score']} / 100   Grade : {res['grade']}")
+    print(
+        f"Score global : {res['overall_score']} / 100   Grade : {res['grade']}")
     for comp, data in res["components"].items():
-        print(f"- {comp:10}: {data['score']:3} – {data.get('details','')}")
+        print(f"- {comp:10}: {data['score']:3} – {data.get('details', '')}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Health‑check global JARVIS.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--once", action="store_true", help="Exécuter un check unique et afficher le résultat")
-    group.add_argument("--loop", action="store_true", help="Boucler toutes les 5 min (Ctrl‑C pour arrêter)")
-    group.add_argument("--json", action="store_true", help="Sortie JSON brute (pour intégration)")
+    group.add_argument(
+        "--once",
+        action="store_true",
+        help="Exécuter un check unique et afficher le résultat")
+    group.add_argument(
+        "--loop",
+        action="store_true",
+        help="Boucler toutes les 5 min (Ctrl‑C pour arrêter)")
+    group.add_argument(
+        "--json",
+        action="store_true",
+        help="Sortie JSON brute (pour intégration)")
     args = parser.parse_args()
 
     if args.once:
@@ -277,20 +312,28 @@ def main():
             print(json.dumps(res, ensure_ascii=False, indent=2))
         else:
             display_result(res)
-            telegram_send(f"🩺 Health Check JARVIS – Score {res['overall_score']} (Grade {res['grade']})")
+            telegram_send(
+                f"🩺 Health Check JARVIS – Score {
+                    res['overall_score']} (Grade {
+                    res['grade']})")
     elif args.loop:
-        print("[health_checker] Démarrage du monitoring (toutes les 5 min). Ctrl‑C pour arrêter.")
+        print(
+            "[health_checker] Démarrage du monitoring (toutes les 5 min). Ctrl‑C pour arrêter.")
         try:
             while True:
                 res = perform_check()
                 display_result(res)
-                telegram_send(f"🩺 Health Check JARVIS – Score {res['overall_score']} (Grade {res['grade']})")
+                telegram_send(
+                    f"🩺 Health Check JARVIS – Score {
+                        res['overall_score']} (Grade {
+                        res['grade']})")
                 time.sleep(300)
         except KeyboardInterrupt:
             print("[health_checker] Boucle interrompue par l'utilisateur.")
     elif args.json:
         res = perform_check()
         print(json.dumps(res, ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

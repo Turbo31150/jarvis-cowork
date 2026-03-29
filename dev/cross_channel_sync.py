@@ -240,7 +240,8 @@ def do_sync():
     total = 0
     try:
         conn = sqlite3.connect(str(ETOILE_DB))
-        total = conn.execute("SELECT COUNT(*) FROM user_patterns").fetchone()[0]
+        total = conn.execute(
+            "SELECT COUNT(*) FROM user_patterns").fetchone()[0]
         conn.close()
     except Exception:
         pass
@@ -257,8 +258,12 @@ def do_sync():
 
     db.execute(
         "INSERT INTO sync_runs (ts, voice_synced, telegram_synced, mcp_synced, dedup_removed, report) VALUES (?,?,?,?,?,?)",
-        (time.time(), voice, telegram, mcp, deduped, json.dumps(report))
-    )
+        (time.time(),
+         voice,
+         telegram,
+         mcp,
+         deduped,
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -267,7 +272,8 @@ def do_sync():
 def get_report():
     """Get sync history."""
     db = init_db()
-    rows = db.execute("SELECT * FROM sync_runs ORDER BY ts DESC LIMIT 20").fetchall()
+    rows = db.execute(
+        "SELECT * FROM sync_runs ORDER BY ts DESC LIMIT 20").fetchall()
     db.close()
     report = []
     for r in rows:
@@ -280,18 +286,29 @@ def get_report():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cross-Channel Sync — Merge voice/telegram/mcp into predictions")
-    parser.add_argument("--once", "--sync", action="store_true", help="Run sync cycle")
+    parser = argparse.ArgumentParser(
+        description="Cross-Channel Sync — Merge voice/telegram/mcp into predictions")
+    parser.add_argument(
+        "--once",
+        "--sync",
+        action="store_true",
+        help="Run sync cycle")
     parser.add_argument("--report", action="store_true", help="Sync history")
     parser.add_argument("--loop", action="store_true", help="Continuous sync")
-    parser.add_argument("--interval", type=int, default=900, help="Loop interval (seconds)")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=900,
+        help="Loop interval (seconds)")
     args = parser.parse_args()
 
     if args.report:
         report = get_report()
         print(json.dumps(report, ensure_ascii=False, indent=2))
     elif args.loop:
-        print(f"[CROSS_CHANNEL] Starting continuous sync (interval={args.interval}s)")
+        print(
+            f"[CROSS_CHANNEL] Starting continuous sync (interval={
+                args.interval}s)")
         while True:
             try:
                 result = do_sync()

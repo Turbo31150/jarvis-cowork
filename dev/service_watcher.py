@@ -44,6 +44,7 @@ DEFAULT_SERVICES = ["Ollama", "LMStudio", "OpenClaw"]
 CONFIG_FILE = Path(__file__).with_name("service_watcher_config.json")
 DB_PATH = Path(__file__).with_name("services.db")
 
+
 def load_config() -> List[str]:
     if CONFIG_FILE.is_file():
         try:
@@ -53,12 +54,15 @@ def load_config() -> List[str]:
                 if isinstance(services, list):
                     return [str(s) for s in services]
         except Exception as e:
-            print(f"[service_watcher] Erreur de lecture du config : {e}", file=sys.stderr)
+            print(
+                f"[service_watcher] Erreur de lecture du config : {e}",
+                file=sys.stderr)
     return DEFAULT_SERVICES
 
 # ---------------------------------------------------------------------------
 # SQLite helpers
 # ---------------------------------------------------------------------------
+
 
 def init_db(conn: sqlite3.Connection):
     cur = conn.cursor()
@@ -75,7 +79,12 @@ def init_db(conn: sqlite3.Connection):
     )
     conn.commit()
 
-def insert_log(conn: sqlite3.Connection, service: str, status: str, action: str):
+
+def insert_log(
+        conn: sqlite3.Connection,
+        service: str,
+        status: str,
+        action: str):
     cur = conn.cursor()
     cur.execute(
         "INSERT INTO logs (ts, service, status, action) VALUES (?,?,?,?)",
@@ -83,14 +92,19 @@ def insert_log(conn: sqlite3.Connection, service: str, status: str, action: str)
     )
     conn.commit()
 
+
 def fetch_history(conn: sqlite3.Connection, limit: int = 20):
     cur = conn.cursor()
-    cur.execute("SELECT ts, service, status, action FROM logs ORDER BY ts DESC LIMIT ?", (limit,))
+    cur.execute(
+        "SELECT ts, service, status, action FROM logs ORDER BY ts DESC LIMIT ?",
+        (limit,
+         ))
     return cur.fetchall()
 
 # ---------------------------------------------------------------------------
 # PowerShell helpers – service status & restart
 # ---------------------------------------------------------------------------
+
 
 def ps(command: str) -> str:
     """Run a PowerShell command and return stripped stdout. Errors return empty string."""
@@ -105,6 +119,7 @@ def ps(command: str) -> str:
     except Exception:
         return ""
 
+
 def get_service_status(name: str) -> str:
     # Returns "running" or "stopped"
     cmd = f"Get-Service -Name '{name}' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status"
@@ -113,6 +128,7 @@ def get_service_status(name: str) -> str:
         return "running"
     else:
         return "stopped"
+
 
 def restart_service(name: str) -> bool:
     cmd = f"Restart-Service -Name '{name}' -Force -ErrorAction SilentlyContinue"
@@ -125,7 +141,11 @@ def restart_service(name: str) -> bool:
 # Core checking logic
 # ---------------------------------------------------------------------------
 
-def check_services(services: List[str], conn: sqlite3.Connection, auto_restart: bool = False):
+
+def check_services(
+        services: List[str],
+        conn: sqlite3.Connection,
+        auto_restart: bool = False):
     for srv in services:
         status = get_service_status(srv)
         insert_log(conn, srv, status, "check")
@@ -141,11 +161,13 @@ def check_services(services: List[str], conn: sqlite3.Connection, auto_restart: 
 # CLI actions
 # ---------------------------------------------------------------------------
 
+
 def cmd_status(services: List[str]):
     conn = sqlite3.connect(str(DB_PATH))
     init_db(conn)
     check_services(services, conn, auto_restart=False)
     conn.close()
+
 
 def cmd_restart(service_name: str, services: List[str]):
     if service_name not in services:
@@ -158,6 +180,7 @@ def cmd_restart(service_name: str, services: List[str]):
     insert_log(conn, service_name, new_status, "restart")
     print(f"[service_watcher] {service_name} après redémarrage : {new_status}")
     conn.close()
+
 
 def cmd_watch(services: List[str]):
     conn = sqlite3.connect(str(DB_PATH))
@@ -172,6 +195,7 @@ def cmd_watch(services: List[str]):
     finally:
         conn.close()
 
+
 def cmd_history():
     conn = sqlite3.connect(str(DB_PATH))
     init_db(conn)
@@ -183,13 +207,27 @@ def cmd_history():
     for ts, svc, status, action in rows:
         print(f"{ts} – {svc} – {status} – {action}")
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Surveillance des services critiques Windows.")
+    parser = argparse.ArgumentParser(
+        description="Surveillance des services critiques Windows.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--status", action="store_true", help="Afficher l'état actuel des services configurés")
-    group.add_argument("--watch", action="store_true", help="Boucle de surveillance (vérifie chaque minute et redémarre si down)")
-    group.add_argument("--restart", metavar="SERVICE", help="Redémarrer immédiatement le service indiqué")
-    group.add_argument("--history", action="store_true", help="Afficher l'historique des contrôles/restarts")
+    group.add_argument(
+        "--status",
+        action="store_true",
+        help="Afficher l'état actuel des services configurés")
+    group.add_argument(
+        "--watch",
+        action="store_true",
+        help="Boucle de surveillance (vérifie chaque minute et redémarre si down)")
+    group.add_argument(
+        "--restart",
+        metavar="SERVICE",
+        help="Redémarrer immédiatement le service indiqué")
+    group.add_argument(
+        "--history",
+        action="store_true",
+        help="Afficher l'historique des contrôles/restarts")
     args = parser.parse_args()
 
     services = load_config()
@@ -202,6 +240,7 @@ def main():
         cmd_restart(args.restart, services)
     elif args.history:
         cmd_history()
+
 
 if __name__ == "__main__":
     main()

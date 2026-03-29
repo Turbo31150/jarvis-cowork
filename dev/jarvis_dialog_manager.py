@@ -9,7 +9,14 @@ Usage:
     python dev/jarvis_dialog_manager.py --reset
     python dev/jarvis_dialog_manager.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, hashlib, re
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import hashlib
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -20,13 +27,74 @@ MAX_CONTEXT_TURNS = 20
 MAX_CONTEXT_TOKENS_ESTIMATE = 4000
 
 TOPIC_KEYWORDS = {
-    "code": ["code", "python", "javascript", "function", "class", "bug", "error", "debug", "variable", "script", "module", "import"],
-    "trading": ["trading", "bitcoin", "crypto", "mexc", "signal", "profit", "loss", "position", "usdt", "btc", "eth", "sol"],
-    "system": ["windows", "service", "process", "registry", "disk", "ram", "cpu", "gpu", "driver", "update", "install"],
-    "cluster": ["cluster", "node", "m1", "m2", "m3", "ollama", "lmstudio", "model", "agent", "benchmark"],
-    "voice": ["voice", "tts", "whisper", "wake", "speech", "dictation", "audio", "microphone"],
-    "general": ["jarvis", "aide", "help", "bonjour", "salut", "merci", "question"],
+    "code": [
+        "code",
+        "python",
+        "javascript",
+        "function",
+        "class",
+        "bug",
+        "error",
+        "debug",
+        "variable",
+        "script",
+        "module",
+        "import"],
+    "trading": [
+        "trading",
+        "bitcoin",
+        "crypto",
+        "mexc",
+        "signal",
+        "profit",
+        "loss",
+        "position",
+        "usdt",
+        "btc",
+        "eth",
+        "sol"],
+    "system": [
+        "windows",
+        "service",
+        "process",
+        "registry",
+        "disk",
+        "ram",
+        "cpu",
+        "gpu",
+        "driver",
+        "update",
+        "install"],
+    "cluster": [
+        "cluster",
+        "node",
+        "m1",
+        "m2",
+        "m3",
+        "ollama",
+        "lmstudio",
+        "model",
+        "agent",
+        "benchmark"],
+    "voice": [
+        "voice",
+        "tts",
+        "whisper",
+        "wake",
+        "speech",
+        "dictation",
+        "audio",
+        "microphone"],
+    "general": [
+        "jarvis",
+        "aide",
+        "help",
+        "bonjour",
+        "salut",
+        "merci",
+        "question"],
 }
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -64,12 +132,16 @@ def init_db():
     db.commit()
     return db
 
+
 def generate_session_id():
-    return hashlib.md5(f"{time.time()}_{os.getpid()}".encode()).hexdigest()[:12]
+    return hashlib.md5(
+        f"{time.time()}_{os.getpid()}".encode()).hexdigest()[:12]
+
 
 def estimate_tokens(text):
     """Rough token estimate: ~4 chars per token for French/English mix."""
     return max(1, len(text) // 4)
+
 
 def detect_topic(text):
     """Detect topic from text content."""
@@ -82,6 +154,7 @@ def detect_topic(text):
     if scores:
         return max(scores, key=scores.get)
     return "general"
+
 
 def extract_entities(text):
     """Extract simple entities (names, numbers, paths, URLs)."""
@@ -100,12 +173,19 @@ def extract_entities(text):
         entities.append({"type": "quoted", "value": q})
     return entities
 
+
 def get_active_session(db):
     """Get or create active session."""
-    row = db.execute("SELECT session_id, topic, turns, started_at FROM sessions WHERE active=1 ORDER BY id DESC LIMIT 1").fetchone()
+    row = db.execute(
+        "SELECT session_id, topic, turns, started_at FROM sessions WHERE active=1 ORDER BY id DESC LIMIT 1").fetchone()
     if row:
-        return {"session_id": row[0], "topic": row[1], "turns": row[2], "started_at": row[3]}
+        return {
+            "session_id": row[0],
+            "topic": row[1],
+            "turns": row[2],
+            "started_at": row[3]}
     return None
+
 
 def do_start():
     db = init_db()
@@ -113,8 +193,14 @@ def do_start():
     db.execute("UPDATE sessions SET active=0 WHERE active=1")
     sid = generate_session_id()
     now = datetime.now().isoformat()
-    db.execute("INSERT INTO sessions (session_id, started_at, last_activity, topic, turns, active) VALUES (?,?,?,?,?,?)",
-               (sid, now, now, "general", 0, 1))
+    db.execute(
+        "INSERT INTO sessions (session_id, started_at, last_activity, topic, turns, active) VALUES (?,?,?,?,?,?)",
+        (sid,
+         now,
+         now,
+         "general",
+         0,
+         1))
     db.commit()
     result = {
         "action": "start_session",
@@ -126,6 +212,7 @@ def do_start():
     db.close()
     return result
 
+
 def do_context():
     db = init_db()
     session = get_active_session(db)
@@ -134,8 +221,10 @@ def do_context():
         return {"error": "No active session. Use --start first."}
 
     sid = session["session_id"]
-    turns = db.execute("SELECT ts, role, content, topic, entities, token_estimate FROM turns WHERE session_id=? ORDER BY id DESC LIMIT ?",
-                       (sid, MAX_CONTEXT_TURNS)).fetchall()
+    turns = db.execute(
+        "SELECT ts, role, content, topic, entities, token_estimate FROM turns WHERE session_id=? ORDER BY id DESC LIMIT ?",
+        (sid,
+         MAX_CONTEXT_TURNS)).fetchall()
     turns.reverse()
 
     context_turns = []
@@ -171,25 +260,30 @@ def do_context():
     db.close()
     return result
 
+
 def do_history():
     db = init_db()
-    sessions = db.execute("SELECT session_id, started_at, last_activity, topic, turns, active FROM sessions ORDER BY id DESC LIMIT 20").fetchall()
+    sessions = db.execute(
+        "SELECT session_id, started_at, last_activity, topic, turns, active FROM sessions ORDER BY id DESC LIMIT 20").fetchall()
     history = []
     for s in sessions:
         history.append({
             "session_id": s[0], "started_at": s[1], "last_activity": s[2],
             "topic": s[3], "turns": s[4], "active": bool(s[5])
         })
-    topic_changes = db.execute("SELECT ts, from_topic, to_topic, trigger_text FROM topic_changes ORDER BY id DESC LIMIT 10").fetchall()
-    result = {
-        "action": "history",
-        "sessions": history,
-        "total_sessions": len(history),
-        "recent_topic_changes": [{"ts": r[0], "from": r[1], "to": r[2], "trigger": r[3][:80] if r[3] else None} for r in topic_changes],
-        "ts": datetime.now().isoformat()
-    }
+    topic_changes = db.execute(
+        "SELECT ts, from_topic, to_topic, trigger_text FROM topic_changes ORDER BY id DESC LIMIT 10").fetchall()
+    result = {"action": "history",
+              "sessions": history,
+              "total_sessions": len(history),
+              "recent_topic_changes": [{"ts": r[0],
+                                        "from": r[1],
+                                        "to": r[2],
+                                        "trigger": r[3][:80] if r[3] else None} for r in topic_changes],
+              "ts": datetime.now().isoformat()}
     db.close()
     return result
+
 
 def do_reset():
     db = init_db()
@@ -203,12 +297,14 @@ def do_reset():
     db.close()
     return result
 
+
 def do_once():
     db = init_db()
     session = get_active_session(db)
     total_sessions = db.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
     total_turns = db.execute("SELECT COUNT(*) FROM turns").fetchone()[0]
-    total_topic_changes = db.execute("SELECT COUNT(*) FROM topic_changes").fetchone()[0]
+    total_topic_changes = db.execute(
+        "SELECT COUNT(*) FROM topic_changes").fetchone()[0]
     result = {
         "status": "ok",
         "active_session": session,
@@ -223,13 +319,30 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Dialog Manager — COWORK #222")
-    parser.add_argument("--start", action="store_true", help="Start new dialog session")
-    parser.add_argument("--context", action="store_true", help="Show current context")
-    parser.add_argument("--history", action="store_true", help="Show session history")
-    parser.add_argument("--reset", action="store_true", help="Reset all sessions")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Dialog Manager — COWORK #222")
+    parser.add_argument(
+        "--start",
+        action="store_true",
+        help="Start new dialog session")
+    parser.add_argument(
+        "--context",
+        action="store_true",
+        help="Show current context")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show session history")
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Reset all sessions")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.start:
@@ -242,6 +355,7 @@ def main():
         print(json.dumps(do_reset(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

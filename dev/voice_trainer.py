@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """JARVIS Voice Trainer — Entrainement continu des corrections vocales."""
-import json, sys, os, sqlite3
+import json
+import sys
+import os
+import sqlite3
 from datetime import datetime
 from collections import Counter
+import argparse
 
 JARVIS_DB = "F:/BUREAU/turbo/data/jarvis.db"
 TRAINER_DB = "C:/Users/franc/.openclaw/workspace/dev/trainer.db"
+
 
 def init_db():
     conn = sqlite3.connect(TRAINER_DB)
@@ -22,6 +27,7 @@ def init_db():
     conn.commit()
     return conn
 
+
 def load_corrections():
     if not os.path.exists(JARVIS_DB):
         print(f"DB not found: {JARVIS_DB}")
@@ -29,8 +35,10 @@ def load_corrections():
     conn = sqlite3.connect(JARVIS_DB)
     c = conn.cursor()
     try:
-        c.execute("SELECT wrong, correct, category, hit_count FROM voice_corrections ORDER BY id DESC")
-        rows = [{"wrong": r[0], "correct": r[1], "category": r[2], "type": "phonetic", "hits": r[3]} for r in c.fetchall()]
+        c.execute(
+            "SELECT wrong, correct, category, hit_count FROM voice_corrections ORDER BY id DESC")
+        rows = [{"wrong": r[0], "correct": r[1], "category": r[2],
+                 "type": "phonetic", "hits": r[3]} for r in c.fetchall()]
     except Exception as e:
         print(f"Error: {e}")
         c.execute("SELECT * FROM voice_corrections LIMIT 1")
@@ -38,6 +46,7 @@ def load_corrections():
         rows = []
     conn.close()
     return rows
+
 
 def analyze_patterns(corrections):
     """Analyse les patterns d'erreurs les plus frequents."""
@@ -49,8 +58,10 @@ def analyze_patterns(corrections):
     for c in corrections:
         wrong = c["wrong"].lower()
         wrong_words[wrong] += 1
-        if c["category"]: categories[c["category"]] += 1
-        if c["type"]: types[c["type"]] += 1
+        if c["category"]:
+            categories[c["category"]] += 1
+        if c["type"]:
+            types[c["type"]] += 1
         # Common prefix patterns
         words = wrong.split()
         if words:
@@ -64,6 +75,7 @@ def analyze_patterns(corrections):
         "top_types": types.most_common(5),
         "top_prefixes": prefixes.most_common(10),
     }
+
 
 def suggest_corrections(corrections, tdb):
     """Genere des suggestions de nouvelles corrections basees sur les patterns."""
@@ -98,16 +110,28 @@ def suggest_corrections(corrections, tdb):
     added = 0
     for s in suggestions[:50]:  # Limit
         try:
-            tc.execute("INSERT OR IGNORE INTO suggestions (ts, wrong, correct, category, confidence, source) VALUES (?,?,?,?,?,?)",
-                      (datetime.now().isoformat(), s["wrong"], s["correct"], s["category"], s["confidence"], s["source"]))
-            if tc.rowcount > 0: added += 1
-        except: pass
+            tc.execute(
+                "INSERT OR IGNORE INTO suggestions (ts, wrong, correct, category, confidence, source) VALUES (?,?,?,?,?,?)",
+                (datetime.now().isoformat(),
+                 s["wrong"],
+                    s["correct"],
+                    s["category"],
+                    s["confidence"],
+                    s["source"]))
+            if tc.rowcount > 0:
+                added += 1
+        except BaseException:
+            pass
     tdb.commit()
 
     return suggestions[:50], added
 
+
 def show_stats(corrections, analysis):
-    print(f"[VOICE TRAINER] {analysis['total']} corrections, {analysis['unique_wrong']} unique")
+    print(
+        f"[VOICE TRAINER] {
+            analysis['total']} corrections, {
+            analysis['unique_wrong']} unique")
     print(f"\nTop erreurs:")
     for word, count in analysis["top_errors"][:10]:
         print(f"  '{word}': {count}x")
@@ -117,6 +141,7 @@ def show_stats(corrections, analysis):
     print(f"\nTypes:")
     for t, count in analysis["top_types"]:
         print(f"  {t}: {count}")
+
 
 if __name__ == "__main__":
     tdb = init_db()
@@ -128,7 +153,9 @@ if __name__ == "__main__":
 
     elif "--suggest" in sys.argv:
         suggestions, added = suggest_corrections(corrections, tdb)
-        print(f"[VOICE TRAINER] {len(suggestions)} suggestions generees, {added} nouvelles")
+        print(
+            f"[VOICE TRAINER] {
+                len(suggestions)} suggestions generees, {added} nouvelles")
         for s in suggestions[:10]:
             print(f"  '{s['wrong']}' -> '{s['correct']}' ({s['source'][:40]})")
 
@@ -139,7 +166,9 @@ if __name__ == "__main__":
         total_sug = tc.fetchone()[0]
         tc.execute("SELECT COUNT(*) FROM suggestions WHERE applied=1")
         applied = tc.fetchone()[0]
-        print(f"[VOICE TRAINER] {analysis['total']} corrections | {total_sug} suggestions ({applied} applied)")
+        print(
+            f"[VOICE TRAINER] {
+                analysis['total']} corrections | {total_sug} suggestions ({applied} applied)")
 
     else:
         print("Usage: voice_trainer.py --analyze | --suggest | --stats")

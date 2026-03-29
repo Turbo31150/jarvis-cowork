@@ -33,17 +33,20 @@ SMART_LAUNCHER = DEV / "smart_launcher.py"
 # ---------------------------------------------------------------------------
 # Command patterns: regex → (script, args_builder)
 # ---------------------------------------------------------------------------
+
+
 def run_script(script: Path, args: list) -> dict:
     """Execute un script et retourne le resultat JSON."""
     cmd = [sys.executable, str(script)] + args
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30,
-                                env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=30, env={
+                **os.environ, "PYTHONIOENCODING": "utf-8"})
         output = result.stdout.strip()
         if output:
             try:
                 return json.loads(output)
-            except:
+            except BaseException:
                 return {"output": output[:500]}
         if result.stderr:
             return {"error": result.stderr.strip()[:300]}
@@ -52,6 +55,7 @@ def run_script(script: Path, args: list) -> dict:
         return {"error": "timeout"}
     except Exception as e:
         return {"error": str(e)}
+
 
 # Commandes vocales → actions
 VOICE_COMMANDS = [
@@ -231,11 +235,16 @@ KEY_MAP = {
 # ---------------------------------------------------------------------------
 # Command interpreter
 # ---------------------------------------------------------------------------
+
+
 def interpret_command(text: str) -> dict:
     """Interprete une commande vocale et retourne l'action a executer."""
     text = text.lower().strip()
     # Remove common filler words
-    text = re.sub(r"^(jarvis|s'il te plait|stp|please|hey|ok|bon)\s*,?\s*", "", text)
+    text = re.sub(
+        r"^(jarvis|s'il te plait|stp|please|hey|ok|bon)\s*,?\s*",
+        "",
+        text)
     text = re.sub(r"\s+(s'il te plait|stp|please)$", "", text)
 
     for cmd in VOICE_COMMANDS:
@@ -251,7 +260,11 @@ def interpret_command(text: str) -> dict:
                     "matched": pattern,
                 }
 
-    return {"action": "unknown", "text": text, "error": "Commande non reconnue"}
+    return {
+        "action": "unknown",
+        "text": text,
+        "error": "Commande non reconnue"}
+
 
 def execute_action(action: dict) -> dict:
     """Execute une action interpretee."""
@@ -265,7 +278,9 @@ def execute_action(action: dict) -> dict:
             if "." in param and " " not in param:
                 url = param if param.startswith("http") else f"https://{param}"
             else:
-                url = f"https://www.google.com/search?q={param.replace(' ', '+')}"
+                url = f"https://www.google.com/search?q={
+                    param.replace(
+                        ' ', '+')}"
             r = run_script(BROWSER_PILOT, ["--navigate", url])
             result.update(r)
             result["url"] = url
@@ -279,7 +294,10 @@ def execute_action(action: dict) -> dict:
         result.update(run_script(BROWSER_PILOT, ["--forward"]))
 
     elif act == "refresh":
-        result.update(run_script(BROWSER_PILOT, ["--eval", "location.reload(); 'refreshed'"]))
+        result.update(
+            run_script(
+                BROWSER_PILOT, [
+                    "--eval", "location.reload(); 'refreshed'"]))
 
     elif act == "scroll_down":
         result.update(run_script(BROWSER_PILOT, ["--scroll", "down"]))
@@ -362,12 +380,24 @@ def execute_action(action: dict) -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Voice Browser Navigator — Navigation web vocale")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Voice Browser Navigator — Navigation web vocale")
     parser.add_argument("--cmd", type=str, help="Commande vocale a executer")
-    parser.add_argument("--interpret", type=str, help="Interpreter sans executer")
-    parser.add_argument("--commands", action="store_true", help="Lister toutes les commandes")
-    parser.add_argument("--test", action="store_true", help="Tester l'interpretation de commandes")
+    parser.add_argument(
+        "--interpret",
+        type=str,
+        help="Interpreter sans executer")
+    parser.add_argument(
+        "--commands",
+        action="store_true",
+        help="Lister toutes les commandes")
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Tester l'interpretation de commandes")
     args = parser.parse_args()
 
     if args.commands:
@@ -397,9 +427,12 @@ def main():
             success = r["action"] != "unknown"
             if success:
                 ok += 1
-            results.append({"phrase": phrase, "action": r["action"], "param": r.get("param"), "ok": success})
+            results.append({"phrase": phrase,
+                            "action": r["action"],
+                            "param": r.get("param"),
+                            "ok": success})
         print(json.dumps({"total": len(test_phrases), "ok": ok,
-                          "rate": f"{ok/len(test_phrases)*100:.0f}%",
+                          "rate": f"{ok / len(test_phrases) * 100:.0f}%",
                           "results": results}, indent=2, ensure_ascii=False))
         return
 
@@ -420,6 +453,7 @@ def main():
         return
 
     parser.print_help()
+
 
 if __name__ == "__main__":
     main()

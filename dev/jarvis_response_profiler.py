@@ -77,18 +77,24 @@ def do_profile():
         results.append(result)
         db.execute(
             "INSERT INTO profiles (ts, endpoint, component, latency_ms, status, size_bytes) VALUES (?,?,?,?,?,?)",
-            (time.time(), result["name"], result["component"],
-             result["latency_ms"], result["status"], result["size_bytes"])
-        )
+            (time.time(),
+             result["name"],
+                result["component"],
+                result["latency_ms"],
+                result["status"],
+                result["size_bytes"]))
 
     # Calculate percentiles
-    latencies = sorted([r["latency_ms"] for r in results if r["status"] == "ok"])
+    latencies = sorted([r["latency_ms"]
+                       for r in results if r["status"] == "ok"])
     p50 = latencies[len(latencies) // 2] if latencies else 0
     p95 = latencies[int(len(latencies) * 0.95)] if latencies else 0
     p99 = latencies[-1] if latencies else 0
 
     # Find bottleneck
-    bottleneck = max(results, key=lambda r: r["latency_ms"]) if results else None
+    bottleneck = max(
+        results,
+        key=lambda r: r["latency_ms"]) if results else None
 
     # Historical comparison
     prev = db.execute(
@@ -109,8 +115,12 @@ def do_profile():
 
     db.execute(
         "INSERT INTO reports (ts, p50_ms, p95_ms, p99_ms, bottleneck, total_endpoints) VALUES (?,?,?,?,?,?)",
-        (time.time(), p50, p95, p99, bottleneck["name"] if bottleneck else "", len(results))
-    )
+        (time.time(),
+         p50,
+         p95,
+         p99,
+         bottleneck["name"] if bottleneck else "",
+         len(results)))
     db.commit()
     db.close()
     return report
@@ -124,14 +134,25 @@ def show_bottlenecks():
         (time.time() - 86400 * 7,)
     ).fetchall()
     db.close()
-    return [{"endpoint": r[0], "avg_ms": round(r[1], 1), "samples": r[2]} for r in rows]
+    return [{"endpoint": r[0], "avg_ms": round(
+        r[1], 1), "samples": r[2]} for r in rows]
 
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Response Profiler")
-    parser.add_argument("--once", "--profile", action="store_true", help="Profile endpoints")
-    parser.add_argument("--bottlenecks", action="store_true", help="Show bottlenecks")
-    parser.add_argument("--optimize", action="store_true", help="Optimization suggestions")
+    parser.add_argument(
+        "--once",
+        "--profile",
+        action="store_true",
+        help="Profile endpoints")
+    parser.add_argument(
+        "--bottlenecks",
+        action="store_true",
+        help="Show bottlenecks")
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Optimization suggestions")
     args = parser.parse_args()
 
     if args.bottlenecks:

@@ -9,7 +9,12 @@ Usage:
     python dev/win_game_mode_manager.py --stats
     python dev/win_game_mode_manager.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -31,6 +36,7 @@ PROTECTED_PROCESSES = [
     "dwm.exe", "taskhostw.exe", "RuntimeBroker.exe",
     "LMStudio.exe", "ollama.exe", "node.exe", "python.exe"
 ]
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -65,45 +71,81 @@ def init_db():
     # Default profiles
     if db.execute("SELECT COUNT(*) FROM game_profiles").fetchone()[0] == 0:
         now = datetime.now().isoformat()
-        defaults = [
-            ("Default", json.dumps(KILLABLE_PROCESSES[:5]), "high", "performance", "Standard game mode"),
-            ("Maximum", json.dumps(KILLABLE_PROCESSES), "realtime", "performance", "Maximum performance — kills all non-essential"),
-            ("Streaming", json.dumps(KILLABLE_PROCESSES[:3]), "high", "balanced", "Gaming + OBS/streaming friendly"),
-        ]
+        defaults = [("Default",
+                     json.dumps(KILLABLE_PROCESSES[:5]),
+                     "high",
+                     "performance",
+                     "Standard game mode"),
+                    ("Maximum",
+                     json.dumps(KILLABLE_PROCESSES),
+                     "realtime",
+                     "performance",
+                     "Maximum performance — kills all non-essential"),
+                    ("Streaming",
+                     json.dumps(KILLABLE_PROCESSES[:3]),
+                     "high",
+                     "balanced",
+                     "Gaming + OBS/streaming friendly"),
+                    ]
         for name, kill, prio, power, notes in defaults:
-            db.execute("INSERT INTO game_profiles (name, kill_processes, priority, power_plan, notes, created_at) VALUES (?,?,?,?,?,?)",
-                       (name, kill, prio, power, notes, now))
+            db.execute(
+                "INSERT INTO game_profiles (name, kill_processes, priority, power_plan, notes, created_at) VALUES (?,?,?,?,?,?)",
+                (name,
+                 kill,
+                 prio,
+                 power,
+                 notes,
+                 now))
     db.commit()
     return db
+
 
 def check_game_mode_registry():
     """Check if Windows Game Mode is enabled in registry."""
     try:
-        cmd = 'powershell -NoProfile -Command "(Get-ItemProperty -Path \'HKCU:\\SOFTWARE\\Microsoft\\GameBar\' -Name \'AutoGameModeEnabled\' -ErrorAction SilentlyContinue).AutoGameModeEnabled"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        cmd = 'powershell -NoProfile -Command "(Get-ItemProperty -Path \'HKCU:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\SOFTWARE\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Microsoft\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\GameBar\' -Name \'AutoGameModeEnabled\' -ErrorAction SilentlyContinue).AutoGameModeEnabled"'
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         val = r.stdout.strip()
         return val == "1"
     except Exception:
         return None
 
+
 def set_game_mode_registry(enabled):
     """Enable/disable Game Mode via registry."""
     val = 1 if enabled else 0
     try:
-        cmd = f'powershell -NoProfile -Command "Set-ItemProperty -Path \'HKCU:\\SOFTWARE\\Microsoft\\GameBar\' -Name \'AutoGameModeEnabled\' -Value {val} -Type DWord -Force; Write-Output OK"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        cmd = f'powershell -NoProfile -Command "Set-ItemProperty -Path \'HKCU:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\SOFTWARE\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Microsoft\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\GameBar\' -Name \'AutoGameModeEnabled\' -Value {val} -Type DWord -Force; Write-Output OK"'
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         return "OK" in r.stdout
     except Exception:
         return False
+
 
 def get_power_plan():
     """Get current power plan."""
     try:
         cmd = 'powershell -NoProfile -Command "(powercfg /getactivescheme) -replace \'.*: \',\'\'"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         return r.stdout.strip()[:100]
     except Exception:
         return "unknown"
+
 
 def set_power_plan(plan_type="performance"):
     """Set power plan."""
@@ -115,10 +157,16 @@ def set_power_plan(plan_type="performance"):
     guid = plans.get(plan_type, plans["performance"])
     try:
         cmd = f'powercfg /setactive {guid}'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         return r.returncode == 0
     except Exception:
         return False
+
 
 def kill_nonessential(process_list):
     """Kill non-essential processes."""
@@ -127,18 +175,28 @@ def kill_nonessential(process_list):
         if proc.lower() not in [p.lower() for p in PROTECTED_PROCESSES]:
             try:
                 cmd = f'taskkill /IM "{proc}" /F 2>nul'
-                r = subprocess.run(cmd, capture_output=True, text=True, timeout=5, shell=True)
+                r = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    shell=True)
                 if r.returncode == 0:
                     killed.append(proc)
             except Exception:
                 pass
     return killed
 
+
 def do_activate(profile_name="Default"):
     db = init_db()
-    profile = db.execute("SELECT name, kill_processes, priority, power_plan FROM game_profiles WHERE name=?", (profile_name,)).fetchone()
+    profile = db.execute(
+        "SELECT name, kill_processes, priority, power_plan FROM game_profiles WHERE name=?",
+        (profile_name,
+         )).fetchone()
     if not profile:
-        profile = db.execute("SELECT name, kill_processes, priority, power_plan FROM game_profiles ORDER BY id LIMIT 1").fetchone()
+        profile = db.execute(
+            "SELECT name, kill_processes, priority, power_plan FROM game_profiles ORDER BY id LIMIT 1").fetchone()
 
     kill_list = json.loads(profile[1]) if profile else KILLABLE_PROCESSES[:5]
     power = profile[3] if profile else "performance"
@@ -152,11 +210,19 @@ def do_activate(profile_name="Default"):
 
     prev_plan = get_power_plan()
 
-    db.execute("INSERT INTO game_sessions (ts, action, game_profile, processes_killed, power_plan, game_mode_enabled) VALUES (?,?,?,?,?,?)",
-               (datetime.now().isoformat(), "activate", profile[0] if profile else "Default",
-                json.dumps(killed), power, int(gm_ok)))
-    db.execute("INSERT INTO game_stats (ts, profile, processes_killed) VALUES (?,?,?)",
-               (datetime.now().isoformat(), profile[0] if profile else "Default", len(killed)))
+    db.execute(
+        "INSERT INTO game_sessions (ts, action, game_profile, processes_killed, power_plan, game_mode_enabled) VALUES (?,?,?,?,?,?)",
+        (datetime.now().isoformat(),
+         "activate",
+         profile[0] if profile else "Default",
+         json.dumps(killed),
+         power,
+         int(gm_ok)))
+    db.execute(
+        "INSERT INTO game_stats (ts, profile, processes_killed) VALUES (?,?,?)",
+        (datetime.now().isoformat(),
+         profile[0] if profile else "Default",
+         len(killed)))
     db.commit()
 
     result = {
@@ -172,14 +238,19 @@ def do_activate(profile_name="Default"):
     db.close()
     return result
 
+
 def do_deactivate():
     db = init_db()
     # Restore balanced power plan
     pp_ok = set_power_plan("balanced")
     # Keep game mode enabled (Windows default)
 
-    db.execute("INSERT INTO game_sessions (ts, action, power_plan, game_mode_enabled) VALUES (?,?,?,?)",
-               (datetime.now().isoformat(), "deactivate", "balanced", 1))
+    db.execute(
+        "INSERT INTO game_sessions (ts, action, power_plan, game_mode_enabled) VALUES (?,?,?,?)",
+        (datetime.now().isoformat(),
+         "deactivate",
+         "balanced",
+         1))
     db.commit()
 
     result = {
@@ -192,9 +263,13 @@ def do_deactivate():
     db.close()
     return result
 
+
 def do_profile(name):
     db = init_db()
-    row = db.execute("SELECT name, kill_processes, priority, power_plan, notes, created_at FROM game_profiles WHERE name=?", (name,)).fetchone()
+    row = db.execute(
+        "SELECT name, kill_processes, priority, power_plan, notes, created_at FROM game_profiles WHERE name=?",
+        (name,
+         )).fetchone()
     if row:
         result = {
             "action": "profile_detail",
@@ -206,37 +281,42 @@ def do_profile(name):
             "created_at": row[5]
         }
     else:
-        profiles = db.execute("SELECT name, priority, power_plan, notes FROM game_profiles ORDER BY name").fetchall()
-        result = {
-            "action": "profile_not_found",
-            "requested": name,
-            "available_profiles": [{"name": r[0], "priority": r[1], "power": r[2], "notes": r[3]} for r in profiles]
-        }
+        profiles = db.execute(
+            "SELECT name, priority, power_plan, notes FROM game_profiles ORDER BY name").fetchall()
+        result = {"action": "profile_not_found", "requested": name, "available_profiles": [
+            {"name": r[0], "priority": r[1], "power": r[2], "notes": r[3]} for r in profiles]}
     result["ts"] = datetime.now().isoformat()
     db.close()
     return result
 
+
 def do_stats():
     db = init_db()
-    total_sessions = db.execute("SELECT COUNT(*) FROM game_sessions").fetchone()[0]
-    activations = db.execute("SELECT COUNT(*) FROM game_sessions WHERE action='activate'").fetchone()[0]
-    total_killed = db.execute("SELECT SUM(processes_killed) FROM game_stats").fetchone()[0] or 0
+    total_sessions = db.execute(
+        "SELECT COUNT(*) FROM game_sessions").fetchone()[0]
+    activations = db.execute(
+        "SELECT COUNT(*) FROM game_sessions WHERE action='activate'").fetchone()[0]
+    total_killed = db.execute(
+        "SELECT SUM(processes_killed) FROM game_stats").fetchone()[0] or 0
     game_mode = check_game_mode_registry()
     power = get_power_plan()
-    recent = db.execute("SELECT ts, action, game_profile, processes_killed FROM game_sessions ORDER BY id DESC LIMIT 10").fetchall()
+    recent = db.execute(
+        "SELECT ts, action, game_profile, processes_killed FROM game_sessions ORDER BY id DESC LIMIT 10").fetchall()
 
-    result = {
-        "action": "stats",
-        "total_sessions": total_sessions,
-        "total_activations": activations,
-        "total_processes_killed": total_killed,
-        "current_game_mode": game_mode,
-        "current_power_plan": power,
-        "recent_sessions": [{"ts": r[0], "action": r[1], "profile": r[2], "killed": r[3]} for r in recent],
-        "ts": datetime.now().isoformat()
-    }
+    result = {"action": "stats",
+              "total_sessions": total_sessions,
+              "total_activations": activations,
+              "total_processes_killed": total_killed,
+              "current_game_mode": game_mode,
+              "current_power_plan": power,
+              "recent_sessions": [{"ts": r[0],
+                                   "action": r[1],
+                                   "profile": r[2],
+                                   "killed": r[3]} for r in recent],
+              "ts": datetime.now().isoformat()}
     db.close()
     return result
+
 
 def do_once():
     db = init_db()
@@ -256,13 +336,31 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Windows Game Mode Manager — COWORK #237")
-    parser.add_argument("--activate", action="store_true", help="Activate game mode")
-    parser.add_argument("--deactivate", action="store_true", help="Deactivate game mode")
-    parser.add_argument("--profile", type=str, metavar="GAME", help="Show/set game profile")
-    parser.add_argument("--stats", action="store_true", help="Show game mode statistics")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="Windows Game Mode Manager — COWORK #237")
+    parser.add_argument(
+        "--activate",
+        action="store_true",
+        help="Activate game mode")
+    parser.add_argument(
+        "--deactivate",
+        action="store_true",
+        help="Deactivate game mode")
+    parser.add_argument(
+        "--profile",
+        type=str,
+        metavar="GAME",
+        help="Show/set game profile")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show game mode statistics")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.activate:
@@ -271,11 +369,17 @@ def main():
     elif args.deactivate:
         print(json.dumps(do_deactivate(), ensure_ascii=False, indent=2))
     elif args.profile:
-        print(json.dumps(do_profile(args.profile), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_profile(
+                    args.profile),
+                ensure_ascii=False,
+                indent=2))
     elif args.stats:
         print(json.dumps(do_stats(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

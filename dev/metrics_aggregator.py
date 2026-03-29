@@ -188,7 +188,8 @@ def collect_script_metrics():
             WHERE run_id = (SELECT MAX(id) FROM self_test_runs)
         """).fetchone()
         if row and row["total"]:
-            metrics["test_pass_rate"] = round(row["ok"] / row["total"] * 100, 1)
+            metrics["test_pass_rate"] = round(
+                row["ok"] / row["total"] * 100, 1)
             metrics["tests_passed"] = row["ok"]
             metrics["tests_total"] = row["total"]
         db.close()
@@ -202,7 +203,8 @@ def collect_infra_metrics():
     metrics = {}
 
     # Database sizes
-    for name, path in [("etoile", ETOILE_DB), ("gaps", GAPS_DB), ("jarvis", JARVIS_DB)]:
+    for name, path in [("etoile", ETOILE_DB),
+                       ("gaps", GAPS_DB), ("jarvis", JARVIS_DB)]:
         if path.exists():
             size_mb = path.stat().st_size / (1024 * 1024)
             metrics[f"db_{name}_mb"] = round(size_mb, 1)
@@ -275,7 +277,8 @@ def format_telegram_dashboard(metrics):
 
     # Cluster
     lines.append("")
-    lines.append(f"<b>Cluster</b>: {metrics.get('cluster_online', '?')}/{metrics.get('cluster_total', '?')} online")
+    lines.append(
+        f"<b>Cluster</b>: {metrics.get('cluster_online', '?')}/{metrics.get('cluster_total', '?')} online")
     for key in sorted(metrics):
         if key.startswith("heartbeat_lat_"):
             node = key.replace("heartbeat_lat_", "")
@@ -283,9 +286,17 @@ def format_telegram_dashboard(metrics):
 
     # Dispatch
     lines.append("")
-    lines.append(f"<b>Dispatch</b>: {metrics.get('dispatch_success_pct', 0)}% ok | "
-                 f"q={metrics.get('dispatch_avg_quality', 0)}% | "
-                 f"{metrics.get('dispatch_avg_latency_ms', 0)}ms")
+    lines.append(
+        f"<b>Dispatch</b>: {
+            metrics.get(
+                'dispatch_success_pct',
+                0)}% ok | " f"q={
+            metrics.get(
+                'dispatch_avg_quality',
+                0)}% | " f"{
+            metrics.get(
+                'dispatch_avg_latency_ms',
+                0)}ms")
 
     # Crypto
     for key in sorted(metrics):
@@ -322,10 +333,23 @@ def send_telegram(text):
 
 def main():
     parser = argparse.ArgumentParser(description="Metrics Aggregator")
-    parser.add_argument("--once", action="store_true", help="Collect metrics once")
-    parser.add_argument("--watch", action="store_true", help="Continuous metrics")
-    parser.add_argument("--interval", type=int, default=5, help="Interval (min)")
-    parser.add_argument("--telegram", action="store_true", help="Send Telegram")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Collect metrics once")
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Continuous metrics")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=5,
+        help="Interval (min)")
+    parser.add_argument(
+        "--telegram",
+        action="store_true",
+        help="Send Telegram")
     parser.add_argument("--history", action="store_true", help="Show history")
     args = parser.parse_args()
 

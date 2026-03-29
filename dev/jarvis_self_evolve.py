@@ -16,6 +16,7 @@ DB_PATH = Path(__file__).parent / "self_evolve.db"
 TURBO = Path("F:/BUREAU/turbo")
 SRC = TURBO / "src"
 
+
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
     db.execute("""CREATE TABLE IF NOT EXISTS improvements (
@@ -28,6 +29,7 @@ def init_db():
         opportunities_found INTEGER, code_generated INTEGER)""")
     db.commit()
     return db
+
 
 def analyze_file(filepath):
     """Analyze a Python file for improvement opportunities."""
@@ -44,7 +46,12 @@ def analyze_file(filepath):
     for node in ast.walk(tree):
         # Functions without docstrings
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            if not (node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant)):
+            if not (
+                node.body and isinstance(
+                    node.body[0],
+                    ast.Expr) and isinstance(
+                    node.body[0].value,
+                    ast.Constant)):
                 if not node.name.startswith("_"):
                     opportunities.append({
                         "file": rel, "line": node.lineno,
@@ -84,6 +91,7 @@ def analyze_file(filepath):
 
     return opportunities
 
+
 def scan_codebase(db):
     """Scan entire codebase for improvement opportunities."""
     all_opps = []
@@ -109,6 +117,7 @@ def scan_codebase(db):
     db.commit()
     return files_analyzed, all_opps
 
+
 def generate_improvement(db, improvement_id):
     """Generate code improvement via cluster."""
     row = db.execute(
@@ -121,10 +130,13 @@ def generate_improvement(db, improvement_id):
     prompt = f"/nothink\nDans {filepath}: {description}. Genere UNIQUEMENT le code Python ameliore (pas d'explication)."
 
     try:
-        body = json.dumps({
-            "model": "qwen3-8b", "input": prompt,
-            "temperature": 0.2, "max_output_tokens": 1024, "stream": False, "store": False,
-        }).encode()
+        body = json.dumps({"model": "qwen3-8b",
+                           "input": prompt,
+                           "temperature": 0.2,
+                           "max_output_tokens": 1024,
+                           "stream": False,
+                           "store": False,
+                           }).encode()
         req = urllib.request.Request(
             "http://127.0.0.1:1234/api/v1/chat",
             data=body, headers={"Content-Type": "application/json"})
@@ -153,19 +165,28 @@ def generate_improvement(db, improvement_id):
         return {"valid": False, "error": str(e)}
     return None
 
+
 def get_summary(db):
     """Get evolution summary."""
     total = db.execute("SELECT COUNT(*) FROM improvements").fetchone()[0]
     by_cat = db.execute(
         "SELECT category, COUNT(*) FROM improvements GROUP BY category ORDER BY COUNT(*) DESC"
     ).fetchall()
-    validated = db.execute("SELECT COUNT(*) FROM improvements WHERE validated=1").fetchone()[0]
-    return {"total": total, "validated": validated, "by_category": dict(by_cat)}
+    validated = db.execute(
+        "SELECT COUNT(*) FROM improvements WHERE validated=1").fetchone()[0]
+    return {
+        "total": total,
+        "validated": validated,
+        "by_category": dict(by_cat)}
+
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Self-Evolve")
     parser.add_argument("--scan", action="store_true", help="Scan codebase")
-    parser.add_argument("--generate", type=int, help="Generate improvement for ID")
+    parser.add_argument(
+        "--generate",
+        type=int,
+        help="Generate improvement for ID")
     parser.add_argument("--summary", action="store_true")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--loop", action="store_true")
@@ -215,6 +236,7 @@ def main():
                 time.sleep(args.interval)
             except KeyboardInterrupt:
                 break
+
 
 if __name__ == "__main__":
     main()

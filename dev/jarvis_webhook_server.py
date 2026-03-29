@@ -109,26 +109,35 @@ class WebhookHandler(BaseHTTPRequestHandler):
         if path == "/webhook/status":
             self._handle_status()
         elif path == "/health":
-            self._send_json(200, {"status": "ok", "port": PORT, "uptime": "running"})
+            self._send_json(
+                200, {
+                    "status": "ok", "port": PORT, "uptime": "running"})
         elif path == "/routes":
             self._send_json(200, {"status": "ok", "routes": ROUTES})
         else:
-            self._send_json(404, {"status": "error", "error": f"Unknown route: {path}"})
+            self._send_json(
+                404, {
+                    "status": "error", "error": f"Unknown route: {path}"})
 
     def do_POST(self):
         path = urlparse(self.path).path
 
         if path not in ROUTES:
-            self._send_json(404, {"status": "error", "error": f"Unknown webhook: {path}"})
+            self._send_json(
+                404, {
+                    "status": "error", "error": f"Unknown webhook: {path}"})
             return
 
         if "POST" not in ROUTES[path]["methods"]:
-            self._send_json(405, {"status": "error", "error": "Method not allowed"})
+            self._send_json(
+                405, {
+                    "status": "error", "error": "Method not allowed"})
             return
 
         # Read body
         content_length = int(self.headers.get("Content-Length", 0))
-        body_raw = self.rfile.read(content_length) if content_length > 0 else b""
+        body_raw = self.rfile.read(
+            content_length) if content_length > 0 else b""
 
         try:
             body = json.loads(body_raw) if body_raw else {}
@@ -138,7 +147,7 @@ class WebhookHandler(BaseHTTPRequestHandler):
         # Store headers (filtered)
         headers = {}
         for key in ["Content-Type", "User-Agent", "X-GitHub-Event",
-                     "X-GitHub-Delivery", "X-Forwarded-For"]:
+                    "X-GitHub-Delivery", "X-Forwarded-For"]:
             val = self.headers.get(key)
             if val:
                 headers[key] = val
@@ -159,7 +168,8 @@ class WebhookHandler(BaseHTTPRequestHandler):
                      content_length, 200)
                 )
                 db.commit()
-                event_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+                event_id = db.execute(
+                    "SELECT last_insert_rowid()").fetchone()[0]
                 db.close()
             except Exception:
                 event_id = -1
@@ -176,7 +186,8 @@ class WebhookHandler(BaseHTTPRequestHandler):
         """Return server status and recent events."""
         try:
             db = sqlite3.connect(str(DB_PATH))
-            total = db.execute("SELECT COUNT(*) FROM webhook_events").fetchone()[0]
+            total = db.execute(
+                "SELECT COUNT(*) FROM webhook_events").fetchone()[0]
             recent = db.execute(
                 "SELECT ts, route, source_ip, body_size FROM webhook_events ORDER BY ts DESC LIMIT 10"
             ).fetchall()
@@ -217,8 +228,7 @@ def start_server(db, foreground=False):
                 return {
                     "status": "info",
                     "message": f"Server already running on port {PORT} (PID {pid})",
-                    "url": f"http://{HOST}:{PORT}"
-                }
+                    "url": f"http://{HOST}:{PORT}"}
         except Exception:
             pass
 
@@ -270,14 +280,19 @@ def start_server(db, foreground=False):
 def stop_server(db):
     """Stop the webhook server."""
     if not PID_FILE.exists():
-        return {"status": "info", "message": "Server not running (no PID file)"}
+        return {
+            "status": "info",
+            "message": "Server not running (no PID file)"}
 
     try:
         pid = int(PID_FILE.read_text().strip())
-        subprocess.run(
-            ["powershell", "-NoProfile", "-Command", f"Stop-Process -Id {pid} -Force -ErrorAction SilentlyContinue"],
-            capture_output=True, text=True, timeout=10
-        )
+        subprocess.run(["powershell",
+                        "-NoProfile",
+                        "-Command",
+                        f"Stop-Process -Id {pid} -Force -ErrorAction SilentlyContinue"],
+                       capture_output=True,
+                       text=True,
+                       timeout=10)
         PID_FILE.unlink(missing_ok=True)
 
         db.execute(
@@ -314,27 +329,27 @@ def test_webhooks(db):
 
     results = []
 
-    tests = [
-        {
-            "route": "/webhook/github",
-            "payload": {"action": "push", "repository": "test/repo", "sender": "jarvis"}
-        },
-        {
-            "route": "/webhook/trading",
-            "payload": {"signal": "buy", "pair": "BTC/USDT", "price": 95000, "score": 85}
-        },
-        {
-            "route": "/webhook/alert",
-            "payload": {"level": "info", "message": "Test alert", "source": "self_test"}
-        }
-    ]
+    tests = [{"route": "/webhook/github",
+              "payload": {"action": "push",
+                          "repository": "test/repo",
+                          "sender": "jarvis"}},
+             {"route": "/webhook/trading",
+              "payload": {"signal": "buy",
+                          "pair": "BTC/USDT",
+                          "price": 95000,
+                          "score": 85}},
+             {"route": "/webhook/alert",
+              "payload": {"level": "info",
+                          "message": "Test alert",
+                          "source": "self_test"}}]
 
     for test in tests:
         url = f"http://{HOST}:{PORT}{test['route']}"
         data = json.dumps(test["payload"]).encode("utf-8")
         try:
-            req = urllib.request.Request(url, data=data,
-                                         headers={"Content-Type": "application/json"})
+            req = urllib.request.Request(
+                url, data=data, headers={
+                    "Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=5) as resp:
                 body = json.loads(resp.read())
                 results.append({
@@ -365,7 +380,8 @@ def once(db):
     by_route = {}
     try:
         total = db.execute("SELECT COUNT(*) FROM webhook_events").fetchone()[0]
-        rows = db.execute("SELECT route, COUNT(*) FROM webhook_events GROUP BY route").fetchall()
+        rows = db.execute(
+            "SELECT route, COUNT(*) FROM webhook_events GROUP BY route").fetchall()
         by_route = {r[0]: r[1] for r in rows}
     except Exception:
         pass
@@ -389,8 +405,7 @@ def once(db):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="jarvis_webhook_server.py (#192) — Webhook server HTTP stdlib"
-    )
+        description="jarvis_webhook_server.py (#192) — Webhook server HTTP stdlib")
     parser.add_argument("--start", action="store_true",
                         help="Start webhook server on port 9801")
     parser.add_argument("--foreground", action="store_true",

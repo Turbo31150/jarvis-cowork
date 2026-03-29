@@ -86,7 +86,8 @@ def get_pagefile_info():
             capture_output=True, text=True, timeout=15
         )
         if out.returncode == 0:
-            lines = [l.strip() for l in out.stdout.strip().split("\n") if l.strip() and not l.startswith("Node")]
+            lines = [l.strip() for l in out.stdout.strip().split(
+                "\n") if l.strip() and not l.startswith("Node")]
             for line in lines:
                 parts = [p.strip() for p in line.split(",") if p.strip()]
                 if len(parts) >= 4:
@@ -239,13 +240,18 @@ def set_pagefile_size(db, size_mb):
         return {
             "status": "error",
             "error": "Administrator privileges required to change pagefile size",
-            "suggestion": "Run as administrator: runas /user:Administrator python dev/win_pagefile_optimizer.py --set " + str(size_mb)
-        }
+            "suggestion": "Run as administrator: runas /user:Administrator python dev/win_pagefile_optimizer.py --set " +
+            str(size_mb)}
 
     # Set via wmic
     try:
-        cmd = f"wmic pagefileset where name='C:\\\\pagefile.sys' set InitialSize={size_mb},MaximumSize={size_mb}"
-        out = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=15)
+        cmd = f"wmic pagefileset where name='C:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\pagefile.sys' set InitialSize={size_mb},MaximumSize={size_mb}"
+        out = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=15)
         success = out.returncode == 0
 
         db.execute(
@@ -313,8 +319,7 @@ def once(db):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="win_pagefile_optimizer.py (#189) — Pagefile optimizer Windows 11"
-    )
+        description="win_pagefile_optimizer.py (#189) — Pagefile optimizer Windows 11")
     parser.add_argument("--analyze", action="store_true",
                         help="Analyze current pagefile usage")
     parser.add_argument("--recommend", action="store_true",

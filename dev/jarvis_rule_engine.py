@@ -85,7 +85,8 @@ def evaluate_condition(cond):
                 ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"],
                 capture_output=True, text=True, timeout=5
             )
-            temps = [int(t.strip()) for t in r.stdout.strip().split("\n") if t.strip()]
+            temps = [int(t.strip())
+                     for t in r.stdout.strip().split("\n") if t.strip()]
             actual = max(temps) if temps else 0
         except Exception:
             actual = 0
@@ -118,10 +119,14 @@ def evaluate_condition(cond):
 
     elif ctype == "mem_pct":
         try:
-            r = subprocess.run(
-                ["wmic", "os", "get", "FreePhysicalMemory,TotalVisibleMemorySize", "/format:csv"],
-                capture_output=True, text=True, timeout=5
-            )
+            r = subprocess.run(["wmic",
+                                "os",
+                                "get",
+                                "FreePhysicalMemory,TotalVisibleMemorySize",
+                                "/format:csv"],
+                               capture_output=True,
+                               text=True,
+                               timeout=5)
             for line in r.stdout.strip().split("\n"):
                 parts = line.strip().split(",")
                 if len(parts) >= 3:
@@ -190,10 +195,18 @@ def add_rule(db, rule_json):
 
     db.execute(
         "INSERT OR REPLACE INTO rules (name, condition_json, action, else_action, priority, created_at) VALUES (?,?,?,?,?,?)",
-        (name, condition, action, else_action, priority, time.time())
-    )
+        (name,
+         condition,
+         action,
+         else_action,
+         priority,
+         time.time()))
     db.commit()
-    return {"status": "ok", "name": name, "condition": rule["condition"], "action": action}
+    return {
+        "status": "ok",
+        "name": name,
+        "condition": rule["condition"],
+        "action": action}
 
 
 def list_rules(db):
@@ -231,8 +244,11 @@ def evaluate_rules(db):
         if chosen_action:
             try:
                 proc = subprocess.run(
-                    chosen_action, shell=True, capture_output=True, text=True, timeout=10
-                )
+                    chosen_action,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=10)
                 output = proc.stdout.strip()[:500]
             except Exception as e:
                 output = f"error: {e}"
@@ -243,8 +259,11 @@ def evaluate_rules(db):
         )
         db.execute(
             "INSERT INTO eval_log (rule_id, ts, condition_met, action_taken, output) VALUES (?,?,?,?,?)",
-            (rule_id, time.time(), int(met), chosen_action or "none", output)
-        )
+            (rule_id,
+             time.time(),
+             int(met),
+                chosen_action or "none",
+                output))
         results.append({
             "rule": name, "condition_met": met,
             "actual_value": actual, "action_taken": chosen_action or "none",
@@ -292,12 +311,22 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Rule Engine (#183) — IF/THEN/ELSE automation rules")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Rule Engine (#183) — IF/THEN/ELSE automation rules")
     parser.add_argument("--add", type=str, help="Add rule as JSON string")
     parser.add_argument("--list", action="store_true", help="List all rules")
-    parser.add_argument("--evaluate", action="store_true", help="Evaluate all enabled rules")
-    parser.add_argument("--test", type=str, help="Test a rule by ID or name (dry run)")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument(
+        "--evaluate",
+        action="store_true",
+        help="Evaluate all enabled rules")
+    parser.add_argument(
+        "--test",
+        type=str,
+        help="Test a rule by ID or name (dry run)")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     db = init_db()

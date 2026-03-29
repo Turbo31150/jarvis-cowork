@@ -7,7 +7,14 @@ Usage:
     python dev/jarvis_self_test_suite.py --report
     python dev/jarvis_self_test_suite.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, ast, sys
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import ast
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -57,7 +64,11 @@ def _test_ast_parse(script_path):
         ast.parse(source)
         return {"status": "pass", "message": "AST parse OK"}
     except SyntaxError as e:
-        return {"status": "fail", "message": f"SyntaxError line {e.lineno}: {e.msg}"}
+        return {
+            "status": "fail",
+            "message": f"SyntaxError line {
+                e.lineno}: {
+                e.msg}"}
     except Exception as e:
         return {"status": "error", "message": str(e)[:200]}
 
@@ -75,17 +86,26 @@ def _test_help(script_path, timeout=HELP_TIMEOUT):
         duration = (time.perf_counter() - start) * 1000
 
         if result.returncode == 0:
-            has_usage = "usage" in result.stdout.lower() or "optional arguments" in result.stdout.lower() or "--" in result.stdout
+            has_usage = "usage" in result.stdout.lower(
+            ) or "optional arguments" in result.stdout.lower() or "--" in result.stdout
             if has_usage:
-                return {"status": "pass", "message": f"--help OK ({duration:.0f}ms)", "duration_ms": duration}
+                return {"status": "pass",
+                        "message": f"--help OK ({duration:.0f}ms)",
+                        "duration_ms": duration}
             else:
-                return {"status": "pass", "message": f"--help returned (no usage text) ({duration:.0f}ms)", "duration_ms": duration}
+                return {"status": "pass",
+                        "message": f"--help returned (no usage text) ({duration:.0f}ms)",
+                        "duration_ms": duration}
         else:
             stderr_preview = (result.stderr or "")[:200]
-            return {"status": "fail", "message": f"--help exit {result.returncode}: {stderr_preview}", "duration_ms": duration}
+            return {"status": "fail",
+                    "message": f"--help exit {result.returncode}: {stderr_preview}",
+                    "duration_ms": duration}
 
     except subprocess.TimeoutExpired:
-        return {"status": "fail", "message": f"--help timeout after {timeout}s"}
+        return {
+            "status": "fail",
+            "message": f"--help timeout after {timeout}s"}
     except Exception as e:
         return {"status": "error", "message": str(e)[:200]}
 
@@ -107,24 +127,35 @@ def _test_once(script_path, timeout=15):
             stdout = result.stdout.strip()
             try:
                 json.loads(stdout)
-                return {"status": "pass", "message": f"--once JSON OK ({duration:.0f}ms)", "duration_ms": duration}
+                return {"status": "pass",
+                        "message": f"--once JSON OK ({duration:.0f}ms)",
+                        "duration_ms": duration}
             except json.JSONDecodeError:
                 if stdout:
-                    return {"status": "pass", "message": f"--once OK (non-JSON) ({duration:.0f}ms)", "duration_ms": duration}
-                return {"status": "pass", "message": f"--once OK (empty output) ({duration:.0f}ms)", "duration_ms": duration}
+                    return {"status": "pass",
+                            "message": f"--once OK (non-JSON) ({duration:.0f}ms)",
+                            "duration_ms": duration}
+                return {"status": "pass",
+                        "message": f"--once OK (empty output) ({duration:.0f}ms)",
+                        "duration_ms": duration}
         else:
             stderr_preview = (result.stderr or "")[:200]
-            return {"status": "fail", "message": f"--once exit {result.returncode}: {stderr_preview}", "duration_ms": duration}
+            return {"status": "fail",
+                    "message": f"--once exit {result.returncode}: {stderr_preview}",
+                    "duration_ms": duration}
 
     except subprocess.TimeoutExpired:
-        return {"status": "fail", "message": f"--once timeout after {timeout}s"}
+        return {
+            "status": "fail",
+            "message": f"--once timeout after {timeout}s"}
     except Exception as e:
         return {"status": "error", "message": str(e)[:200]}
 
 
 def _grade(pass_rate):
     """Calculate grade from pass rate."""
-    for grade, threshold in sorted(GRADE_THRESHOLDS.items(), key=lambda x: x[1], reverse=True):
+    for grade, threshold in sorted(
+            GRADE_THRESHOLDS.items(), key=lambda x: x[1], reverse=True):
         if pass_rate >= threshold:
             return grade
     return "F"
@@ -155,8 +186,11 @@ def run_tests(db, test_type="standard", full=False):
         ast_result = _test_ast_parse(script)
         db.execute(
             "INSERT INTO test_results (run_id, script, test_type, status, message) VALUES (?,?,?,?,?)",
-            (run_id, script.name, "ast_parse", ast_result["status"], ast_result["message"])
-        )
+            (run_id,
+             script.name,
+             "ast_parse",
+             ast_result["status"],
+             ast_result["message"]))
         script_results["tests"].append({"type": "ast_parse", **ast_result})
 
         if ast_result["status"] != "pass":
@@ -170,9 +204,12 @@ def run_tests(db, test_type="standard", full=False):
             help_result = _test_help(script)
             db.execute(
                 "INSERT INTO test_results (run_id, script, test_type, status, message, duration_ms) VALUES (?,?,?,?,?,?)",
-                (run_id, script.name, "help", help_result["status"], help_result["message"],
-                 help_result.get("duration_ms"))
-            )
+                (run_id,
+                 script.name,
+                 "help",
+                 help_result["status"],
+                 help_result["message"],
+                 help_result.get("duration_ms")))
             script_results["tests"].append({"type": "help", **help_result})
 
         # Test 3: --once (full test only)
@@ -180,9 +217,12 @@ def run_tests(db, test_type="standard", full=False):
             once_result = _test_once(script)
             db.execute(
                 "INSERT INTO test_results (run_id, script, test_type, status, message, duration_ms) VALUES (?,?,?,?,?,?)",
-                (run_id, script.name, "once", once_result["status"], once_result["message"],
-                 once_result.get("duration_ms"))
-            )
+                (run_id,
+                 script.name,
+                 "once",
+                 once_result["status"],
+                 once_result["message"],
+                 once_result.get("duration_ms")))
             script_results["tests"].append({"type": "once", **once_result})
 
         # Determine overall status
@@ -206,8 +246,16 @@ def run_tests(db, test_type="standard", full=False):
 
     db.execute(
         "UPDATE test_runs SET passed=?, failed=?, errors=?, skipped=?, pass_rate=?, grade=?, duration_sec=? WHERE id=?",
-        (passed, failed, errors, skipped, pass_rate, grade, round(duration, 2), run_id)
-    )
+        (passed,
+         failed,
+         errors,
+         skipped,
+         pass_rate,
+         grade,
+         round(
+             duration,
+             2),
+            run_id))
     db.commit()
 
     # Separate pass/fail for clean output
@@ -276,11 +324,24 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Self-Test Suite — validate all dev scripts")
-    parser.add_argument("--run", action="store_true", help="Run standard tests (AST + --help)")
-    parser.add_argument("--fast", action="store_true", help="Fast run (AST only)")
-    parser.add_argument("--full", action="store_true", help="Full run (AST + --help + --once)")
-    parser.add_argument("--report", action="store_true", help="Historical report")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Self-Test Suite — validate all dev scripts")
+    parser.add_argument(
+        "--run",
+        action="store_true",
+        help="Run standard tests (AST + --help)")
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Fast run (AST only)")
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Full run (AST + --help + --once)")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Historical report")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

@@ -29,7 +29,8 @@ DB_PATH = DB_DIR / "gpu_optimizer.db"
 
 # --- Profils d'optimisation GPU ---
 # Chaque profil definit une puissance cible (% du TDP max), un niveau de ventilation
-# et une description. Les watts exacts sont calcules dynamiquement selon le GPU.
+# et une description. Les watts exacts sont calcules dynamiquement selon
+# le GPU.
 PROFILES = {
     "gaming": {
         "name": "Gaming",
@@ -165,8 +166,7 @@ def _run_nvidia_smi(args_list):
     except FileNotFoundError:
         raise RuntimeError(
             "nvidia-smi introuvable. Verifiez que les pilotes NVIDIA sont installes "
-            "et que nvidia-smi est dans le PATH."
-        )
+            "et que nvidia-smi est dans le PATH.")
     except subprocess.TimeoutExpired:
         raise RuntimeError("nvidia-smi timeout apres 15 secondes.")
 
@@ -238,7 +238,8 @@ def query_gpus():
 
         # Calculs derives
         if gpu["memory_total_mb"] and gpu["memory_used_mb"]:
-            gpu["memory_free_mb"] = round(gpu["memory_total_mb"] - gpu["memory_used_mb"], 1)
+            gpu["memory_free_mb"] = round(
+                gpu["memory_total_mb"] - gpu["memory_used_mb"], 1)
             gpu["memory_usage_pct"] = round(
                 (gpu["memory_used_mb"] / gpu["memory_total_mb"]) * 100, 1
             )
@@ -837,7 +838,8 @@ def cmd_optimize(args):
     # Appliquer automatiquement si demande
     if auto_apply:
         # Simuler l'application du profil via cmd_profile
-        apply_args = argparse.Namespace(name=recommended_profile, gpu=gpu_index)
+        apply_args = argparse.Namespace(
+            name=recommended_profile, gpu=gpu_index)
         apply_result = cmd_profile(apply_args)
         result["auto_applied"] = True
         result["apply_result"] = apply_result
@@ -899,7 +901,9 @@ Exemples:
         help="Duree du benchmark en secondes (defaut: 10)",
     )
     parser.add_argument(
-        "--interval", type=float, default=1.0,
+        "--interval",
+        type=float,
+        default=1.0,
         help="Intervalle d'echantillonnage du benchmark en secondes (defaut: 1.0)",
     )
     parser.add_argument(

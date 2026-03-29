@@ -41,10 +41,18 @@ def scan_all_dbs():
     for db_file in sorted(data_dir.glob("*.db")):
         try:
             db = sqlite3.connect(str(db_file))
-            tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            tables = [t[0] for t in db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
             for table in tables:
-                cols = [c[1] for c in db.execute(f"PRAGMA table_info([{table}])").fetchall()]
-                err_cols = [c for c in cols if any(k in c.lower() for k in ["error", "status", "result"])]
+                cols = [
+                    c[1] for c in db.execute(
+                        f"PRAGMA table_info([{table}])").fetchall()]
+                err_cols = [
+                    c for c in cols if any(
+                        k in c.lower() for k in [
+                            "error",
+                            "status",
+                            "result"])]
                 for col in err_cols:
                     try:
                         rows = db.execute(
@@ -52,8 +60,10 @@ def scan_all_dbs():
                         ).fetchall()
                         for r in rows:
                             val = str(r[0]).strip()
-                            if val and len(val) > 2 and val not in ("0", "up", "running", "valid", "true"):
-                                errors.append({"db": db_file.name, "table": table, "col": col, "val": val[:150]})
+                            if val and len(val) > 2 and val not in (
+                                    "0", "up", "running", "valid", "true"):
+                                errors.append(
+                                    {"db": db_file.name, "table": table, "col": col, "val": val[:150]})
                     except Exception:
                         pass
             db.close()
@@ -69,7 +79,15 @@ def do_analyze():
     patterns = Counter()
     for e in errors:
         val = e["val"].lower()
-        for kw in ["timeout", "connection", "syntax", "locked", "refused", "fail", "error", "crash"]:
+        for kw in [
+            "timeout",
+            "connection",
+            "syntax",
+            "locked",
+            "refused",
+            "fail",
+            "error",
+                "crash"]:
             if kw in val:
                 patterns[kw] += 1
                 break
@@ -87,8 +105,13 @@ def do_analyze():
         "by_database": dict(by_db.most_common(10)),
         "recent_errors": errors[:15],
     }
-    db.execute("INSERT INTO analyses (ts, dbs_scanned, errors_found, patterns, report) VALUES (?,?,?,?,?)",
-               (time.time(), report["dbs_scanned"], len(errors), len(patterns), json.dumps(report)))
+    db.execute(
+        "INSERT INTO analyses (ts, dbs_scanned, errors_found, patterns, report) VALUES (?,?,?,?,?)",
+        (time.time(),
+         report["dbs_scanned"],
+         len(errors),
+         len(patterns),
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -96,9 +119,16 @@ def do_analyze():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Log Analyzer")
-    parser.add_argument("--once", "--analyze", action="store_true", help="Analyze logs")
+    parser.add_argument(
+        "--once",
+        "--analyze",
+        action="store_true",
+        help="Analyze logs")
     parser.add_argument("--errors", action="store_true", help="Show errors")
-    parser.add_argument("--patterns", action="store_true", help="Show patterns")
+    parser.add_argument(
+        "--patterns",
+        action="store_true",
+        help="Show patterns")
     parser.add_argument("--timeline", action="store_true", help="Timeline")
     args = parser.parse_args()
     print(json.dumps(do_analyze(), ensure_ascii=False, indent=2))

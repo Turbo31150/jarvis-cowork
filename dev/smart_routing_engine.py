@@ -37,27 +37,27 @@ CB_RECOVERY_TIME_S = 300   # Try again after 5 minutes
 
 # Node capabilities
 NODE_CAPABILITIES = {
-    "M1":  {"speed": "fast", "reasoning": True, "code": True, "max_ctx": 32768},
-    "M2":  {"speed": "slow", "reasoning": True, "code": True, "max_ctx": 27000},
-    "M3":  {"speed": "slow", "reasoning": True, "code": True, "max_ctx": 25000},
+    "M1": {"speed": "fast", "reasoning": True, "code": True, "max_ctx": 32768},
+    "M2": {"speed": "slow", "reasoning": True, "code": True, "max_ctx": 27000},
+    "M3": {"speed": "slow", "reasoning": True, "code": True, "max_ctx": 25000},
     "OL1": {"speed": "fast", "reasoning": False, "code": False, "max_ctx": 8192},
 }
 
 # Default routing (used when no learned data)
 DEFAULT_ROUTES = {
-    "simple":       ["OL1", "M1"],
-    "code":         ["M1", "OL1"],
-    "analysis":     ["M1", "OL1"],
-    "math":         ["M1", "OL1"],
-    "reasoning":    ["M1", "M2", "M3"],
-    "trading":      ["M1", "OL1"],
-    "system":       ["OL1", "M1"],
-    "creative":     ["M1", "OL1"],
-    "web":          ["OL1", "M1"],
+    "simple": ["OL1", "M1"],
+    "code": ["M1", "OL1"],
+    "analysis": ["M1", "OL1"],
+    "math": ["M1", "OL1"],
+    "reasoning": ["M1", "M2", "M3"],
+    "trading": ["M1", "OL1"],
+    "system": ["OL1", "M1"],
+    "creative": ["M1", "OL1"],
+    "web": ["OL1", "M1"],
     "architecture": ["M1", "M2"],
-    "security":     ["M1", "M2"],
-    "data":         ["M1", "OL1"],
-    "devops":       ["M1", "OL1"],
+    "security": ["M1", "M2"],
+    "data": ["M1", "OL1"],
+    "devops": ["M1", "OL1"],
 }
 
 
@@ -152,7 +152,10 @@ def get_learned_routes(gaps_db):
 def get_optimal_route(task_type, gaps_db=None, edb=None):
     """Get the optimal routing chain for a task type."""
     # 1. Start with default
-    chain = DEFAULT_ROUTES.get(task_type, DEFAULT_ROUTES.get("simple", ["M1", "OL1"]))
+    chain = DEFAULT_ROUTES.get(
+        task_type, DEFAULT_ROUTES.get(
+            "simple", [
+                "M1", "OL1"]))
 
     # 2. Override with learned routes if available
     if gaps_db:
@@ -168,7 +171,12 @@ def get_optimal_route(task_type, gaps_db=None, edb=None):
     # 4. Filter by circuit breaker
     if edb:
         cb = get_circuit_breaker_state(edb)
-        chain = [n for n in chain if cb.get(n, {}).get("state", "CLOSED") != "OPEN"]
+        chain = [
+            n for n in chain if cb.get(
+                n,
+                {}).get(
+                "state",
+                "CLOSED") != "OPEN"]
 
     # 5. Ensure at least one node
     if not chain:
@@ -221,7 +229,14 @@ def show_routing_table(gaps_db, edb):
         online = "ONLINE" if hb.get("online", True) else "OFFLINE"
         circuit = cbs.get("state", "CLOSED")
         fails = cbs.get("recent_fails", 0)
-        print(f"  {node:4} {online:7} CB={circuit:6} fails={fails} rate={cbs.get('fail_rate', 0)}%")
+        print(
+            f"  {
+                node:4} {
+                online:7} CB={
+                circuit:6} fails={fails} rate={
+                    cbs.get(
+                        'fail_rate',
+                        0)}%")
 
     print("\n=== Routing Table ===")
     all_types = sorted(set(list(DEFAULT_ROUTES.keys()) + list(learned.keys())))
@@ -231,14 +246,21 @@ def show_routing_table(gaps_db, edb):
         learned_info = ""
         if t in learned:
             learned_info = f" (learned: score={learned[t]['best_score']:.2f})"
-        print(f"  {t:15} -> {' -> '.join(chain[:3]):20} timeout={timeout}s{learned_info}")
+        print(
+            f"  {t:15} -> {' -> '.join(chain[:3]):20} timeout={timeout}s{learned_info}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Smart Routing Engine")
-    parser.add_argument("--once", action="store_true", help="Show routing table")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Show routing table")
     parser.add_argument("--route", type=str, help="Get route for task type")
-    parser.add_argument("--status", action="store_true", help="Node status + CB")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Node status + CB")
     parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args()
 
@@ -271,7 +293,8 @@ def main():
         if args.json:
             print(json.dumps(result, indent=2))
         else:
-            print(f"{args.route} -> {' -> '.join(chain[:3])} (timeout={timeout}s)")
+            print(
+                f"{args.route} -> {' -> '.join(chain[:3])} (timeout={timeout}s)")
         gaps_db.close()
         edb.close()
         return

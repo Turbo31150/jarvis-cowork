@@ -46,13 +46,15 @@ def get_low_confidence_phrases():
         return phrases
     try:
         db = sqlite3.connect(str(JARVIS_DB))
-        tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        tables = [t[0] for t in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
         if "voice_corrections" in tables:
             rows = db.execute(
                 "SELECT original, corrected, confidence FROM voice_corrections WHERE confidence < 0.7 ORDER BY rowid DESC LIMIT 200"
             ).fetchall()
             for r in rows:
-                phrases.append({"original": r[0], "corrected": r[1], "confidence": r[2]})
+                phrases.append(
+                    {"original": r[0], "corrected": r[1], "confidence": r[2]})
         db.close()
     except Exception:
         pass
@@ -62,20 +64,19 @@ def get_low_confidence_phrases():
 def detect_patterns(phrases):
     """Detect recurring misrecognition patterns."""
     # Group by similar originals
-    originals = [p["original"].lower().strip() for p in phrases if p.get("original")]
+    originals = [p["original"].lower().strip()
+                 for p in phrases if p.get("original")]
     counter = Counter(originals)
     patterns = []
     for text, count in counter.most_common(20):
         if count >= 2 and len(text) > 3:
             # Find the corrected versions
-            corrections = [p["corrected"] for p in phrases if p.get("original", "").lower().strip() == text and p.get("corrected")]
-            best_correction = Counter(corrections).most_common(1)[0][0] if corrections else text
-            patterns.append({
-                "original": text,
-                "frequency": count,
-                "best_correction": best_correction,
-                "confidence": round(sum(p["confidence"] for p in phrases if p.get("original", "").lower().strip() == text) / count, 3),
-            })
+            corrections = [p["corrected"] for p in phrases if p.get(
+                "original", "").lower().strip() == text and p.get("corrected")]
+            best_correction = Counter(corrections).most_common(1)[
+                0][0] if corrections else text
+            patterns.append({"original": text, "frequency": count, "best_correction": best_correction, "confidence": round(
+                sum(p["confidence"] for p in phrases if p.get("original", "").lower().strip() == text) / count, 3), })
     return patterns
 
 
@@ -133,9 +134,16 @@ def do_analyze():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Voice Trainer")
-    parser.add_argument("--once", "--analyze", action="store_true", help="Analyze and train")
+    parser.add_argument(
+        "--once",
+        "--analyze",
+        action="store_true",
+        help="Analyze and train")
     parser.add_argument("--gaps", action="store_true", help="Show gaps")
-    parser.add_argument("--generate", action="store_true", help="Generate corrections")
+    parser.add_argument(
+        "--generate",
+        action="store_true",
+        help="Generate corrections")
     parser.add_argument("--test", action="store_true", help="Test corrections")
     args = parser.parse_args()
 

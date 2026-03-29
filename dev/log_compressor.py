@@ -27,11 +27,13 @@ ETOILE_DB = Path(r"F:/BUREAU/turbo/etoile.db")
 ARCHIVE_DAYS = 7
 EVENTS_KEEP_DAYS = 3
 
+
 def get_db_size(path):
     try:
         return os.path.getsize(path) // 1024
     except OSError:
         return 0
+
 
 def count_rows(conn, table):
     try:
@@ -39,8 +41,11 @@ def count_rows(conn, table):
     except Exception:
         return 0
 
+
 def get_tables(conn):
-    return [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    return [r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+
 
 def get_stats():
     stats = {}
@@ -59,19 +64,23 @@ def get_stats():
         }
     return stats
 
+
 def clean_old(dry_run=False):
     results = {}
     if DB_PATH.exists():
         conn = sqlite3.connect(str(DB_PATH), timeout=10)
         conn.execute("PRAGMA journal_mode=WAL")
-        for table, days in [("realtime_events", 3), ("proactive_alerts", 7), ("telegram_reports", 7)]:
+        for table, days in [("realtime_events", 3),
+                            ("proactive_alerts", 7), ("telegram_reports", 7)]:
             cut = (datetime.now() - timedelta(days=days)).isoformat()
             try:
-                old = conn.execute(f"SELECT COUNT(*) FROM [{table}] WHERE timestamp < ?", (cut,)).fetchone()[0]
+                old = conn.execute(
+                    f"SELECT COUNT(*) FROM [{table}] WHERE timestamp < ?", (cut,)).fetchone()[0]
             except Exception:
                 old = 0
             if old > 0 and not dry_run:
-                conn.execute(f"DELETE FROM [{table}] WHERE timestamp < ?", (cut,))
+                conn.execute(
+                    f"DELETE FROM [{table}] WHERE timestamp < ?", (cut,))
             results[table] = old
         conn.commit()
         if not dry_run:
@@ -79,10 +88,17 @@ def clean_old(dry_run=False):
         conn.close()
     return results
 
+
 def main():
     parser = argparse.ArgumentParser(description="Log Compressor")
-    parser.add_argument("--once", action="store_true", help="Compress and archive")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be done")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Compress and archive")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be done")
     parser.add_argument("--stats", action="store_true", help="DB statistics")
     args = parser.parse_args()
 
@@ -100,6 +116,7 @@ def main():
             "db_stats": get_stats(),
         }
     print(json.dumps(result, indent=2, ensure_ascii=False))
+
 
 if __name__ == "__main__":
     main()

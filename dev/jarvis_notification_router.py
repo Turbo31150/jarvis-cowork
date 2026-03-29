@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """jarvis_notification_router.py — Notification routing (#257).
 
@@ -71,13 +72,17 @@ def init_db():
         for r in DEFAULT_RULES:
             db.execute(
                 "INSERT INTO rules (priority, channels, rate_limit_seconds) VALUES (?,?,?)",
-                (r["priority"], json.dumps(r["channels"]), r["rate_limit_seconds"]),
+                (r["priority"],
+                 json.dumps(
+                    r["channels"]),
+                    r["rate_limit_seconds"]),
             )
 
     # Seed channel stats if empty
     if db.execute("SELECT COUNT(*) FROM channel_stats").fetchone()[0] == 0:
         for ch in ["console", "file", "telegram"]:
-            db.execute("INSERT INTO channel_stats (channel, sent_count) VALUES (?,0)", (ch,))
+            db.execute(
+                "INSERT INTO channel_stats (channel, sent_count) VALUES (?,0)", (ch,))
 
     db.commit()
     return db
@@ -86,7 +91,14 @@ def init_db():
 def classify_priority(message):
     """Auto-classify message priority."""
     msg_lower = message.lower()
-    if any(k in msg_lower for k in ["error", "critical", "crash", "fail", "down", "offline"]):
+    if any(
+        k in msg_lower for k in [
+            "error",
+            "critical",
+            "crash",
+            "fail",
+            "down",
+            "offline"]):
         return "critical"
     if any(k in msg_lower for k in ["warning", "alert", "high", "urgent"]):
         return "high"
@@ -114,21 +126,31 @@ def classify_type(message):
 def check_rate_limit(db, priority):
     """Check if rate limit allows sending."""
     rule = db.execute(
-        "SELECT rate_limit_seconds FROM rules WHERE priority=? AND active=1", (priority,)
-    ).fetchone()
+        "SELECT rate_limit_seconds FROM rules WHERE priority=? AND active=1",
+        (priority,
+         )).fetchone()
     if not rule or rule[0] == 0:
         return True  # No limit
 
     rate_limit = rule[0]
-    row = db.execute("SELECT last_sent_ts FROM rate_limits WHERE priority=?", (priority,)).fetchone()
+    row = db.execute(
+        "SELECT last_sent_ts FROM rate_limits WHERE priority=?",
+        (priority,
+         )).fetchone()
     if not row:
-        db.execute("INSERT INTO rate_limits (priority, last_sent_ts) VALUES (?,?)", (priority, time.time()))
+        db.execute(
+            "INSERT INTO rate_limits (priority, last_sent_ts) VALUES (?,?)",
+            (priority,
+             time.time()))
         db.commit()
         return True
 
     elapsed = time.time() - row[0]
     if elapsed >= rate_limit:
-        db.execute("UPDATE rate_limits SET last_sent_ts=? WHERE priority=?", (time.time(), priority))
+        db.execute(
+            "UPDATE rate_limits SET last_sent_ts=? WHERE priority=?",
+            (time.time(),
+             priority))
         db.commit()
         return True
     return False
@@ -136,7 +158,12 @@ def check_rate_limit(db, priority):
 
 def send_to_console(message, priority):
     """Send to console (print)."""
-    prefix = {"critical": "[CRIT]", "high": "[HIGH]", "medium": "[INFO]", "low": "[LOW]", "debug": "[DBG]"}
+    prefix = {
+        "critical": "[CRIT]",
+        "high": "[HIGH]",
+        "medium": "[INFO]",
+        "low": "[LOW]",
+        "debug": "[DBG]"}
     print(f"{prefix.get(priority, '[???]')} {message}")
     return True
 
@@ -144,9 +171,11 @@ def send_to_console(message, priority):
 def send_to_file(message, priority):
     """Append to notification log file."""
     try:
-        log_file = LOG_DIR / f"notifications_{datetime.now().strftime('%Y%m%d')}.log"
+        log_file = LOG_DIR / \
+            f"notifications_{datetime.now().strftime('%Y%m%d')}.log"
         with open(log_file, "a", encoding="utf-8") as f:
-            f.write(f"{datetime.now().isoformat()} [{priority.upper()}] {message}\n")
+            f.write(
+                f"{datetime.now().isoformat()} [{priority.upper()}] {message}\n")
         return True
     except Exception:
         return False
@@ -204,7 +233,11 @@ def do_route(message):
 
     db.execute(
         "INSERT INTO notifications (ts, message, priority, msg_type, channels_sent) VALUES (?,?,?,?,?)",
-        (now.isoformat(), message, priority, msg_type, json.dumps(sent_channels)),
+        (now.isoformat(),
+         message,
+         priority,
+         msg_type,
+         json.dumps(sent_channels)),
     )
     db.commit()
 
@@ -220,7 +253,8 @@ def do_route(message):
 def do_channels():
     """Show channel statistics."""
     db = init_db()
-    rows = db.execute("SELECT channel, sent_count, last_sent, errors FROM channel_stats").fetchall()
+    rows = db.execute(
+        "SELECT channel, sent_count, last_sent, errors FROM channel_stats").fetchall()
 
     result = {
         "ts": datetime.now().isoformat(), "action": "channels",
@@ -236,7 +270,8 @@ def do_channels():
 def do_rules():
     """Show routing rules."""
     db = init_db()
-    rows = db.execute("SELECT priority, channels, rate_limit_seconds, active FROM rules").fetchall()
+    rows = db.execute(
+        "SELECT priority, channels, rate_limit_seconds, active FROM rules").fetchall()
 
     result = {
         "ts": datetime.now().isoformat(), "action": "rules",
@@ -257,7 +292,8 @@ def do_stats():
     by_priority = db.execute(
         "SELECT priority, COUNT(*) FROM notifications GROUP BY priority ORDER BY COUNT(*) DESC"
     ).fetchall()
-    rate_limited = db.execute("SELECT COUNT(*) FROM notifications WHERE rate_limited=1").fetchone()[0]
+    rate_limited = db.execute(
+        "SELECT COUNT(*) FROM notifications WHERE rate_limited=1").fetchone()[0]
     recent = db.execute(
         "SELECT ts, priority, msg_type, channels_sent, rate_limited FROM notifications ORDER BY id DESC LIMIT 10"
     ).fetchall()
@@ -280,7 +316,9 @@ def do_stats():
 def do_status():
     db = init_db()
     result = {
-        "ts": datetime.now().isoformat(), "script": "jarvis_notification_router.py", "script_id": 257,
+        "ts": datetime.now().isoformat(),
+        "script": "jarvis_notification_router.py",
+        "script_id": 257,
         "db": str(DB_PATH),
         "total_notifications": db.execute("SELECT COUNT(*) FROM notifications").fetchone()[0],
         "rules_count": db.execute("SELECT COUNT(*) FROM rules").fetchone()[0],
@@ -291,12 +329,29 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="jarvis_notification_router.py — Notification routing (#257)")
-    parser.add_argument("--route", type=str, metavar="MSG", help="Route a message")
-    parser.add_argument("--channels", action="store_true", help="Show channel stats")
-    parser.add_argument("--rules", action="store_true", help="Show routing rules")
-    parser.add_argument("--stats", action="store_true", help="Show notification stats")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="jarvis_notification_router.py — Notification routing (#257)")
+    parser.add_argument(
+        "--route",
+        type=str,
+        metavar="MSG",
+        help="Route a message")
+    parser.add_argument(
+        "--channels",
+        action="store_true",
+        help="Show channel stats")
+    parser.add_argument(
+        "--rules",
+        action="store_true",
+        help="Show routing rules")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show notification stats")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.route:

@@ -22,11 +22,16 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "ensemble_voter.db"
 
 # MAO weights
-AGENTS = [
-    {"name": "M1", "weight": 1.8, "cmd": 'curl -s http://127.0.0.1:1234/api/v1/chat -H "Content-Type: application/json" -d \'{"model":"qwen3-8b","input":"/nothink\\nPROMPT","temperature":0.2,"max_output_tokens":512,"stream":false,"store":false}\''},
-    {"name": "OL1", "weight": 1.3, "cmd": "curl -s http://127.0.0.1:11434/api/chat -d '{\"model\":\"qwen3:1.7b\",\"messages\":[{\"role\":\"user\",\"content\":\"PROMPT\"}],\"stream\":false}'"},
-    {"name": "gpt-oss", "weight": 1.9, "cmd": "curl -s http://127.0.0.1:11434/api/chat -d '{\"model\":\"gpt-oss:120b-cloud\",\"messages\":[{\"role\":\"user\",\"content\":\"PROMPT\"}],\"stream\":false,\"think\":false}' --max-time 60"},
-]
+AGENTS = [{"name": "M1",
+           "weight": 1.8,
+           "cmd": 'curl -s http://127.0.0.1:1234/api/v1/chat -H "Content-Type: application/json" -d \'{"model":"qwen3-8b","input":"/nothink\\nPROMPT","temperature":0.2,"max_output_tokens":512,"stream":false,"store":false}\''},
+          {"name": "OL1",
+           "weight": 1.3,
+           "cmd": "curl -s http://127.0.0.1:11434/api/chat -d '{\"model\":\"qwen3:1.7b\",\"messages\":[{\"role\":\"user\",\"content\":\"PROMPT\"}],\"stream\":false}'"},
+          {"name": "gpt-oss",
+           "weight": 1.9,
+           "cmd": "curl -s http://127.0.0.1:11434/api/chat -d '{\"model\":\"gpt-oss:120b-cloud\",\"messages\":[{\"role\":\"user\",\"content\":\"PROMPT\"}],\"stream\":false,\"think\":false}' --max-time 60"},
+          ]
 
 
 def init_db():
@@ -47,7 +52,13 @@ def init_db():
 
 def query_agent(agent, question, timeout=60):
     """Query a single agent."""
-    cmd = agent["cmd"].replace("PROMPT", question.replace("'", "\\'").replace('"', '\\"'))
+    cmd = agent["cmd"].replace(
+        "PROMPT",
+        question.replace(
+            "'",
+            "\\'").replace(
+            '"',
+            '\\"'))
     try:
         start = time.time()
         result = subprocess.run(
@@ -158,10 +169,12 @@ def main():
     args = parser.parse_args()
 
     if args.weights:
-        print(json.dumps([{"agent": a["name"], "weight": a["weight"]} for a in AGENTS], indent=2))
+        print(json.dumps([{"agent": a["name"], "weight": a["weight"]}
+              for a in AGENTS], indent=2))
     elif args.history:
         db = init_db()
-        rows = db.execute("SELECT ts, question, winner, confidence FROM results ORDER BY ts DESC LIMIT 10").fetchall()
+        rows = db.execute(
+            "SELECT ts, question, winner, confidence FROM results ORDER BY ts DESC LIMIT 10").fetchall()
         db.close()
         print(json.dumps([{
             "ts": datetime.fromtimestamp(r[0]).isoformat(),
@@ -171,7 +184,8 @@ def main():
         result = do_vote(args.vote)
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
-        result = do_vote("Quelle est la meilleure strategie pour optimiser un cluster GPU local?")
+        result = do_vote(
+            "Quelle est la meilleure strategie pour optimiser un cluster GPU local?")
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
 

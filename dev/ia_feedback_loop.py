@@ -55,7 +55,8 @@ def collect_agent_stats():
 
     try:
         db = sqlite3.connect(str(ETOILE_DB))
-        tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        tables = [t[0] for t in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
 
         if "tool_metrics" in tables:
             rows = db.execute(
@@ -100,7 +101,8 @@ def calculate_adjustments(stats):
         avg_latency = agent_stats["total_latency"] / total
 
         # Scoring: success_rate * 0.7 + speed_score * 0.3
-        speed_score = max(0, 1 - (avg_latency / 10000))  # Normalize to 0-1 (10s = 0)
+        # Normalize to 0-1 (10s = 0)
+        speed_score = max(0, 1 - (avg_latency / 10000))
         performance = success_rate * 0.7 + speed_score * 0.3
 
         # Calculate suggested weight (bounded regression toward performance)
@@ -139,14 +141,21 @@ def do_feedback():
     for adj in adjustments:
         db.execute(
             "INSERT INTO feedback (ts, agent, success_rate, avg_latency, total_calls, current_weight, suggested_weight) VALUES (?,?,?,?,?,?,?)",
-            (time.time(), adj["agent"], adj["success_rate"], adj["avg_latency_ms"],
-             adj["total_calls"], adj["current_weight"], adj["suggested_weight"])
-        )
+            (time.time(),
+             adj["agent"],
+                adj["success_rate"],
+                adj["avg_latency_ms"],
+                adj["total_calls"],
+                adj["current_weight"],
+                adj["suggested_weight"]))
         if abs(adj["delta"]) > 0.1:
             db.execute(
                 "INSERT INTO adjustments (ts, agent, old_weight, new_weight, reason) VALUES (?,?,?,?,?)",
-                (time.time(), adj["agent"], adj["current_weight"], adj["suggested_weight"], adj["reason"])
-            )
+                (time.time(),
+                 adj["agent"],
+                    adj["current_weight"],
+                    adj["suggested_weight"],
+                    adj["reason"]))
 
     db.commit()
     db.close()
@@ -163,9 +172,16 @@ def do_feedback():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Feedback Loop")
-    parser.add_argument("--once", "--collect", action="store_true", help="Collect and analyze")
+    parser.add_argument(
+        "--once",
+        "--collect",
+        action="store_true",
+        help="Collect and analyze")
     parser.add_argument("--analyze", action="store_true", help="Analyze stats")
-    parser.add_argument("--adjust", action="store_true", help="Show adjustments")
+    parser.add_argument(
+        "--adjust",
+        action="store_true",
+        help="Show adjustments")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()
 

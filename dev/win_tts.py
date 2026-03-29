@@ -24,7 +24,11 @@ DEFAULT_VOICE = "fr-FR-DeniseNeural"
 
 def clean_text_for_speech(text):
     """Nettoie le texte pour la synthese vocale — pas de ponctuation ni symboles."""
-    text = re.sub(r'[^\w\s\-àâäéèêëïîôùûüÿçœæÀÂÄÉÈÊËÏÎÔÙÛÜŸÇŒÆ]', ' ', text, flags=re.UNICODE)
+    text = re.sub(
+        r'[^\w\s\-àâäéèêëïîôùûüÿçœæÀÂÄÉÈÊËÏÎÔÙÛÜŸÇŒÆ]',
+        ' ',
+        text,
+        flags=re.UNICODE)
     text = text.replace('_', ' ')
     text = re.sub(r'\s+', ' ', text).strip()
     return text
@@ -85,7 +89,10 @@ def speak_and_send(text, voice=DEFAULT_VOICE, telegram=False, save_path=None):
     # 0. Nettoyer le texte
     text = clean_text_for_speech(text)
     if not text:
-        return {"ok": False, "step": "clean", "error": "texte vide apres nettoyage"}
+        return {
+            "ok": False,
+            "step": "clean",
+            "error": "texte vide apres nettoyage"}
 
     # 1. Generer MP3 via Edge TTS
     mp3_path, err = speak_to_mp3(text, voice)
@@ -118,7 +125,8 @@ def speak_and_send(text, voice=DEFAULT_VOICE, telegram=False, save_path=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Edge TTS Neural + Telegram Voice")
+    parser = argparse.ArgumentParser(
+        description="Edge TTS Neural + Telegram Voice")
     parser.add_argument("--speak", type=str, help="Texte a synthetiser")
     parser.add_argument("--voice", type=str, default=DEFAULT_VOICE,
                         help=f"Voix Edge TTS (defaut: {DEFAULT_VOICE})")

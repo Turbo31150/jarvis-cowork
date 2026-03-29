@@ -8,7 +8,15 @@ Usage:
     python dev/ia_data_synthesizer.py --validate
     python dev/ia_data_synthesizer.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, random, string, hashlib
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import random
+import string
+import hashlib
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -16,33 +24,158 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "data_synthesizer.db"
 
 # French data pools
-PRENOMS_H = ["Jean", "Pierre", "Michel", "Andre", "Philippe", "Jacques", "Bernard", "Alain",
-             "Francois", "Robert", "Louis", "Thomas", "Nicolas", "Julien", "Antoine",
-             "Alexandre", "Maxime", "Hugo", "Lucas", "Mathieu", "Gabriel", "Leo"]
-PRENOMS_F = ["Marie", "Jeanne", "Catherine", "Nathalie", "Isabelle", "Sylvie", "Sophie",
-             "Monique", "Christine", "Valerie", "Camille", "Lea", "Chloe", "Emma",
-             "Julie", "Clara", "Manon", "Sarah", "Alice", "Louise", "Jade"]
-NOMS = ["Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand",
-        "Leroy", "Moreau", "Simon", "Laurent", "Lefebvre", "Michel", "Garcia", "David",
-        "Bertrand", "Roux", "Vincent", "Fournier", "Morel", "Girard", "Andre", "Mercier",
-        "Dupont", "Lambert", "Bonnet", "Fontaine", "Rousseau", "Blanc"]
-VILLES = ["Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg",
-          "Montpellier", "Bordeaux", "Lille", "Rennes", "Reims", "Le Havre", "Toulon",
-          "Grenoble", "Dijon", "Angers", "Nimes", "Clermont-Ferrand", "Tours"]
-CODES_POSTAUX = {"Paris": "75001", "Marseille": "13001", "Lyon": "69001", "Toulouse": "31000",
-                 "Nice": "06000", "Nantes": "44000", "Strasbourg": "67000", "Montpellier": "34000",
-                 "Bordeaux": "33000", "Lille": "59000", "Rennes": "35000", "Reims": "51100",
-                 "Le Havre": "76600", "Toulon": "83000", "Grenoble": "38000", "Dijon": "21000",
-                 "Angers": "49000", "Nimes": "30000", "Clermont-Ferrand": "63000", "Tours": "37000"}
-RUES = ["Rue de la Paix", "Avenue des Champs-Elysees", "Boulevard Haussmann",
-        "Rue du Faubourg Saint-Honore", "Rue de Rivoli", "Avenue Victor Hugo",
-        "Rue Pasteur", "Boulevard Voltaire", "Rue de la Republique", "Avenue Jean Jaures",
-        "Rue Gambetta", "Place de la Mairie", "Impasse des Lilas", "Chemin du Moulin"]
-ENTREPRISES = ["Societe Generale", "TotalEnergies", "LVMH", "Carrefour", "Orange",
-               "Renault", "BNP Paribas", "AXA", "Danone", "Air France",
-               "Michelin", "Bouygues", "Capgemini", "Dassault", "Thales"]
+PRENOMS_H = [
+    "Jean",
+    "Pierre",
+    "Michel",
+    "Andre",
+    "Philippe",
+    "Jacques",
+    "Bernard",
+    "Alain",
+    "Francois",
+    "Robert",
+    "Louis",
+    "Thomas",
+    "Nicolas",
+    "Julien",
+    "Antoine",
+    "Alexandre",
+    "Maxime",
+    "Hugo",
+    "Lucas",
+    "Mathieu",
+    "Gabriel",
+    "Leo"]
+PRENOMS_F = [
+    "Marie",
+    "Jeanne",
+    "Catherine",
+    "Nathalie",
+    "Isabelle",
+    "Sylvie",
+    "Sophie",
+    "Monique",
+    "Christine",
+    "Valerie",
+    "Camille",
+    "Lea",
+    "Chloe",
+    "Emma",
+    "Julie",
+    "Clara",
+    "Manon",
+    "Sarah",
+    "Alice",
+    "Louise",
+    "Jade"]
+NOMS = [
+    "Martin",
+    "Bernard",
+    "Dubois",
+    "Thomas",
+    "Robert",
+    "Richard",
+    "Petit",
+    "Durand",
+    "Leroy",
+    "Moreau",
+    "Simon",
+    "Laurent",
+    "Lefebvre",
+    "Michel",
+    "Garcia",
+    "David",
+    "Bertrand",
+    "Roux",
+    "Vincent",
+    "Fournier",
+    "Morel",
+    "Girard",
+    "Andre",
+    "Mercier",
+    "Dupont",
+    "Lambert",
+    "Bonnet",
+    "Fontaine",
+    "Rousseau",
+    "Blanc"]
+VILLES = [
+    "Paris",
+    "Marseille",
+    "Lyon",
+    "Toulouse",
+    "Nice",
+    "Nantes",
+    "Strasbourg",
+    "Montpellier",
+    "Bordeaux",
+    "Lille",
+    "Rennes",
+    "Reims",
+    "Le Havre",
+    "Toulon",
+    "Grenoble",
+    "Dijon",
+    "Angers",
+    "Nimes",
+    "Clermont-Ferrand",
+    "Tours"]
+CODES_POSTAUX = {
+    "Paris": "75001",
+    "Marseille": "13001",
+    "Lyon": "69001",
+    "Toulouse": "31000",
+    "Nice": "06000",
+    "Nantes": "44000",
+    "Strasbourg": "67000",
+    "Montpellier": "34000",
+    "Bordeaux": "33000",
+    "Lille": "59000",
+    "Rennes": "35000",
+    "Reims": "51100",
+    "Le Havre": "76600",
+    "Toulon": "83000",
+    "Grenoble": "38000",
+    "Dijon": "21000",
+    "Angers": "49000",
+    "Nimes": "30000",
+    "Clermont-Ferrand": "63000",
+    "Tours": "37000"}
+RUES = [
+    "Rue de la Paix",
+    "Avenue des Champs-Elysees",
+    "Boulevard Haussmann",
+    "Rue du Faubourg Saint-Honore",
+    "Rue de Rivoli",
+    "Avenue Victor Hugo",
+    "Rue Pasteur",
+    "Boulevard Voltaire",
+    "Rue de la Republique",
+    "Avenue Jean Jaures",
+    "Rue Gambetta",
+    "Place de la Mairie",
+    "Impasse des Lilas",
+    "Chemin du Moulin"]
+ENTREPRISES = [
+    "Societe Generale",
+    "TotalEnergies",
+    "LVMH",
+    "Carrefour",
+    "Orange",
+    "Renault",
+    "BNP Paribas",
+    "AXA",
+    "Danone",
+    "Air France",
+    "Michelin",
+    "Bouygues",
+    "Capgemini",
+    "Dassault",
+    "Thales"]
 DOMAINES = ["gmail.com", "orange.fr", "free.fr", "outlook.com", "yahoo.fr",
             "hotmail.fr", "laposte.net", "sfr.fr", "wanadoo.fr"]
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -66,6 +199,7 @@ def init_db():
     )""")
     db.commit()
     return db
+
 
 def generate_value(field_type, field_name=""):
     """Generate a realistic value based on type and field name."""
@@ -103,7 +237,12 @@ def generate_value(field_type, field_name=""):
         elif "url" in fname or "site" in fname:
             return f"https://www.{random.choice(NOMS).lower()}.fr"
         else:
-            return ''.join(random.choices(string.ascii_lowercase, k=random.randint(5, 15)))
+            return ''.join(
+                random.choices(
+                    string.ascii_lowercase,
+                    k=random.randint(
+                        5,
+                        15)))
 
     elif field_type == "int":
         if "age" in fname:
@@ -145,10 +284,12 @@ def generate_value(field_type, field_name=""):
         return random.choice([True, False])
 
     elif field_type == "uuid":
-        return hashlib.md5(f"{time.time()}_{random.random()}".encode()).hexdigest()
+        return hashlib.md5(
+            f"{time.time()}_{random.random()}".encode()).hexdigest()
 
     else:
         return f"unknown_type_{field_type}"
+
 
 def do_generate(schema_str, rows=10, fmt="json"):
     db = init_db()
@@ -169,8 +310,13 @@ def do_generate(schema_str, rows=10, fmt="json"):
     elapsed = int((time.time() - start) * 1000)
 
     # Save to DB
-    db.execute("INSERT INTO generation_log (ts, schema_json, rows_generated, format, duration_ms) VALUES (?,?,?,?,?)",
-               (datetime.now().isoformat(), json.dumps(schema), rows, fmt, elapsed))
+    db.execute(
+        "INSERT INTO generation_log (ts, schema_json, rows_generated, format, duration_ms) VALUES (?,?,?,?,?)",
+        (datetime.now().isoformat(),
+         json.dumps(schema),
+         rows,
+         fmt,
+         elapsed))
     db.commit()
 
     # Format output
@@ -202,10 +348,13 @@ def do_generate(schema_str, rows=10, fmt="json"):
     db.close()
     return result
 
+
 def do_format(fmt):
     return {
         "action": "format_info",
-        "supported_formats": ["json", "csv"],
+        "supported_formats": [
+            "json",
+            "csv"],
         "supported_types": {
             "str": "String — auto-detects by field name (nom, email, ville, tel, etc.)",
             "int": "Integer — auto-detects (age, montant, quantite, id)",
@@ -213,20 +362,23 @@ def do_format(fmt):
             "date": "Date — format YYYY-MM-DD",
             "datetime": "DateTime — format YYYY-MM-DD HH:MM:SS",
             "bool": "Boolean — True/False",
-            "uuid": "UUID — MD5-based unique ID"
-        },
+            "uuid": "UUID — MD5-based unique ID"},
         "smart_fields": [
-            "nom/name → French surname", "prenom/first → French first name",
-            "email → realistic FR email", "ville/city → French city",
-            "adresse/address → French street address", "tel/phone → FR mobile",
-            "entreprise/company → French company", "code_postal/zip → FR postal code"
-        ],
-        "ts": datetime.now().isoformat()
-    }
+            "nom/name → French surname",
+            "prenom/first → French first name",
+            "email → realistic FR email",
+            "ville/city → French city",
+            "adresse/address → French street address",
+            "tel/phone → FR mobile",
+            "entreprise/company → French company",
+            "code_postal/zip → FR postal code"],
+        "ts": datetime.now().isoformat()}
+
 
 def do_validate():
     db = init_db()
-    last = db.execute("SELECT id, schema_json, rows_generated FROM generation_log ORDER BY id DESC LIMIT 1").fetchone()
+    last = db.execute(
+        "SELECT id, schema_json, rows_generated FROM generation_log ORDER BY id DESC LIMIT 1").fetchone()
     if not last:
         db.close()
         return {"action": "validate", "message": "No generations to validate"}
@@ -252,39 +404,83 @@ def do_validate():
     db.close()
     return result
 
+
 def do_once():
     db = init_db()
     total = db.execute("SELECT COUNT(*) FROM generation_log").fetchone()[0]
-    total_rows = db.execute("SELECT SUM(rows_generated) FROM generation_log").fetchone()[0] or 0
+    total_rows = db.execute(
+        "SELECT SUM(rows_generated) FROM generation_log").fetchone()[0] or 0
     result = {
         "status": "ok",
         "total_generations": total,
         "total_rows_generated": total_rows,
-        "supported_types": ["str", "int", "float", "date", "datetime", "bool", "uuid"],
-        "smart_fields": ["nom", "prenom", "email", "ville", "adresse", "tel", "entreprise", "code_postal"],
+        "supported_types": [
+            "str",
+            "int",
+            "float",
+            "date",
+            "datetime",
+            "bool",
+            "uuid"],
+        "smart_fields": [
+            "nom",
+            "prenom",
+            "email",
+            "ville",
+            "adresse",
+            "tel",
+            "entreprise",
+            "code_postal"],
         "locale": "fr-FR",
-        "ts": datetime.now().isoformat()
-    }
+        "ts": datetime.now().isoformat()}
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="IA Data Synthesizer — COWORK #236")
-    parser.add_argument("--generate", type=str, metavar="SCHEMA", help="Generate data from JSON schema")
-    parser.add_argument("--rows", type=int, default=10, help="Number of rows (default: 10)")
-    parser.add_argument("--format", type=str, default="json", help="Output format (json/csv)")
-    parser.add_argument("--validate", action="store_true", help="Validate last generation")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="IA Data Synthesizer — COWORK #236")
+    parser.add_argument(
+        "--generate",
+        type=str,
+        metavar="SCHEMA",
+        help="Generate data from JSON schema")
+    parser.add_argument(
+        "--rows",
+        type=int,
+        default=10,
+        help="Number of rows (default: 10)")
+    parser.add_argument(
+        "--format",
+        type=str,
+        default="json",
+        help="Output format (json/csv)")
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Validate last generation")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.generate:
-        print(json.dumps(do_generate(args.generate, args.rows, args.format), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_generate(
+                    args.generate,
+                    args.rows,
+                    args.format),
+                ensure_ascii=False,
+                indent=2))
     elif args.validate:
         print(json.dumps(do_validate(), ensure_ascii=False, indent=2))
     elif args.format and not args.generate:
         print(json.dumps(do_format(args.format), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

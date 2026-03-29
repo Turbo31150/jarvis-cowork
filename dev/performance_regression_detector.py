@@ -37,7 +37,7 @@ WINDOW = 100                    # dispatches per window
 Z_SIGNIFICANCE = 1.96           # 95% confidence
 
 
-# -- DB helpers ----------------------------------------------------------------
+# -- DB helpers ----------------------------------------------------------
 
 def init_gaps_db() -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -63,7 +63,7 @@ def open_etoile() -> sqlite3.Connection:
     return sqlite3.connect(str(ETOILE_DB))
 
 
-# -- Statistics ----------------------------------------------------------------
+# -- Statistics ----------------------------------------------------------
 
 def safe_mean(vals: list) -> float:
     return mean(vals) if vals else 0.0
@@ -97,7 +97,7 @@ def severity_label(pct: float) -> str:
     return "minor"
 
 
-# -- Data loading --------------------------------------------------------------
+# -- Data loading --------------------------------------------------------
 
 def load_dispatches_by_pattern(edb: sqlite3.Connection) -> dict:
     """Load all dispatches grouped by classified_type, ordered newest first."""
@@ -131,7 +131,7 @@ def load_dispatches_by_node(edb: sqlite3.Connection) -> dict:
     return by_node
 
 
-# -- Regression detection ------------------------------------------------------
+# -- Regression detection ------------------------------------------------
 
 def compare_windows(baseline: list, current: list, label: str) -> list:
     """Compare two windows of dispatches and return detected regressions."""
@@ -283,7 +283,7 @@ def detect_improvements(baseline: list, current: list, label: str) -> list:
     return improvements
 
 
-# -- CLI commands --------------------------------------------------------------
+# -- CLI commands --------------------------------------------------------
 
 def cmd_once() -> None:
     """Run a single regression detection pass."""
@@ -444,14 +444,16 @@ def cmd_stats() -> None:
         "by_severity": by_severity,
         "by_metric": by_metric,
         "top_affected_patterns": by_pattern,
-        "avg_regression_pct": round(avg_regression, 4) if avg_regression else 0.0,
+        "avg_regression_pct": round(
+            avg_regression,
+            4) if avg_regression else 0.0,
         "worst_ever": worst_ever,
         "last_24h_count": recent_count,
     }
     print(json.dumps(result, indent=2))
 
 
-# -- Main ----------------------------------------------------------------------
+# -- Main ----------------------------------------------------------------
 
 def main() -> None:
     parser = argparse.ArgumentParser(

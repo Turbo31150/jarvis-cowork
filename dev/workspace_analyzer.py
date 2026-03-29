@@ -26,6 +26,8 @@ WORKSPACE = DEV.parent
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -40,6 +42,8 @@ def init_db():
 # ---------------------------------------------------------------------------
 # Scan scripts
 # ---------------------------------------------------------------------------
+
+
 def scan_scripts() -> list:
     scripts = []
     for py_file in sorted(DEV.glob("*.py")):
@@ -69,7 +73,8 @@ def scan_scripts() -> list:
                         classes += 1
                     elif isinstance(node, (ast.Import, ast.ImportFrom)):
                         imports += 1
-                        if isinstance(node, ast.ImportFrom) and node.module == "argparse":
+                        if isinstance(
+                                node, ast.ImportFrom) and node.module == "argparse":
                             has_argparse = True
 
                 if "argparse" in content:
@@ -120,6 +125,8 @@ def scan_scripts() -> list:
 # ---------------------------------------------------------------------------
 # Health score
 # ---------------------------------------------------------------------------
+
+
 def compute_health(scripts: list) -> dict:
     total_files = len(scripts)
     total_lines = sum(s.get("lines", 0) for s in scripts)
@@ -167,6 +174,8 @@ def compute_health(scripts: list) -> dict:
 # ---------------------------------------------------------------------------
 # Suggestions
 # ---------------------------------------------------------------------------
+
+
 def generate_suggestions(scripts: list) -> list:
     suggestions = []
 
@@ -188,7 +197,7 @@ def generate_suggestions(scripts: list) -> list:
     names = [s["name"] for s in scripts if "name" in s]
     for i, n1 in enumerate(names):
         base1 = n1.replace(".py", "").replace("_", "")
-        for n2 in names[i+1:]:
+        for n2 in names[i + 1:]:
             base2 = n2.replace(".py", "").replace("_", "")
             if base1 in base2 or base2 in base1:
                 if abs(len(base1) - len(base2)) < 5 and base1 != base2:
@@ -198,11 +207,21 @@ def generate_suggestions(scripts: list) -> list:
                         "severity": "info",
                     })
 
-    return sorted(suggestions, key=lambda x: {"error": 0, "security": 1, "warning": 2, "info": 3}.get(x["severity"], 4))
+    return sorted(
+        suggestions,
+        key=lambda x: {
+            "error": 0,
+            "security": 1,
+            "warning": 2,
+            "info": 3}.get(
+            x["severity"],
+            4))
 
 # ---------------------------------------------------------------------------
 # Dependencies
 # ---------------------------------------------------------------------------
+
+
 def analyze_deps(scripts: list) -> dict:
     deps = {}
     all_names = {s["name"].replace(".py", "") for s in scripts if "name" in s}
@@ -210,7 +229,11 @@ def analyze_deps(scripts: list) -> dict:
     for s in scripts:
         name = s.get("name", "?")
         try:
-            content = (DEV / name).read_text(encoding="utf-8", errors="replace")
+            content = (
+                DEV /
+                name).read_text(
+                encoding="utf-8",
+                errors="replace")
             imports = []
             for line in content.split("\n"):
                 line = line.strip()
@@ -219,7 +242,8 @@ def analyze_deps(scripts: list) -> dict:
                     if mod.replace(".", "_") in all_names or mod in all_names:
                         imports.append(mod)
                 elif line.startswith("import "):
-                    mod = line.split("import ")[1].split(",")[0].split(" as ")[0].strip()
+                    mod = line.split("import ")[1].split(
+                        ",")[0].split(" as ")[0].strip()
                     if mod in all_names:
                         imports.append(mod)
             if imports:
@@ -232,6 +256,8 @@ def analyze_deps(scripts: list) -> dict:
 # ---------------------------------------------------------------------------
 # Cleanup
 # ---------------------------------------------------------------------------
+
+
 def cleanup_workspace() -> dict:
     removed = []
     freed_bytes = 0
@@ -239,10 +265,12 @@ def cleanup_workspace() -> dict:
     # __pycache__
     for cache_dir in WORKSPACE.rglob("__pycache__"):
         try:
-            size = sum(f.stat().st_size for f in cache_dir.rglob("*") if f.is_file())
+            size = sum(
+                f.stat().st_size for f in cache_dir.rglob("*") if f.is_file())
             import shutil
             shutil.rmtree(cache_dir)
-            removed.append({"path": str(cache_dir.relative_to(WORKSPACE)), "type": "__pycache__", "size_kb": round(size / 1024, 1)})
+            removed.append({"path": str(cache_dir.relative_to(
+                WORKSPACE)), "type": "__pycache__", "size_kb": round(size / 1024, 1)})
             freed_bytes += size
         except Exception:
             pass
@@ -252,7 +280,8 @@ def cleanup_workspace() -> dict:
         try:
             size = pyc.stat().st_size
             pyc.unlink()
-            removed.append({"path": str(pyc.relative_to(WORKSPACE)), "type": ".pyc", "size_kb": round(size / 1024, 1)})
+            removed.append({"path": str(pyc.relative_to(WORKSPACE)),
+                           "type": ".pyc", "size_kb": round(size / 1024, 1)})
             freed_bytes += size
         except Exception:
             pass
@@ -263,7 +292,8 @@ def cleanup_workspace() -> dict:
             try:
                 size = tmp.stat().st_size
                 tmp.unlink()
-                removed.append({"path": str(tmp.relative_to(WORKSPACE)), "type": "temp", "size_kb": round(size / 1024, 1)})
+                removed.append({"path": str(tmp.relative_to(
+                    WORKSPACE)), "type": "temp", "size_kb": round(size / 1024, 1)})
                 freed_bytes += size
             except Exception:
                 pass
@@ -275,7 +305,8 @@ def cleanup_workspace() -> dict:
             if log.stat().st_mtime < seven_days_ago:
                 size = log.stat().st_size
                 log.unlink()
-                removed.append({"path": str(log.relative_to(WORKSPACE)), "type": "old_log", "size_kb": round(size / 1024, 1)})
+                removed.append({"path": str(log.relative_to(
+                    WORKSPACE)), "type": "old_log", "size_kb": round(size / 1024, 1)})
                 freed_bytes += size
         except Exception:
             pass
@@ -289,14 +320,36 @@ def cleanup_workspace() -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Workspace Analyzer — Sante et ameliorations")
-    parser.add_argument("--analyze", action="store_true", help="Analyse complete du workspace")
-    parser.add_argument("--health", action="store_true", help="Score de sante global")
-    parser.add_argument("--suggest", action="store_true", help="Suggestions d'amelioration")
-    parser.add_argument("--cleanup", action="store_true", help="Nettoyer cache/temp/logs")
-    parser.add_argument("--deps", action="store_true", help="Graphe de dependances internes")
-    parser.add_argument("--top", type=int, default=10, help="Nombre de scripts a afficher (defaut: 10)")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Workspace Analyzer — Sante et ameliorations")
+    parser.add_argument(
+        "--analyze",
+        action="store_true",
+        help="Analyse complete du workspace")
+    parser.add_argument(
+        "--health",
+        action="store_true",
+        help="Score de sante global")
+    parser.add_argument(
+        "--suggest",
+        action="store_true",
+        help="Suggestions d'amelioration")
+    parser.add_argument(
+        "--cleanup",
+        action="store_true",
+        help="Nettoyer cache/temp/logs")
+    parser.add_argument(
+        "--deps",
+        action="store_true",
+        help="Graphe de dependances internes")
+    parser.add_argument(
+        "--top",
+        type=int,
+        default=10,
+        help="Nombre de scripts a afficher (defaut: 10)")
     args = parser.parse_args()
 
     db = init_db()
@@ -305,13 +358,19 @@ def main():
     if args.analyze:
         health = compute_health(scripts)
         # Top scripts par taille
-        sorted_scripts = sorted(scripts, key=lambda x: x.get("lines", 0), reverse=True)
+        sorted_scripts = sorted(
+            scripts, key=lambda x: x.get(
+                "lines", 0), reverse=True)
         # Store
         db.execute(
             "INSERT INTO analyses (ts, total_files, total_lines, total_functions, health_score, issues, details) VALUES (?,?,?,?,?,?,?)",
-            (time.time(), health["total_files"], health["total_lines"], health["total_functions"],
-             health["health_score"], health["total_issues"], json.dumps(health))
-        )
+            (time.time(),
+             health["total_files"],
+                health["total_lines"],
+                health["total_functions"],
+                health["health_score"],
+                health["total_issues"],
+                json.dumps(health)))
         db.commit()
 
         result = {
@@ -322,8 +381,10 @@ def main():
         # Count issues by type
         for s in scripts:
             for issue in s.get("issues", []):
-                key = issue.split(":")[0] if ":" in issue else issue.split("(")[0].strip()
-                result["issues_summary"][key] = result["issues_summary"].get(key, 0) + 1
+                key = issue.split(":")[0] if ":" in issue else issue.split(
+                    "(")[0].strip()
+                result["issues_summary"][key] = result["issues_summary"].get(
+                    key, 0) + 1
 
         print(json.dumps(result, indent=2, ensure_ascii=False))
 
@@ -359,6 +420,7 @@ def main():
         parser.print_help()
 
     db.close()
+
 
 if __name__ == "__main__":
     main()

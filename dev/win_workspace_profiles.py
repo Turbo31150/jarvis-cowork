@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_workspace_profiles.py — Profils workspace Windows.
 
@@ -59,7 +60,11 @@ def get_visible_windows():
 
     try:
         import ctypes.wintypes
-        WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_int, ctypes.POINTER(ctypes.c_int))
+        WNDENUMPROC = ctypes.WINFUNCTYPE(
+            ctypes.c_bool,
+            ctypes.c_int,
+            ctypes.POINTER(
+                ctypes.c_int))
         user32.EnumWindows(WNDENUMPROC(enum_callback), 0)
     except Exception:
         pass
@@ -77,11 +82,16 @@ def do_list():
             ("meeting", "Meeting workspace", []),
         ]
         for name, desc, wins in defaults:
-            db.execute("INSERT OR IGNORE INTO profiles (ts, name, description, windows) VALUES (?,?,?,?)",
-                       (time.time(), name, desc, json.dumps(wins)))
+            db.execute(
+                "INSERT OR IGNORE INTO profiles (ts, name, description, windows) VALUES (?,?,?,?)",
+                (time.time(),
+                 name,
+                 desc,
+                 json.dumps(wins)))
         db.commit()
 
-    rows = db.execute("SELECT name, description, windows, activate_count FROM profiles ORDER BY name").fetchall()
+    rows = db.execute(
+        "SELECT name, description, windows, activate_count FROM profiles ORDER BY name").fetchall()
     db.close()
 
     profiles = []
@@ -109,10 +119,15 @@ def do_create(name):
     db = init_db()
     windows = get_visible_windows()
     # Remove hwnd (not persistent)
-    save_wins = [{"title": w["title"], "x": w["x"], "y": w["y"], "w": w["w"], "h": w["h"]} for w in windows]
-    db.execute("INSERT OR REPLACE INTO profiles (ts, name, description, windows) VALUES (?,?,?,?)",
-               (time.time(), name, f"Profile '{name}' — {len(save_wins)} windows",
-                json.dumps(save_wins)))
+    save_wins = [{"title": w["title"], "x": w["x"],
+                  "y": w["y"], "w": w["w"], "h": w["h"]} for w in windows]
+    db.execute(
+        "INSERT OR REPLACE INTO profiles (ts, name, description, windows) VALUES (?,?,?,?)",
+        (time.time(),
+         name,
+         f"Profile '{name}' — {
+            len(save_wins)} windows",
+            json.dumps(save_wins)))
     db.commit()
     db.close()
     return {"created": name, "windows_saved": len(save_wins)}
@@ -120,10 +135,17 @@ def do_create(name):
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Workspace Profiles")
-    parser.add_argument("--once", "--list", action="store_true", help="List profiles")
+    parser.add_argument(
+        "--once",
+        "--list",
+        action="store_true",
+        help="List profiles")
     parser.add_argument("--create", metavar="NAME", help="Create profile")
     parser.add_argument("--activate", metavar="NAME", help="Activate profile")
-    parser.add_argument("--export", action="store_true", help="Export profiles")
+    parser.add_argument(
+        "--export",
+        action="store_true",
+        help="Export profiles")
     args = parser.parse_args()
 
     if args.create:

@@ -201,7 +201,10 @@ def store_scores(gaps_db, scores):
 def main():
     parser = argparse.ArgumentParser(description="Node Reliability Scorer")
     parser.add_argument("--once", action="store_true", help="Compute scores")
-    parser.add_argument("--update", action="store_true", help="Compute and store")
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Compute and store")
     parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args()
 
@@ -225,9 +228,17 @@ def main():
         ranked = sorted(scores.items(), key=lambda x: -x[1]["composite"])
         for node, data in ranked:
             bar = "#" * int(data["composite"] / 5)
-            print(f"  #{data['rank']} {node:4} {data['composite']:5.1f}/100 {bar}")
-            print(f"       uptime={data['uptime']:.0f} dispatch={data['dispatch']:.0f} "
-                  f"latency={data['latency']:.0f} quality={data['quality']:.0f}")
+            print(
+                f"  #{
+                    data['rank']} {
+                    node:4} {
+                    data['composite']:5.1f}/100 {bar}")
+            print(
+                f"       uptime={
+                    data['uptime']:.0f} dispatch={
+                    data['dispatch']:.0f} " f"latency={
+                    data['latency']:.0f} quality={
+                    data['quality']:.0f}")
 
     gaps_db.close()
     edb.close()

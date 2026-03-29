@@ -109,13 +109,18 @@ def do_analyze():
 
     recommendations = []
     for c in analysis["conflicts"]:
-        recommendations.append(f"Hour {c['hour']}: {c['count']} scripts — consider spreading")
+        recommendations.append(
+            f"Hour {
+                c['hour']}: {
+                c['count']} scripts — consider spreading")
 
     report = {
         "ts": datetime.now().isoformat(),
         "total_crons": len(crons),
-        "scheduled": sum(1 for c in crons if "on-demand" not in c["cron"].lower()),
-        "on_demand": sum(1 for c in crons if "on-demand" in c["cron"].lower()),
+        "scheduled": sum(
+            1 for c in crons if "on-demand" not in c["cron"].lower()),
+        "on_demand": sum(
+            1 for c in crons if "on-demand" in c["cron"].lower()),
         "analysis": analysis,
         "recommendations": recommendations,
     }
@@ -130,8 +135,15 @@ def do_analyze():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Cron Optimizer")
-    parser.add_argument("--once", "--analyze", action="store_true", help="Analyze crons")
-    parser.add_argument("--conflicts", action="store_true", help="Show conflicts")
+    parser.add_argument(
+        "--once",
+        "--analyze",
+        action="store_true",
+        help="Analyze crons")
+    parser.add_argument(
+        "--conflicts",
+        action="store_true",
+        help="Show conflicts")
     parser.add_argument("--spread", action="store_true", help="Spread load")
     parser.add_argument("--optimize", action="store_true", help="Optimize")
     args = parser.parse_args()

@@ -26,12 +26,12 @@ STATES = ["idle", "active", "trading", "maintenance", "emergency", "sleeping"]
 
 # Transition DAG: from_state -> [allowed_to_states]
 TRANSITIONS = {
-    "idle":        ["active", "trading", "maintenance", "sleeping", "emergency"],
-    "active":      ["idle", "trading", "maintenance", "emergency"],
-    "trading":     ["active", "idle", "emergency"],
+    "idle": ["active", "trading", "maintenance", "sleeping", "emergency"],
+    "active": ["idle", "trading", "maintenance", "emergency"],
+    "trading": ["active", "idle", "emergency"],
     "maintenance": ["idle", "active", "emergency"],
-    "emergency":   ["idle", "maintenance"],
-    "sleeping":    ["idle", "emergency"],
+    "emergency": ["idle", "maintenance"],
+    "sleeping": ["idle", "emergency"],
 }
 
 DEFAULT_STATE = "idle"
@@ -76,12 +76,15 @@ def get_current_state(db):
     return {
         "current_state": current,
         "entered_at": datetime.fromtimestamp(entered_at).isoformat() if entered_at else None,
-        "duration_seconds": round(duration, 1),
+        "duration_seconds": round(
+            duration,
+            1),
         "duration_human": _format_duration(duration),
         "previous_state": prev or "none",
         "transition_count": count,
-        "allowed_transitions": TRANSITIONS.get(current, [])
-    }
+        "allowed_transitions": TRANSITIONS.get(
+            current,
+            [])}
 
 
 def _format_duration(seconds):
@@ -107,7 +110,8 @@ def transition(db, target_state, event="manual"):
             "valid_states": STATES
         }
 
-    row = db.execute("SELECT current_state, entered_at FROM state WHERE id=1").fetchone()
+    row = db.execute(
+        "SELECT current_state, entered_at FROM state WHERE id=1").fetchone()
     current, entered_at = row
 
     if target_state == current:
@@ -201,8 +205,9 @@ def once(db):
     state_times = {}
     for s in STATES:
         total = db.execute(
-            "SELECT COALESCE(SUM(duration_in_prev), 0) FROM state_log WHERE from_state=?", (s,)
-        ).fetchone()[0]
+            "SELECT COALESCE(SUM(duration_in_prev), 0) FROM state_log WHERE from_state=?",
+            (s,
+             )).fetchone()[0]
         state_times[s] = round(total, 1)
 
     return {
@@ -215,12 +220,28 @@ def once(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS State Machine (#185) — System state management")
-    parser.add_argument("--status", action="store_true", help="Show current state")
-    parser.add_argument("--transition", type=str, help="Transition to a new state (event name)")
-    parser.add_argument("--history", action="store_true", help="Show transition history")
-    parser.add_argument("--reset", action="store_true", help="Reset to idle state")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="JARVIS State Machine (#185) — System state management")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Show current state")
+    parser.add_argument(
+        "--transition",
+        type=str,
+        help="Transition to a new state (event name)")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show transition history")
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Reset to idle state")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     db = init_db()

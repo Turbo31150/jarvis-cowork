@@ -18,23 +18,48 @@ import time
 import urllib.request
 from datetime import datetime
 from pathlib import Path
+import sys
 
 DEV = Path(__file__).parent
+PROJECT_ROOT = DEV.parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+try:
+    from core.unified.services import get_service_registry
+    _services = get_service_registry()
+except Exception:
+    _services = None
+
 DB_PATH = DEV / "data" / "health_guard.db"
-WS_URL = "http://127.0.0.1:9742"
-OL1_URL = "http://127.0.0.1:11434"
-M1_URL = "http://127.0.0.1:1234"
-TELEGRAM_PROXY = "http://127.0.0.1:18800"
+WS_URL = _services.base_url("jarvis_ws") if _services else "http://127.0.0.1:9742"
+OL1_URL = _services.base_url("ollama") if _services else "http://127.0.0.1:11434"
+M1_URL = _services.base_url("lmstudio_m1") if _services else "http://127.0.0.1:1234"
+TELEGRAM_PROXY = _services.base_url("canvas_proxy") if _services else "http://127.0.0.1:18800"
 
 # Health components and their weights
 COMPONENTS = {
-    "ws_server": {"weight": 0.20, "url": f"{WS_URL}/api/status"},
-    "ol1": {"weight": 0.15, "url": f"{OL1_URL}/api/tags"},
-    "m1": {"weight": 0.15, "url": f"{M1_URL}/api/v1/models"},
-    "autonomous_loop": {"weight": 0.20, "url": f"{WS_URL}/api/autonomous/status"},
-    "prediction_engine": {"weight": 0.10, "url": f"{WS_URL}/api/predictions/stats"},
-    "event_bus": {"weight": 0.10, "url": f"{WS_URL}/api/event_bus/stats"},
-    "databases": {"weight": 0.10, "check": "db"},
+    "ws_server": {
+        "weight": 0.20,
+        "url": f"{WS_URL}/api/status"},
+    "ol1": {
+        "weight": 0.15,
+        "url": f"{OL1_URL}/api/tags"},
+    "m1": {
+        "weight": 0.15,
+        "url": f"{M1_URL}/api/v1/models"},
+    "autonomous_loop": {
+        "weight": 0.20,
+        "url": f"{WS_URL}/api/autonomous/status"},
+    "prediction_engine": {
+        "weight": 0.10,
+        "url": f"{WS_URL}/api/predictions/stats"},
+    "event_bus": {
+        "weight": 0.10,
+        "url": f"{WS_URL}/api/event_bus/stats"},
+    "databases": {
+        "weight": 0.10,
+        "check": "db"},
 }
 
 
@@ -68,16 +93,19 @@ def check_url(url, timeout=5):
 def check_databases():
     """Check integrity of critical databases."""
     dbs = {
-        "etoile": Path("F:/BUREAU/turbo/data/etoile.db"),
-        "jarvis": Path("F:/BUREAU/turbo/data/jarvis.db"),
+        "etoile": PROJECT_ROOT / "data" / "etoile.db",
+        "jarvis": PROJECT_ROOT / "data" / "jarvis.db",
     }
     results = {}
     for name, path in dbs.items():
         if path.exists():
             try:
                 conn = sqlite3.connect(str(path))
-                integrity = conn.execute("PRAGMA integrity_check").fetchone()[0]
-                results[name] = {"ok": integrity == "ok", "size_mb": round(path.stat().st_size / 1048576, 2)}
+                integrity = conn.execute(
+                    "PRAGMA integrity_check").fetchone()[0]
+                results[name] = {
+                    "ok": integrity == "ok", "size_mb": round(
+                        path.stat().st_size / 1048576, 2)}
                 conn.close()
             except Exception as e:
                 results[name] = {"ok": False, "error": str(e)}
@@ -90,9 +118,12 @@ def check_databases():
 def restart_service(name):
     """Attempt to restart a failed service."""
     actions = {
-        "ol1": ["powershell", "-NoProfile", "-Command",
-                 "Stop-Process -Name ollama -Force -ErrorAction SilentlyContinue; "
-                 "Start-Sleep 2; Start-Process ollama -ArgumentList 'serve' -WindowStyle Hidden"],
+        "ol1": [
+            "powershell",
+            "-NoProfile",
+            "-Command",
+            "Stop-Process -Name ollama -Force -ErrorAction SilentlyContinue; "
+            "Start-Sleep 2; Start-Process ollama -ArgumentList 'serve' -WindowStyle Hidden"],
     }
     cmd = actions.get(name)
     if not cmd:
@@ -146,20 +177,26 @@ def do_check():
             total_score += cfg["weight"]
 
             # Extra checks for autonomous_loop
-            if name == "autonomous_loop" and isinstance(result.get("data"), dict):
+            if name == "autonomous_loop" and isinstance(
+                    result.get("data"), dict):
                 tasks = result["data"].get("tasks", {})
                 if tasks:
-                    failing = sum(1 for t in tasks.values()
-                                  if isinstance(t, dict) and t.get("fail_count", 0) > 3)
+                    failing = sum(
+                        1 for t in tasks.values() if isinstance(
+                            t, dict) and t.get(
+                            "fail_count", 0) > 3)
                     if failing > 3:
-                        alerts.append(f"autonomous_loop: {failing} tasks failing")
+                        alerts.append(
+                            f"autonomous_loop: {failing} tasks failing")
                         total_score -= cfg["weight"] * 0.3
 
             # Extra check for prediction_engine
-            if name == "prediction_engine" and isinstance(result.get("data"), dict):
+            if name == "prediction_engine" and isinstance(
+                    result.get("data"), dict):
                 patterns = result["data"].get("total_patterns", 0)
                 if patterns == 0:
-                    alerts.append("prediction_engine: 0 patterns — needs training")
+                    alerts.append(
+                        "prediction_engine: 0 patterns — needs training")
         else:
             alerts.append(f"{name} DOWN: {result.get('error', 'unreachable')}")
 
@@ -190,15 +227,19 @@ def do_check():
     # Store result
     db.execute(
         "INSERT INTO checks (ts, score, grade, components, alerts, actions) VALUES (?,?,?,?,?,?)",
-        (now, score, grade, json.dumps(component_results),
-         json.dumps(alerts), json.dumps(actions))
-    )
+        (now,
+         score,
+         grade,
+         json.dumps(component_results),
+         json.dumps(alerts),
+         json.dumps(actions)))
     db.commit()
     db.close()
 
     # Alert if critical
     if grade in ("D", "F") or len(alerts) >= 4:
-        msg = f"[HEALTH GUARD] Score: {score}/100 Grade: {grade}\n" + "\n".join(alerts[:5])
+        msg = f"[HEALTH GUARD] Score: {score}/100 Grade: {grade}\n" + \
+            "\n".join(alerts[:5])
         send_telegram_alert(msg)
 
     return {
@@ -214,7 +255,8 @@ def do_check():
 def get_report():
     """Get health history."""
     db = init_db()
-    rows = db.execute("SELECT ts, score, grade, alerts FROM checks ORDER BY ts DESC LIMIT 20").fetchall()
+    rows = db.execute(
+        "SELECT ts, score, grade, alerts FROM checks ORDER BY ts DESC LIMIT 20").fetchall()
     db.close()
     report = []
     for r in rows:
@@ -227,10 +269,21 @@ def get_report():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Autonomous Health Guard — Global JARVIS health")
-    parser.add_argument("--once", action="store_true", help="Single health check")
-    parser.add_argument("--loop", action="store_true", help="Continuous monitoring")
-    parser.add_argument("--interval", type=int, default=120, help="Loop interval (seconds)")
+    parser = argparse.ArgumentParser(
+        description="Autonomous Health Guard — Global JARVIS health")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Single health check")
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Continuous monitoring")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=120,
+        help="Loop interval (seconds)")
     parser.add_argument("--report", action="store_true", help="Health history")
     args = parser.parse_args()
 
@@ -238,11 +291,14 @@ def main():
         report = get_report()
         print(json.dumps(report, ensure_ascii=False, indent=2))
     elif args.loop:
-        print(f"[HEALTH_GUARD] Starting continuous monitoring (interval={args.interval}s)")
+        print(
+            f"[HEALTH_GUARD] Starting continuous monitoring (interval={
+                args.interval}s)")
         while True:
             try:
                 result = do_check()
-                print(f"[{result['ts']}] Score: {result['score']}/100 Grade: {result['grade']} — {len(result['alerts'])} alerts")
+                print(
+                    f"[{result['ts']}] Score: {result['score']}/100 Grade: {result['grade']} — {len(result['alerts'])} alerts")
                 if result["alerts"]:
                     for a in result["alerts"][:3]:
                         print(f"  ALERT: {a}")

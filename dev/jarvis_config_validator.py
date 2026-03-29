@@ -20,32 +20,34 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "config_validator.db"
 
-CONFIG_FILES = [
-    {
-        "name": "CLAUDE.md",
-        "path": "C:/Users/franc/.claude/CLAUDE.md",
-        "type": "markdown",
-        "required_keywords": ["PROTOCOLE", "AGENTS", "MATRICE", "ROUTING"],
-    },
-    {
-        "name": "MEMORY.md",
-        "path": "C:/Users/franc/.claude/projects/C--Users-franc/memory/MEMORY.md",
-        "type": "markdown",
-        "required_keywords": ["Setup", "Cluster", "Architecture"],
-    },
-    {
-        "name": "plugin.json",
-        "path": "C:/Users/franc/.claude/plugins/local/jarvis-turbo/plugin.json",
-        "type": "json",
-        "required_fields": ["name", "version", "description"],
-    },
-    {
-        "name": "settings.json",
-        "path": "C:/Users/franc/.claude/settings.json",
-        "type": "json",
-        "required_fields": [],
-    },
-]
+CONFIG_FILES = [{"name": "CLAUDE.md",
+                 "path": "C:/Users/franc/.claude/CLAUDE.md",
+                 "type": "markdown",
+                 "required_keywords": ["PROTOCOLE",
+                                       "AGENTS",
+                                       "MATRICE",
+                                       "ROUTING"],
+                 },
+                {"name": "MEMORY.md",
+                 "path": "C:/Users/franc/.claude/projects/C--Users-franc/memory/MEMORY.md",
+                 "type": "markdown",
+                 "required_keywords": ["Setup",
+                                       "Cluster",
+                                       "Architecture"],
+                 },
+                {"name": "plugin.json",
+                 "path": "C:/Users/franc/.claude/plugins/local/jarvis-turbo/plugin.json",
+                 "type": "json",
+                 "required_fields": ["name",
+                                     "version",
+                                     "description"],
+                 },
+                {"name": "settings.json",
+                 "path": "C:/Users/franc/.claude/settings.json",
+                 "type": "json",
+                 "required_fields": [],
+                 },
+                ]
 
 
 def init_db():
@@ -119,10 +121,16 @@ def validate_markdown_file(config):
         lines = content.split("\n")
         for i, line in enumerate(lines):
             # Check file paths in backticks
-            for match in __import__("re").findall(r'`([A-Z]:[/\\][^`]+)`', line):
+            for match in __import__("re").findall(
+                    r'`([A-Z]:[/\\][^`]+)`', line):
                 if not Path(match.replace("\\", "/")).exists():
-                    if not any(skip in match for skip in ["PROMPT", "example", "YYYY"]):
-                        issues.append(f"L{i+1}: Broken path reference: {match[:60]}")
+                    if not any(
+                        skip in match for skip in [
+                            "PROMPT",
+                            "example",
+                            "YYYY"]):
+                        issues.append(
+                            f"L{i + 1}: Broken path reference: {match[:60]}")
 
         return {
             "status": "valid" if not issues else "issues",
@@ -174,7 +182,11 @@ def do_validate():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Config Validator")
-    parser.add_argument("--once", "--validate", action="store_true", help="Validate all")
+    parser.add_argument(
+        "--once",
+        "--validate",
+        action="store_true",
+        help="Validate all")
     parser.add_argument("--fix", action="store_true", help="Auto-fix")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()

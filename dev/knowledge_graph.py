@@ -34,6 +34,7 @@ DB_PATH = Path(__file__).with_name("knowledge.db")
 # Initialisation de la base
 # ---------------------------------------------------------------------------
 
+
 def init_db(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute(
@@ -64,6 +65,7 @@ def init_db(conn: sqlite3.Connection):
 # Fonctions utilitaires
 # ---------------------------------------------------------------------------
 
+
 def add_entity(conn: sqlite3.Connection, name: str, typ: str, desc: str = ""):
     cur = conn.cursor()
     try:
@@ -76,11 +78,13 @@ def add_entity(conn: sqlite3.Connection, name: str, typ: str, desc: str = ""):
     except sqlite3.IntegrityError:
         print(f"[knowledge] Entité déjà existante : {name}")
 
+
 def get_entity_id(conn: sqlite3.Connection, name: str):
     cur = conn.cursor()
     cur.execute("SELECT id FROM entities WHERE name = ?", (name,))
     row = cur.fetchone()
     return row[0] if row else None
+
 
 def add_relation(conn: sqlite3.Connection, src: str, rel_type: str, tgt: str):
     src_id = get_entity_id(conn, src)
@@ -99,15 +103,19 @@ def add_relation(conn: sqlite3.Connection, src: str, rel_type: str, tgt: str):
     conn.commit()
     print(f"[knowledge] Relation ajoutée:  {src} -[{rel_type}]-> {tgt}")
 
+
 def query_entity(conn: sqlite3.Connection, name: str):
     cur = conn.cursor()
-    cur.execute("SELECT id, type, description FROM entities WHERE name = ?", (name,))
+    cur.execute(
+        "SELECT id, type, description FROM entities WHERE name = ?", (name,))
     row = cur.fetchone()
     if not row:
         print(f"[knowledge] Entité non trouvée : {name}")
         return
     eid, typ, desc = row
-    print(f"Entité : {name}\n  Type : {typ}\n  Description : {desc or '(aucune)'}")
+    print(
+        f"Entité : {name}\n  Type : {typ}\n  Description : {
+            desc or '(aucune)'}")
     # Relations sortantes
     cur.execute(
         "SELECT e2.name, r.rel_type FROM relations r JOIN entities e2 ON r.target_id = e2.id WHERE r.source_id = ?",
@@ -129,6 +137,7 @@ def query_entity(conn: sqlite3.Connection, name: str):
         for src, rtype in inc:
             print(f"    - {src} -[{rtype}]-> (cible) {name}")
 
+
 def display_graph(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute("SELECT name, type FROM entities ORDER BY type, name")
@@ -149,6 +158,7 @@ def display_graph(conn: sqlite3.Connection):
     for src, rtype, tgt in cur.fetchall():
         print(f"{src} -[{rtype}]-> {tgt}")
 
+
 def stats(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute("SELECT type, COUNT(*) FROM entities GROUP BY type")
@@ -166,6 +176,7 @@ def stats(conn: sqlite3.Connection):
 # ---------------------------------------------------------------------------
 # Pré‑remplissage du graphe
 # ---------------------------------------------------------------------------
+
 
 def seed_graph(conn: sqlite3.Connection):
     # Entités majeures (type, name, description)
@@ -204,15 +215,38 @@ def seed_graph(conn: sqlite3.Connection):
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Graphe de connaissances JARVIS.")
+    parser = argparse.ArgumentParser(
+        description="Graphe de connaissances JARVIS.")
     sub = parser.add_mutually_exclusive_group(required=True)
-    sub.add_argument("--add-entity", nargs=2, metavar=('TYPE', 'NAME'), help="Ajouter une entité")
-    sub.add_argument("--add-relation", nargs=3, metavar=('SRC', 'REL', 'TGT'), help="Ajouter une relation")
+    sub.add_argument(
+        "--add-entity",
+        nargs=2,
+        metavar=(
+            'TYPE',
+            'NAME'),
+        help="Ajouter une entité")
+    sub.add_argument(
+        "--add-relation",
+        nargs=3,
+        metavar=(
+            'SRC',
+            'REL',
+            'TGT'),
+        help="Ajouter une relation")
     sub.add_argument("--query", metavar='NAME', help="Interroger une entité")
-    sub.add_argument("--graph", action='store_true', help="Afficher tout le graphe")
-    sub.add_argument("--stats", action='store_true', help="Afficher des statistiques")
-    parser.add_argument("--desc", help="Description (utilisée avec --add-entity)")
+    sub.add_argument(
+        "--graph",
+        action='store_true',
+        help="Afficher tout le graphe")
+    sub.add_argument(
+        "--stats",
+        action='store_true',
+        help="Afficher des statistiques")
+    parser.add_argument(
+        "--desc",
+        help="Description (utilisée avec --add-entity)")
     args = parser.parse_args()
 
     conn = sqlite3.connect(DB_PATH)
@@ -236,6 +270,7 @@ def main():
     elif args.stats:
         stats(conn)
     conn.close()
+
 
 if __name__ == "__main__":
     main()

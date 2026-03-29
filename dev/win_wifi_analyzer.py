@@ -73,7 +73,9 @@ def scan_networks():
             if line.startswith("SSID") and "BSSID" not in line:
                 if current.get("ssid"):
                     networks.append(current)
-                current = {"ssid": line.split(":", 1)[1].strip() if ":" in line else ""}
+                current = {
+                    "ssid": line.split(
+                        ":", 1)[1].strip() if ":" in line else ""}
             elif "Signal" in line:
                 m = re.search(r"(\d+)%", line)
                 current["signal_pct"] = int(m.group(1)) if m else 0
@@ -81,7 +83,8 @@ def scan_networks():
                 m = re.search(r"(\d+)", line.split(":", 1)[1])
                 current["channel"] = int(m.group(1)) if m else 0
             elif "Authentication" in line or "Authentification" in line:
-                current["auth"] = line.split(":", 1)[1].strip() if ":" in line else ""
+                current["auth"] = line.split(
+                    ":", 1)[1].strip() if ":" in line else ""
         if current.get("ssid"):
             networks.append(current)
     except Exception:
@@ -95,11 +98,24 @@ def do_scan():
     networks = scan_networks()
 
     for n in networks:
-        db.execute("INSERT INTO wifi_scans (ts, ssid, signal_pct, channel, auth) VALUES (?,?,?,?,?)",
-                   (time.time(), n.get("ssid", ""), n.get("signal_pct", 0),
-                    n.get("channel", 0), n.get("auth", "")))
+        db.execute(
+            "INSERT INTO wifi_scans (ts, ssid, signal_pct, channel, auth) VALUES (?,?,?,?,?)",
+            (time.time(),
+             n.get(
+                "ssid",
+                ""),
+                n.get(
+                "signal_pct",
+                0),
+                n.get(
+                "channel",
+                0),
+                n.get(
+                "auth",
+                "")))
 
-    channels = Counter(n.get("channel", 0) for n in networks if n.get("channel"))
+    channels = Counter(n.get("channel", 0)
+                       for n in networks if n.get("channel"))
     congested = [ch for ch, cnt in channels.items() if cnt > 2]
 
     db.commit()
@@ -109,17 +125,34 @@ def do_scan():
         "ts": datetime.now().isoformat(),
         "current_connection": current,
         "networks_found": len(networks),
-        "networks": sorted(networks, key=lambda x: x.get("signal_pct", 0), reverse=True)[:15],
-        "channel_usage": dict(channels.most_common(10)),
+        "networks": sorted(
+            networks,
+            key=lambda x: x.get(
+                "signal_pct",
+                0),
+            reverse=True)[
+            :15],
+        "channel_usage": dict(
+            channels.most_common(10)),
         "congested_channels": congested,
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description="Windows WiFi Analyzer")
-    parser.add_argument("--once", "--scan", action="store_true", help="Scan networks")
-    parser.add_argument("--signal", action="store_true", help="Signal strength")
-    parser.add_argument("--channels", action="store_true", help="Channel analysis")
+    parser.add_argument(
+        "--once",
+        "--scan",
+        action="store_true",
+        help="Scan networks")
+    parser.add_argument(
+        "--signal",
+        action="store_true",
+        help="Signal strength")
+    parser.add_argument(
+        "--channels",
+        action="store_true",
+        help="Channel analysis")
     parser.add_argument("--optimize", action="store_true", help="Optimize")
     args = parser.parse_args()
     print(json.dumps(do_scan(), ensure_ascii=False, indent=2))

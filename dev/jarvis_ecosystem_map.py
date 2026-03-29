@@ -37,7 +37,10 @@ def init_db():
 def parse_imports(filepath):
     imports = set()
     try:
-        tree = ast.parse(filepath.read_text(encoding="utf-8", errors="replace"))
+        tree = ast.parse(
+            filepath.read_text(
+                encoding="utf-8",
+                errors="replace"))
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
@@ -113,8 +116,13 @@ def do_map():
         "categories": dict(categories),
     }
 
-    db.execute("INSERT INTO maps (ts, components, connections, orphans, graph) VALUES (?,?,?,?,?)",
-               (time.time(), len(components), len(edges), len(orphans), json.dumps(graph)))
+    db.execute(
+        "INSERT INTO maps (ts, components, connections, orphans, graph) VALUES (?,?,?,?,?)",
+        (time.time(),
+         len(components),
+         len(edges),
+         len(orphans),
+         json.dumps(graph)))
     db.commit()
     db.close()
 
@@ -134,10 +142,17 @@ def do_map():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Ecosystem Map")
-    parser.add_argument("--once", "--map", action="store_true", help="Generate map")
+    parser.add_argument(
+        "--once",
+        "--map",
+        action="store_true",
+        help="Generate map")
     parser.add_argument("--visualize", action="store_true", help="ASCII viz")
     parser.add_argument("--stats", action="store_true", help="Stats")
-    parser.add_argument("--dependencies", action="store_true", help="Dependencies")
+    parser.add_argument(
+        "--dependencies",
+        action="store_true",
+        help="Dependencies")
     args = parser.parse_args()
     print(json.dumps(do_map(), ensure_ascii=False, indent=2))
 

@@ -29,8 +29,15 @@ CRITICAL_FILES = {
     "jarvis.db": Path("F:/BUREAU/turbo/data/jarvis.db"),
     "sniper.db": Path("F:/BUREAU/turbo/data/sniper.db"),
     "finetuning.db": Path("F:/BUREAU/turbo/finetuning/data/finetuning.db"),
-    "CLAUDE.md": Path.home() / ".claude" / "CLAUDE.md",
-    "MEMORY.md": Path.home() / ".claude" / "projects" / "C--Users-franc" / "memory" / "MEMORY.md",
+    "CLAUDE.md": Path.home() /
+    ".claude" /
+    "CLAUDE.md",
+    "MEMORY.md": Path.home() /
+    ".claude" /
+    "projects" /
+    "C--Users-franc" /
+    "memory" /
+    "MEMORY.md",
 }
 
 
@@ -67,7 +74,8 @@ def do_backup():
 
     for name, src in CRITICAL_FILES.items():
         if not src.exists():
-            results.append({"file": name, "status": "NOT_FOUND", "path": str(src)})
+            results.append(
+                {"file": name, "status": "NOT_FOUND", "path": str(src)})
             continue
 
         dst = BACKUP_DIR / f"{ts}_{name}"
@@ -76,8 +84,14 @@ def do_backup():
             size = dst.stat().st_size
             sha = file_sha256(dst)
 
-            db.execute("INSERT INTO backups (ts, file_name, original_path, backup_path, size_bytes, sha256) VALUES (?,?,?,?,?,?)",
-                       (time.time(), name, str(src), str(dst), size, sha))
+            db.execute(
+                "INSERT INTO backups (ts, file_name, original_path, backup_path, size_bytes, sha256) VALUES (?,?,?,?,?,?)",
+                (time.time(),
+                 name,
+                 str(src),
+                    str(dst),
+                    size,
+                    sha))
 
             results.append({
                 "file": name,
@@ -86,7 +100,8 @@ def do_backup():
                 "sha256": sha[:16] + "...",
             })
         except Exception as e:
-            results.append({"file": name, "status": "ERROR", "error": str(e)[:100]})
+            results.append(
+                {"file": name, "status": "ERROR", "error": str(e)[:100]})
 
     # Prune old backups
     pruned = 0
@@ -133,10 +148,17 @@ def do_list():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Backup Manager")
-    parser.add_argument("--once", "--backup", action="store_true", help="Run backup")
+    parser.add_argument(
+        "--once",
+        "--backup",
+        action="store_true",
+        help="Run backup")
     parser.add_argument("--restore", metavar="DATE", help="Restore from date")
     parser.add_argument("--list", action="store_true", help="List backups")
-    parser.add_argument("--verify", action="store_true", help="Verify integrity")
+    parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Verify integrity")
     args = parser.parse_args()
 
     if args.list:

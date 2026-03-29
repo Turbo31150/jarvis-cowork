@@ -39,7 +39,8 @@ def collect_system_metrics():
         if sys.platform.startswith("win"):
             # Use net stats workstation command
             import subprocess
-            out = subprocess.check_output(["net", "stats", "workstation"], shell=True, text=True)
+            out = subprocess.check_output(
+                ["net", "stats", "workstation"], shell=True, text=True)
             for line in out.splitlines():
                 if "since" in line.lower():
                     # crude extraction
@@ -81,9 +82,12 @@ def build_metrics():
 
 def metrics_to_html(metrics):
     html = """<html><head><title>Dashboard</title></head><body>"""
-    html += "<h1>System Metrics</h1><pre>{}</pre>".format(json.dumps(metrics.get("system", {}), indent=2))
-    html += "<h1>Cluster Metrics</h1><pre>{}</pre>".format(json.dumps(metrics.get("cluster", {}), indent=2))
-    html += "<h1>Trading Metrics</h1><pre>{}</pre>".format(json.dumps(metrics.get("trading", {}), indent=2))
+    html += "<h1>System Metrics</h1><pre>{}</pre>".format(
+        json.dumps(metrics.get("system", {}), indent=2))
+    html += "<h1>Cluster Metrics</h1><pre>{}</pre>".format(
+        json.dumps(metrics.get("cluster", {}), indent=2))
+    html += "<h1>Trading Metrics</h1><pre>{}</pre>".format(
+        json.dumps(metrics.get("trading", {}), indent=2))
     html += "</body></html>"
     return html
 
@@ -100,10 +104,20 @@ def serve(port=8888):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate a static dashboard with system, cluster and trading metrics.")
-    parser.add_argument("--html", action="store_true", help="Output HTML to stdout")
-    parser.add_argument("--json", action="store_true", help="Output metrics as JSON to stdout")
-    parser.add_argument("--serve", action="store_true", help="Serve current directory via SimpleHTTPServer on port 8888")
+    parser = argparse.ArgumentParser(
+        description="Generate a static dashboard with system, cluster and trading metrics.")
+    parser.add_argument(
+        "--html",
+        action="store_true",
+        help="Output HTML to stdout")
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output metrics as JSON to stdout")
+    parser.add_argument(
+        "--serve",
+        action="store_true",
+        help="Serve current directory via SimpleHTTPServer on port 8888")
     args = parser.parse_args()
 
     if args.serve:

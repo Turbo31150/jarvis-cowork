@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_audio_controller.py — Controleur audio Windows.
 
@@ -45,7 +46,8 @@ def get_audio_status():
             data = json.loads(out.stdout)
             if isinstance(data, dict):
                 data = [data]
-            devices = [{"name": d.get("Name", "?"), "status": d.get("Status", "?")} for d in data]
+            devices = [{"name": d.get("Name", "?"), "status": d.get(
+                "Status", "?")} for d in data]
         return {"devices": devices, "count": len(devices)}
     except Exception:
         return {"devices": [], "count": 0}
@@ -89,8 +91,16 @@ def do_status():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Audio Controller")
-    parser.add_argument("--once", "--status", action="store_true", help="Audio status")
-    parser.add_argument("--volume", type=int, metavar="N", help="Set volume 0-100")
+    parser.add_argument(
+        "--once",
+        "--status",
+        action="store_true",
+        help="Audio status")
+    parser.add_argument(
+        "--volume",
+        type=int,
+        metavar="N",
+        help="Set volume 0-100")
     parser.add_argument("--mute", action="store_true", help="Toggle mute")
     parser.add_argument("--devices", action="store_true", help="List devices")
     args = parser.parse_args()

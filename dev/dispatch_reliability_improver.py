@@ -104,7 +104,7 @@ def analyze_reliability():
             recommendations.append({
                 "action": "deprioritize",
                 "pattern": pattern, "node": node,
-                "reason": f"{fail_rate*100:.0f}% failure rate ({fails}/{total})",
+                "reason": f"{fail_rate * 100:.0f}% failure rate ({fails}/{total})",
                 "suggestion": f"Route {pattern} away from {node}, use fallback"
             })
 
@@ -205,8 +205,12 @@ def action_stats():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Dispatch Reliability Improver")
-    parser.add_argument("--once", action="store_true", help="Analyze and apply")
+    parser = argparse.ArgumentParser(
+        description="Dispatch Reliability Improver")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Analyze and apply")
     parser.add_argument("--dry-run", action="store_true", help="Analyze only")
     parser.add_argument("--stats", action="store_true", help="Show history")
     args = parser.parse_args()

@@ -75,6 +75,8 @@ BUILTIN_PIPELINES = {
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -89,16 +91,23 @@ def init_db():
     db.commit()
     return db
 
+
 def load_pipelines(db) -> dict:
     pipelines = dict(BUILTIN_PIPELINES)
-    rows = db.execute("SELECT name, description, steps FROM custom_pipelines").fetchall()
+    rows = db.execute(
+        "SELECT name, description, steps FROM custom_pipelines").fetchall()
     for name, desc, steps in rows:
-        pipelines[name] = {"description": desc, "steps": json.loads(steps), "custom": True}
+        pipelines[name] = {
+            "description": desc,
+            "steps": json.loads(steps),
+            "custom": True}
     return pipelines
 
 # ---------------------------------------------------------------------------
 # Execution
 # ---------------------------------------------------------------------------
+
+
 def run_pipeline(name: str, pipeline: dict, db) -> dict:
     start = time.time()
     steps_ok = 0
@@ -120,7 +129,10 @@ def run_pipeline(name: str, pipeline: dict, db) -> dict:
             else:
                 steps_failed += 1
                 if step.get("required"):
-                    details.append({"name": step["name"], "ok": False, "error": "required step failed", "aborted": True})
+                    details.append({"name": step["name"],
+                                    "ok": False,
+                                    "error": "required step failed",
+                                    "aborted": True})
                     break
             details.append({
                 "name": step["name"],
@@ -130,10 +142,12 @@ def run_pipeline(name: str, pipeline: dict, db) -> dict:
             })
         except subprocess.TimeoutExpired:
             steps_failed += 1
-            details.append({"name": step["name"], "ok": False, "error": "timeout"})
+            details.append(
+                {"name": step["name"], "ok": False, "error": "timeout"})
         except Exception as e:
             steps_failed += 1
-            details.append({"name": step["name"], "ok": False, "error": str(e)[:100]})
+            details.append(
+                {"name": step["name"], "ok": False, "error": str(e)[:100]})
 
     duration = time.time() - start
     status = "success" if steps_failed == 0 else "partial" if steps_ok > 0 else "failed"
@@ -158,10 +172,16 @@ def run_pipeline(name: str, pipeline: dict, db) -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Pipeline Orchestrator")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Pipeline Orchestrator")
     parser.add_argument("--run", type=str, help="Executer un pipeline")
-    parser.add_argument("--list", action="store_true", help="Lister les pipelines")
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="Lister les pipelines")
     parser.add_argument("--create", type=str, help="Creer un pipeline")
     parser.add_argument("--steps", type=str, help="Etapes (separees par ;)")
     parser.add_argument("--status", action="store_true", help="Statut")
@@ -173,24 +193,31 @@ def main():
 
     if args.list:
         output = [{"name": n, "description": p["description"], "steps": len(p["steps"]),
-                    "custom": p.get("custom", False)} for n, p in pipelines.items()]
+                   "custom": p.get("custom", False)} for n, p in pipelines.items()]
         print(json.dumps(output, indent=2, ensure_ascii=False))
     elif args.run:
         if args.run not in pipelines:
-            print(json.dumps({"error": f"Pipeline '{args.run}' inconnu", "available": list(pipelines.keys())}))
+            print(json.dumps(
+                {"error": f"Pipeline '{args.run}' inconnu", "available": list(pipelines.keys())}))
             sys.exit(1)
         result = run_pipeline(args.run, pipelines[args.run], db)
         print(json.dumps(result, indent=2, ensure_ascii=False))
     elif args.create and args.steps:
-        steps = [{"name": f"step_{i+1}", "cmd": cmd.strip(), "timeout": 60}
+        steps = [{"name": f"step_{i + 1}", "cmd": cmd.strip(), "timeout": 60}
                  for i, cmd in enumerate(args.steps.split(";")) if cmd.strip()]
-        db.execute("INSERT OR REPLACE INTO custom_pipelines (ts, name, description, steps) VALUES (?,?,?,?)",
-                   (time.time(), args.create, args.create, json.dumps(steps)))
+        db.execute(
+            "INSERT OR REPLACE INTO custom_pipelines (ts, name, description, steps) VALUES (?,?,?,?)",
+            (time.time(),
+             args.create,
+             args.create,
+             json.dumps(steps)))
         db.commit()
         print(json.dumps({"created": args.create, "steps": len(steps)}))
     elif args.status:
-        runs = db.execute("SELECT COUNT(*), SUM(CASE WHEN status='success' THEN 1 ELSE 0 END) FROM pipeline_runs").fetchone()
-        last = db.execute("SELECT pipeline, status, duration_s, ts FROM pipeline_runs ORDER BY ts DESC LIMIT 5").fetchall()
+        runs = db.execute(
+            "SELECT COUNT(*), SUM(CASE WHEN status='success' THEN 1 ELSE 0 END) FROM pipeline_runs").fetchone()
+        last = db.execute(
+            "SELECT pipeline, status, duration_s, ts FROM pipeline_runs ORDER BY ts DESC LIMIT 5").fetchall()
         print(json.dumps({
             "total_runs": runs[0] or 0,
             "successes": runs[1] or 0,
@@ -199,14 +226,26 @@ def main():
                         "when": datetime.fromtimestamp(t).strftime("%H:%M")} for p, s, d, t in last],
         }, indent=2, ensure_ascii=False))
     elif args.history:
-        rows = db.execute("SELECT pipeline, status, steps_ok, steps_failed, duration_s, ts FROM pipeline_runs ORDER BY ts DESC LIMIT 20").fetchall()
-        print(json.dumps([{"name": p, "status": s, "ok": o, "failed": f, "duration": d,
-                            "when": datetime.fromtimestamp(t).isoformat()} for p, s, o, f, d, t in rows],
-                         indent=2, ensure_ascii=False))
+        rows = db.execute(
+            "SELECT pipeline, status, steps_ok, steps_failed, duration_s, ts FROM pipeline_runs ORDER BY ts DESC LIMIT 20").fetchall()
+        print(json.dumps([{"name": p,
+                           "status": s,
+                           "ok": o,
+                           "failed": f,
+                           "duration": d,
+                           "when": datetime.fromtimestamp(t).isoformat()} for p,
+                          s,
+                          o,
+                          f,
+                          d,
+                          t in rows],
+                         indent=2,
+                         ensure_ascii=False))
     else:
         parser.print_help()
 
     db.close()
+
 
 if __name__ == "__main__":
     main()

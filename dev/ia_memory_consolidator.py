@@ -47,12 +47,14 @@ def scan_databases():
             continue
         try:
             db = sqlite3.connect(str(db_file))
-            tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            tables = [t[0] for t in db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
             total_rows = 0
             table_info = []
             for t in tables:
                 try:
-                    count = db.execute(f"SELECT COUNT(*) FROM [{t}]").fetchone()[0]
+                    count = db.execute(
+                        f"SELECT COUNT(*) FROM [{t}]").fetchone()[0]
                     total_rows += count
                     table_info.append({"table": t, "rows": count})
                 except Exception:
@@ -86,12 +88,16 @@ def do_consolidate():
             continue
         try:
             src = sqlite3.connect(str(db_file))
-            tables = [t[0] for t in src.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            tables = [t[0] for t in src.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
             for t in tables:
-                cols = [c[1] for c in src.execute(f"PRAGMA table_info([{t}])").fetchall()]
+                cols = [
+                    c[1] for c in src.execute(
+                        f"PRAGMA table_info([{t}])").fetchall()]
                 if "ts" in cols:
                     try:
-                        old = src.execute(f"SELECT COUNT(*) FROM [{t}] WHERE ts < ?", (cutoff,)).fetchone()[0]
+                        old = src.execute(
+                            f"SELECT COUNT(*) FROM [{t}] WHERE ts < ?", (cutoff,)).fetchone()[0]
                         prunable += old
                     except Exception:
                         pass
@@ -99,8 +105,14 @@ def do_consolidate():
         except Exception:
             pass
 
-    db.execute("INSERT INTO consolidations (ts, dbs_scanned, tables_found, rows_total, duplicates, pruned) VALUES (?,?,?,?,?,?)",
-               (time.time(), len(stats), total_tables, total_rows, 0, 0))
+    db.execute(
+        "INSERT INTO consolidations (ts, dbs_scanned, tables_found, rows_total, duplicates, pruned) VALUES (?,?,?,?,?,?)",
+        (time.time(),
+         len(stats),
+         total_tables,
+         total_rows,
+         0,
+         0))
     db.commit()
     db.close()
 
@@ -118,7 +130,11 @@ def do_consolidate():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Memory Consolidator")
-    parser.add_argument("--once", "--consolidate", action="store_true", help="Consolidate")
+    parser.add_argument(
+        "--once",
+        "--consolidate",
+        action="store_true",
+        help="Consolidate")
     parser.add_argument("--prune", action="store_true", help="Prune old")
     parser.add_argument("--export", action="store_true", help="Export master")
     parser.add_argument("--stats", action="store_true", help="Stats")

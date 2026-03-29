@@ -22,7 +22,12 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "code_auditor.db"
 
-DANGEROUS_CALLS = {"eval", "exec", "os.system", "subprocess.call", "__import__"}
+DANGEROUS_CALLS = {
+    "eval",
+    "exec",
+    "os.system",
+    "subprocess.call",
+    "__import__"}
 MAX_FUNCTION_LINES = 50
 MAX_FILE_LINES = 500
 
@@ -55,11 +60,13 @@ def audit_file(filepath):
         try:
             tree = ast.parse(content, filename=str(filepath))
         except SyntaxError as e:
-            return {"file": filepath.name, "score": 0, "issues": [{"type": "syntax_error", "severity": "critical", "msg": str(e)}]}
+            return {"file": filepath.name, "score": 0, "issues": [
+                {"type": "syntax_error", "severity": "critical", "msg": str(e)}]}
 
         # Check file length
         if line_count > MAX_FILE_LINES:
-            issues.append({"type": "file_too_long", "severity": "low", "msg": f"{line_count} lines (max {MAX_FILE_LINES})"})
+            issues.append({"type": "file_too_long", "severity": "low",
+                          "msg": f"{line_count} lines (max {MAX_FILE_LINES})"})
             score -= 5
 
         # Walk AST
@@ -73,23 +80,36 @@ def audit_file(filepath):
                     if isinstance(node.func.value, ast.Name):
                         func_name = f"{node.func.value.id}.{node.func.attr}"
                 if func_name in DANGEROUS_CALLS:
-                    issues.append({"type": "dangerous_call", "severity": "high",
+                    issues.append({"type": "dangerous_call",
+                                   "severity": "high",
                                    "msg": f"{func_name}() at line {node.lineno}"})
                     score -= 15
 
             # Long functions
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                func_lines = node.end_lineno - node.lineno if hasattr(node, "end_lineno") else 0
+                func_lines = node.end_lineno - \
+                    node.lineno if hasattr(node, "end_lineno") else 0
                 if func_lines > MAX_FUNCTION_LINES:
-                    issues.append({"type": "long_function", "severity": "medium",
-                                   "msg": f"{node.name}() is {func_lines} lines (max {MAX_FUNCTION_LINES})"})
+                    issues.append(
+                        {
+                            "type": "long_function",
+                            "severity": "medium",
+                            "msg": f"{
+                                node.name}() is {func_lines} lines (max {MAX_FUNCTION_LINES})"})
                     score -= 5
 
         # Check for missing docstring
         if not content.strip().startswith('"""') and not content.strip().startswith("'''"):
-            if not any(isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant) and isinstance(n.value.value, str)
-                       for n in ast.iter_child_nodes(tree)):
-                issues.append({"type": "no_docstring", "severity": "low", "msg": "No module docstring"})
+            if not any(
+                isinstance(
+                    n,
+                    ast.Expr) and isinstance(
+                    n.value,
+                    ast.Constant) and isinstance(
+                    n.value.value,
+                    str) for n in ast.iter_child_nodes(tree)):
+                issues.append(
+                    {"type": "no_docstring", "severity": "low", "msg": "No module docstring"})
                 score -= 3
 
         # Check for bare except
@@ -100,10 +120,15 @@ def audit_file(filepath):
                 score -= 5
 
         score = max(0, min(100, score))
-        return {"file": filepath.name, "score": score, "lines": line_count, "issues": issues}
+        return {
+            "file": filepath.name,
+            "score": score,
+            "lines": line_count,
+            "issues": issues}
 
     except Exception as e:
-        return {"file": filepath.name, "score": 0, "issues": [{"type": "read_error", "severity": "critical", "msg": str(e)}]}
+        return {"file": filepath.name, "score": 0, "issues": [
+            {"type": "read_error", "severity": "critical", "msg": str(e)}]}
 
 
 def do_audit(severity_filter=None):
@@ -120,8 +145,11 @@ def do_audit(severity_filter=None):
 
         db.execute(
             "INSERT INTO file_scores (ts, filepath, score, issues) VALUES (?,?,?,?)",
-            (time.time(), result["file"], result["score"], json.dumps(result["issues"]))
-        )
+            (time.time(),
+             result["file"],
+                result["score"],
+                json.dumps(
+                result["issues"])))
 
     avg_score = sum(r["score"] for r in results) / max(len(results), 1)
     total_issues = sum(len(r["issues"]) for r in results)
@@ -129,21 +157,34 @@ def do_audit(severity_filter=None):
     # Filter by severity if requested
     if severity_filter:
         for r in results:
-            r["issues"] = [i for i in r["issues"] if i["severity"] == severity_filter]
+            r["issues"] = [i for i in r["issues"]
+                           if i["severity"] == severity_filter]
 
     report = {
         "ts": datetime.now().isoformat(),
         "files_scanned": len(results),
-        "avg_score": round(avg_score, 1),
+        "avg_score": round(
+            avg_score,
+            1),
         "total_issues": total_issues,
-        "worst_files": sorted(results, key=lambda x: x["score"])[:10],
-        "best_files": sorted(results, key=lambda x: x["score"], reverse=True)[:5],
+        "worst_files": sorted(
+            results,
+            key=lambda x: x["score"])[
+                :10],
+        "best_files": sorted(
+            results,
+            key=lambda x: x["score"],
+            reverse=True)[
+            :5],
     }
 
     db.execute(
         "INSERT INTO audits (ts, files_scanned, avg_score, issues_total, report) VALUES (?,?,?,?,?)",
-        (time.time(), len(results), avg_score, total_issues, json.dumps(report))
-    )
+        (time.time(),
+         len(results),
+         avg_score,
+         total_issues,
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -151,8 +192,19 @@ def do_audit(severity_filter=None):
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Code Auditor")
-    parser.add_argument("--once", "--audit", action="store_true", help="Full audit")
-    parser.add_argument("--severity", choices=["low", "medium", "high", "critical"], help="Filter by severity")
+    parser.add_argument(
+        "--once",
+        "--audit",
+        action="store_true",
+        help="Full audit")
+    parser.add_argument(
+        "--severity",
+        choices=[
+            "low",
+            "medium",
+            "high",
+            "critical"],
+        help="Filter by severity")
     parser.add_argument("--report", action="store_true", help="History")
     args = parser.parse_args()
 

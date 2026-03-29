@@ -73,7 +73,8 @@ def get_cpu_temp():
             kelvin_tenths = float(val)
             celsius = (kelvin_tenths / 10.0) - 273.15
             if 0 < celsius < 120:
-                return [{"component": "CPU", "name": "CPU Zone", "temp_c": round(celsius, 1)}]
+                return [{"component": "CPU", "name": "CPU Zone",
+                         "temp_c": round(celsius, 1)}]
     except Exception:
         pass
     return []
@@ -111,14 +112,24 @@ def do_status(alert_temp=None):
     for r in get_gpu_temps():
         is_alert = r["temp_c"] >= gpu_alert
         readings.append({**r, "alert": is_alert})
-        db.execute("INSERT INTO thermal_readings (ts, component, name, temp_c, alert) VALUES (?,?,?,?,?)",
-                   (time.time(), r["component"], r["name"], r["temp_c"], int(is_alert)))
+        db.execute(
+            "INSERT INTO thermal_readings (ts, component, name, temp_c, alert) VALUES (?,?,?,?,?)",
+            (time.time(),
+             r["component"],
+                r["name"],
+                r["temp_c"],
+                int(is_alert)))
 
     for r in get_cpu_temp():
         is_alert = r["temp_c"] >= CPU_ALERT
         readings.append({**r, "alert": is_alert})
-        db.execute("INSERT INTO thermal_readings (ts, component, name, temp_c, alert) VALUES (?,?,?,?,?)",
-                   (time.time(), r["component"], r["name"], r["temp_c"], int(is_alert)))
+        db.execute(
+            "INSERT INTO thermal_readings (ts, component, name, temp_c, alert) VALUES (?,?,?,?,?)",
+            (time.time(),
+             r["component"],
+                r["name"],
+                r["temp_c"],
+                int(is_alert)))
 
     for r in get_disk_temps():
         readings.append({**r, "alert": False})
@@ -154,10 +165,21 @@ def do_history():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Thermal Monitor")
-    parser.add_argument("--once", "--status", action="store_true", help="Current status")
+    parser.add_argument(
+        "--once",
+        "--status",
+        action="store_true",
+        help="Current status")
     parser.add_argument("--history", action="store_true", help="History")
-    parser.add_argument("--alert", type=int, metavar="TEMP", help="Alert threshold")
-    parser.add_argument("--throttle", action="store_true", help="Check throttling")
+    parser.add_argument(
+        "--alert",
+        type=int,
+        metavar="TEMP",
+        help="Alert threshold")
+    parser.add_argument(
+        "--throttle",
+        action="store_true",
+        help="Check throttling")
     args = parser.parse_args()
 
     if args.history:

@@ -75,6 +75,8 @@ IGNORE = {
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -95,6 +97,8 @@ def init_db():
 # ---------------------------------------------------------------------------
 # Core
 # ---------------------------------------------------------------------------
+
+
 def scan_folder(folder: Path) -> dict:
     """Scanne un dossier et categorise les fichiers."""
     result = {}
@@ -114,6 +118,7 @@ def scan_folder(folder: Path) -> dict:
             "modified": datetime.fromtimestamp(item.stat().st_mtime).isoformat(),
         })
     return result
+
 
 def organize_folder(folder: Path, dry_run: bool = False) -> dict:
     """Organise les fichiers d'un dossier par categorie."""
@@ -143,8 +148,12 @@ def organize_folder(folder: Path, dry_run: bool = False) -> dict:
                     shutil.move(str(src), str(dst))
                     db.execute(
                         "INSERT INTO moves (ts, batch_id, source, destination, filename, category) VALUES (?,?,?,?,?,?)",
-                        (time.time(), batch_id, str(src), str(dst), f["name"], category)
-                    )
+                        (time.time(),
+                         batch_id,
+                         str(src),
+                            str(dst),
+                            f["name"],
+                            category))
                     moved += 1
                     categories_used.add(category)
                 except Exception as e:
@@ -156,8 +165,12 @@ def organize_folder(folder: Path, dry_run: bool = False) -> dict:
     if not dry_run:
         db.execute(
             "INSERT INTO runs (ts, batch_id, target, files_moved, categories) VALUES (?,?,?,?,?)",
-            (time.time(), batch_id, str(folder), moved, json.dumps(list(categories_used)))
-        )
+            (time.time(),
+             batch_id,
+             str(folder),
+                moved,
+                json.dumps(
+                list(categories_used))))
         db.commit()
     db.close()
 
@@ -169,6 +182,7 @@ def organize_folder(folder: Path, dry_run: bool = False) -> dict:
         "categories": {cat: len(files) for cat, files in scan.items()},
         "timestamp": datetime.now().isoformat(),
     }
+
 
 def undo_last(folder: Path = None) -> dict:
     """Annule le dernier batch de rangement."""
@@ -221,14 +235,35 @@ def undo_last(folder: Path = None) -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Desktop Organizer — Range le bureau automatiquement")
-    parser.add_argument("--scan", action="store_true", help="Scanner le bureau sans rien bouger")
-    parser.add_argument("--organize", action="store_true", help="Ranger le bureau")
-    parser.add_argument("--downloads", action="store_true", help="Ranger les telechargements")
-    parser.add_argument("--undo", action="store_true", help="Annuler le dernier rangement")
-    parser.add_argument("--rules", action="store_true", help="Afficher les regles de tri")
-    parser.add_argument("--folder", type=str, help="Dossier custom a organiser")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Desktop Organizer — Range le bureau automatiquement")
+    parser.add_argument(
+        "--scan",
+        action="store_true",
+        help="Scanner le bureau sans rien bouger")
+    parser.add_argument(
+        "--organize",
+        action="store_true",
+        help="Ranger le bureau")
+    parser.add_argument(
+        "--downloads",
+        action="store_true",
+        help="Ranger les telechargements")
+    parser.add_argument(
+        "--undo",
+        action="store_true",
+        help="Annuler le dernier rangement")
+    parser.add_argument(
+        "--rules",
+        action="store_true",
+        help="Afficher les regles de tri")
+    parser.add_argument(
+        "--folder",
+        type=str,
+        help="Dossier custom a organiser")
     args = parser.parse_args()
 
     if args.rules:
@@ -239,7 +274,8 @@ def main():
         print(json.dumps(by_cat, indent=2, ensure_ascii=False))
         return
 
-    target = Path(args.folder) if args.folder else (DOWNLOADS if args.downloads else DESKTOP)
+    target = Path(args.folder) if args.folder else (
+        DOWNLOADS if args.downloads else DESKTOP)
 
     if args.scan:
         result = scan_folder(target)
@@ -264,6 +300,7 @@ def main():
         print(json.dumps({"folder": str(target), "total_files": total,
                           "categories": {c: len(f) for c, f in result.items()}},
                          indent=2, ensure_ascii=False))
+
 
 if __name__ == "__main__":
     main()

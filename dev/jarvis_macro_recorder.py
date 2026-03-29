@@ -37,7 +37,8 @@ def init_db():
 
 def list_macros():
     db = init_db()
-    rows = db.execute("SELECT name, description, steps, run_count FROM macros ORDER BY name").fetchall()
+    rows = db.execute(
+        "SELECT name, description, steps, run_count FROM macros ORDER BY name").fetchall()
     db.close()
     macros = []
     for name, desc, steps_json, runs in rows:
@@ -83,8 +84,13 @@ def create_sample_macros():
     ]
     for m in samples:
         try:
-            db.execute("INSERT OR IGNORE INTO macros (ts, name, description, steps) VALUES (?,?,?,?)",
-                       (time.time(), m["name"], m["description"], json.dumps(m["steps"])))
+            db.execute(
+                "INSERT OR IGNORE INTO macros (ts, name, description, steps) VALUES (?,?,?,?)",
+                (time.time(),
+                 m["name"],
+                    m["description"],
+                    json.dumps(
+                    m["steps"])))
         except Exception:
             pass
     db.commit()
@@ -115,7 +121,11 @@ def do_status():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Macro Recorder")
-    parser.add_argument("--once", "--list", action="store_true", help="List macros")
+    parser.add_argument(
+        "--once",
+        "--list",
+        action="store_true",
+        help="List macros")
     parser.add_argument("--record", action="store_true", help="Record")
     parser.add_argument("--play", metavar="NAME", help="Play macro")
     parser.add_argument("--edit", metavar="NAME", help="Edit macro")

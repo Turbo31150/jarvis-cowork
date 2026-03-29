@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
+
 def analyze_file(filepath: Path) -> Dict[str, Any]:
     """Analyse un fichier Python et extrait sa structure."""
     doc = {
@@ -41,9 +42,12 @@ def analyze_file(filepath: Path) -> Dict[str, Any]:
         return doc
 
     # Module docstring
-    if tree.body and isinstance(tree.body[0], ast.Expr) and isinstance(tree.body[0].value, (ast.Str, ast.Constant)):
+    if tree.body and isinstance(
+            tree.body[0], ast.Expr) and isinstance(
+            tree.body[0].value, (ast.Str, ast.Constant)):
         val = tree.body[0].value
-        doc["docstring"] = val.value if isinstance(val, ast.Constant) else val.s
+        doc["docstring"] = val.value if isinstance(
+            val, ast.Constant) else val.s
 
     for node in ast.walk(tree):
         # Imports
@@ -100,8 +104,11 @@ def analyze_file(filepath: Path) -> Dict[str, Any]:
 
     return doc
 
+
 def format_text(doc: Dict) -> str:
-    lines = [f"{'='*60}", f"  {doc['file']} ({doc['lines']} lignes)", f"{'='*60}"]
+    lines = [f"{'=' * 60}",
+             f"  {doc['file']} ({doc['lines']} lignes)",
+             f"{'=' * 60}"]
 
     if doc.get("error"):
         lines.append(f"  ERREUR: {doc['error']}")
@@ -138,6 +145,7 @@ def format_text(doc: Dict) -> str:
 
     return "\n".join(lines)
 
+
 def format_markdown(doc: Dict) -> str:
     lines = [f"## {doc['file']}", f"**{doc['lines']} lignes**\n"]
 
@@ -157,12 +165,25 @@ def format_markdown(doc: Dict) -> str:
 
     return "\n".join(lines)
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Documenteur automatique Python.")
+    parser = argparse.ArgumentParser(
+        description="Documenteur automatique Python.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--once", nargs="?", const=".", metavar="DIR", help="Documenter tous les .py")
+    group.add_argument(
+        "--once",
+        nargs="?",
+        const=".",
+        metavar="DIR",
+        help="Documenter tous les .py")
     group.add_argument("--file", type=Path, help="Documenter un fichier")
-    parser.add_argument("--output", choices=["text", "json", "md"], default="text")
+    parser.add_argument(
+        "--output",
+        choices=[
+            "text",
+            "json",
+            "md"],
+        default="text")
     parser.add_argument("--json", action="store_true", help="Sortie JSON")
     args = parser.parse_args()
 
@@ -196,13 +217,16 @@ def main():
             total_funcs = sum(len(d["functions"]) for d in all_docs)
             total_classes = sum(len(d["classes"]) for d in all_docs)
 
-            print(f"📚 Documentation — {len(all_docs)} fichiers | {total_lines} lignes | {total_funcs} fonctions | {total_classes} classes\n")
+            print(
+                f"📚 Documentation — {
+                    len(all_docs)} fichiers | {total_lines} lignes | {total_funcs} fonctions | {total_classes} classes\n")
             for doc in all_docs:
                 if fmt == "md":
                     print(format_markdown(doc))
                 else:
                     print(format_text(doc))
                 print()
+
 
 if __name__ == "__main__":
     main()

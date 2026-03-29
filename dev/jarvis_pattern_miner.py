@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """jarvis_pattern_miner.py — Behavioral pattern mining (#248).
 
@@ -63,7 +64,11 @@ def init_db():
 
 def scan_database(db_path):
     """Scan a single database for patterns."""
-    info = {"path": str(db_path), "tables": [], "total_rows": 0, "timestamps": []}
+    info = {
+        "path": str(db_path),
+        "tables": [],
+        "total_rows": 0,
+        "timestamps": []}
     try:
         conn = sqlite3.connect(str(db_path))
         tables = conn.execute(
@@ -72,19 +77,28 @@ def scan_database(db_path):
 
         for (table_name,) in tables:
             try:
-                row_count = conn.execute(f"SELECT COUNT(*) FROM [{table_name}]").fetchone()[0]
+                row_count = conn.execute(
+                    f"SELECT COUNT(*) FROM [{table_name}]").fetchone()[0]
                 info["tables"].append({"name": table_name, "rows": row_count})
                 info["total_rows"] += row_count
 
                 # Try to find timestamp columns
-                cols = conn.execute(f"PRAGMA table_info([{table_name}])").fetchall()
-                ts_cols = [c[1] for c in cols if c[1].lower() in ("ts", "timestamp", "created_at", "updated_at", "date")]
+                cols = conn.execute(
+                    f"PRAGMA table_info([{table_name}])").fetchall()
+                ts_cols = [
+                    c[1] for c in cols if c[1].lower() in (
+                        "ts",
+                        "timestamp",
+                        "created_at",
+                        "updated_at",
+                        "date")]
                 for tc in ts_cols:
                     try:
                         timestamps = conn.execute(
                             f"SELECT [{tc}] FROM [{table_name}] WHERE [{tc}] IS NOT NULL ORDER BY [{tc}] DESC LIMIT 100"
                         ).fetchall()
-                        info["timestamps"].extend([t[0] for t in timestamps if t[0]])
+                        info["timestamps"].extend(
+                            [t[0] for t in timestamps if t[0]])
                     except Exception:
                         pass
             except Exception:
@@ -190,9 +204,11 @@ def detect_anomalies(db_info_list):
             try:
                 latest = max(ts_list)
                 if "T" in str(latest):
-                    latest_dt = datetime.fromisoformat(str(latest).replace("Z", ""))
+                    latest_dt = datetime.fromisoformat(
+                        str(latest).replace("Z", ""))
                 else:
-                    latest_dt = datetime.strptime(str(latest)[:19], "%Y-%m-%d %H:%M:%S")
+                    latest_dt = datetime.strptime(
+                        str(latest)[:19], "%Y-%m-%d %H:%M:%S")
                 age_hours = (datetime.now() - latest_dt).total_seconds() / 3600
                 if age_hours > 168:  # More than 7 days
                     anomalies.append({
@@ -240,22 +256,49 @@ def do_mine():
     for p in all_patterns:
         db.execute(
             "INSERT INTO patterns (ts, source_db, pattern_type, pattern_desc, frequency, confidence, details) VALUES (?,?,?,?,?,?,?)",
-            (now.isoformat(), p.get("source", "?"), p["type"], p["desc"],
-             p.get("frequency", 1), round(p.get("confidence", 0), 3), json.dumps(p)),
+            (now.isoformat(),
+             p.get(
+                "source",
+                "?"),
+                p["type"],
+                p["desc"],
+                p.get(
+                "frequency",
+                1),
+                round(
+                p.get(
+                    "confidence",
+                    0),
+                3),
+                json.dumps(p)),
         )
 
     # Store anomalies
     for a in all_anomalies:
         db.execute(
             "INSERT INTO anomalies (ts, source_db, anomaly_type, description, severity, details) VALUES (?,?,?,?,?,?)",
-            (now.isoformat(), a.get("source", "?"), a["type"], a["desc"],
-             a.get("severity", "low"), json.dumps(a)),
+            (now.isoformat(),
+             a.get(
+                "source",
+                "?"),
+                a["type"],
+                a["desc"],
+                a.get(
+                "severity",
+                "low"),
+                json.dumps(a)),
         )
 
     duration = (time.time() - start) * 1000
     db.execute(
         "INSERT INTO scan_log (ts, databases_scanned, patterns_found, anomalies_found, duration_ms) VALUES (?,?,?,?,?)",
-        (now.isoformat(), len(db_files), len(all_patterns), len(all_anomalies), round(duration, 1)),
+        (now.isoformat(),
+         len(db_files),
+         len(all_patterns),
+         len(all_anomalies),
+         round(
+            duration,
+            1)),
     )
     db.commit()
 
@@ -327,7 +370,8 @@ def do_export():
     db = init_db()
     patterns = db.execute("SELECT * FROM patterns").fetchall()
     anomalies = db.execute("SELECT * FROM anomalies").fetchall()
-    scans = db.execute("SELECT * FROM scan_log ORDER BY id DESC LIMIT 10").fetchall()
+    scans = db.execute(
+        "SELECT * FROM scan_log ORDER BY id DESC LIMIT 10").fetchall()
 
     result = {
         "ts": datetime.now().isoformat(),
@@ -365,12 +409,28 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="jarvis_pattern_miner.py — Behavioral pattern mining (#248)")
-    parser.add_argument("--mine", action="store_true", help="Full mining scan of all databases")
-    parser.add_argument("--patterns", action="store_true", help="Show discovered patterns")
-    parser.add_argument("--anomalies", action="store_true", help="Show detected anomalies")
-    parser.add_argument("--export", action="store_true", help="Export all mined data")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser = argparse.ArgumentParser(
+        description="jarvis_pattern_miner.py — Behavioral pattern mining (#248)")
+    parser.add_argument(
+        "--mine",
+        action="store_true",
+        help="Full mining scan of all databases")
+    parser.add_argument(
+        "--patterns",
+        action="store_true",
+        help="Show discovered patterns")
+    parser.add_argument(
+        "--anomalies",
+        action="store_true",
+        help="Show detected anomalies")
+    parser.add_argument(
+        "--export",
+        action="store_true",
+        help="Export all mined data")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.mine:

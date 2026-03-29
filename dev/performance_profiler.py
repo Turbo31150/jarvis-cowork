@@ -45,6 +45,7 @@ DB_PATH = BASE_DIR / "profiler.db"
 # SQLite helpers
 # ---------------------------------------------------------------------------
 
+
 def init_db(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute(
@@ -62,30 +63,51 @@ def init_db(conn: sqlite3.Connection):
     )
     conn.commit()
 
-def insert_run(conn: sqlite3.Connection, script: str, exec_time: float, max_mem_mb: float, out_len: int, err_len: int):
+
+def insert_run(
+        conn: sqlite3.Connection,
+        script: str,
+        exec_time: float,
+        max_mem_mb: float,
+        out_len: int,
+        err_len: int):
     cur = conn.cursor()
     cur.execute(
         "INSERT INTO runs (script, ts, exec_time, max_mem_mb, stdout_bytes, stderr_bytes) VALUES (?,?,?,?,?,?)",
-        (script, datetime.utcnow().isoformat() + "Z", exec_time, max_mem_mb, out_len, err_len),
+        (script,
+         datetime.utcnow().isoformat() +
+         "Z",
+         exec_time,
+         max_mem_mb,
+         out_len,
+         err_len),
     )
     conn.commit()
 
+
 def fetch_all(conn: sqlite3.Connection):
     cur = conn.cursor()
-    cur.execute("SELECT script, exec_time, max_mem_mb, stdout_bytes, stderr_bytes FROM runs ORDER BY exec_time DESC")
+    cur.execute(
+        "SELECT script, exec_time, max_mem_mb, stdout_bytes, stderr_bytes FROM runs ORDER BY exec_time DESC")
     return cur.fetchall()
 
 # ---------------------------------------------------------------------------
 # Profilage d'un script
 # ---------------------------------------------------------------------------
 
+
 def profile_script(script_path: Path):
     if not script_path.is_file():
-        print(f"[performance_profiler] Script introuvable : {script_path}", file=sys.stderr)
+        print(
+            f"[performance_profiler] Script introuvable : {script_path}",
+            file=sys.stderr)
         return None
     # Start subprocess
     start = time.time()
-    proc = subprocess.Popen([sys.executable, str(script_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen([sys.executable,
+                             str(script_path)],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
     # If psutil is available, monitor memory usage
     max_mem = 0.0
     if psutil:
@@ -120,6 +142,7 @@ def profile_script(script_path: Path):
 # CLI handling
 # ---------------------------------------------------------------------------
 
+
 def cmd_profile(script_name: str):
     script_path = BASE_DIR / script_name
     result = profile_script(script_path)
@@ -127,18 +150,30 @@ def cmd_profile(script_name: str):
         return
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
-    insert_run(conn, script_name, result["exec_time"], result["max_mem_mb"], result["stdout_bytes"], result["stderr_bytes"])
+    insert_run(
+        conn,
+        script_name,
+        result["exec_time"],
+        result["max_mem_mb"],
+        result["stdout_bytes"],
+        result["stderr_bytes"])
     conn.close()
     print(f"[performance_profiler] Profiling de {script_name} terminé :")
     print(f"  Temps d'exécution : {result['exec_time']:.3f}s")
     print(f"  Mémoire max : {result['max_mem_mb']:.1f} MiB")
-    print(f"  stdout : {result['stdout_bytes']} bytes, stderr : {result['stderr_bytes']} bytes")
+    print(
+        f"  stdout : {
+            result['stdout_bytes']} bytes, stderr : {
+            result['stderr_bytes']} bytes")
+
 
 def cmd_all():
-    py_files = [p.name for p in BASE_DIR.iterdir() if p.suffix == ".py" and p.name != Path(__file__).name]
+    py_files = [p.name for p in BASE_DIR.iterdir() if p.suffix ==
+                ".py" and p.name != Path(__file__).name]
     for script in py_files:
         print(f"[performance_profiler] Profilage de {script} …")
         cmd_profile(script)
+
 
 def cmd_report():
     conn = sqlite3.connect(DB_PATH)
@@ -150,14 +185,28 @@ def cmd_report():
         return
     print("=== Top 10 scripts les plus lents ===")
     for i, (script, t, mem, outb, errb) in enumerate(rows[:10], 1):
-        print(f"{i}. {script} – {t:.3f}s, Mémoire : {mem:.1f} MiB, stdout : {outb} B, stderr : {errb} B")
+        print(
+            f"{i}. {script} – {
+                t:.3f}s, Mémoire : {
+                mem:.1f} MiB, stdout : {outb} B, stderr : {errb} B")
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Profiler de performance pour les scripts JARVIS (dev/).")
+    parser = argparse.ArgumentParser(
+        description="Profiler de performance pour les scripts JARVIS (dev/).")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--profile", metavar="SCRIPT", help="Profiler le script indiqué (exemple: --profile auto_healer.py)")
-    group.add_argument("--all", action="store_true", help="Profiler tous les scripts .py du répertoire dev/")
-    group.add_argument("--report", action="store_true", help="Afficher le top 10 des scripts les plus lents")
+    group.add_argument(
+        "--profile",
+        metavar="SCRIPT",
+        help="Profiler le script indiqué (exemple: --profile auto_healer.py)")
+    group.add_argument(
+        "--all",
+        action="store_true",
+        help="Profiler tous les scripts .py du répertoire dev/")
+    group.add_argument(
+        "--report",
+        action="store_true",
+        help="Afficher le top 10 des scripts les plus lents")
     args = parser.parse_args()
 
     if args.profile:
@@ -166,6 +215,7 @@ def main():
         cmd_all()
     elif args.report:
         cmd_report()
+
 
 if __name__ == "__main__":
     main()

@@ -9,12 +9,18 @@ Usage:
     python dev/win_recycle_bin_manager.py --schedule
     python dev/win_recycle_bin_manager.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "recycle_bin.db"
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -45,9 +51,11 @@ def init_db():
         last_clean TEXT
     )""")
     if db.execute("SELECT COUNT(*) FROM bin_schedule").fetchone()[0] == 0:
-        db.execute("INSERT INTO bin_schedule (max_age_days, max_size_mb, auto_clean, check_interval_hours) VALUES (30, 5000, 0, 24)")
+        db.execute(
+            "INSERT INTO bin_schedule (max_age_days, max_size_mb, auto_clean, check_interval_hours) VALUES (30, 5000, 0, 24)")
     db.commit()
     return db
+
 
 def get_bin_size():
     """Get total recycle bin size."""
@@ -59,36 +67,52 @@ $totalSize = 0
 foreach ($item in $items) { try { $totalSize += $item.Size } catch {} }
 @{ count = $items.Count; size = $totalSize } | ConvertTo-Json
 "'''
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=30, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            shell=True)
         if r.stdout.strip():
             data = json.loads(r.stdout)
             size_bytes = data.get("size", 0) or 0
             return {
                 "count": data.get("count", 0) or 0,
                 "size_bytes": size_bytes,
-                "size_mb": round(size_bytes / (1024*1024), 2)
+                "size_mb": round(size_bytes / (1024 * 1024), 2)
             }
         return {"count": 0, "size_bytes": 0, "size_mb": 0}
     except Exception as e:
         return {"count": 0, "size_bytes": 0, "size_mb": 0, "error": str(e)}
 
+
 def empty_recycle_bin():
     """Empty the recycle bin."""
     try:
         cmd = 'powershell -NoProfile -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Output OK"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=30, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            shell=True)
         return "OK" in r.stdout
     except Exception:
         return False
 
+
 def do_stats():
     db = init_db()
     size_info = get_bin_size()
-    db.execute("INSERT INTO bin_snapshots (ts, total_items, total_size_mb) VALUES (?,?,?)",
-               (datetime.now().isoformat(), size_info["count"], size_info["size_mb"]))
+    db.execute(
+        "INSERT INTO bin_snapshots (ts, total_items, total_size_mb) VALUES (?,?,?)",
+        (datetime.now().isoformat(),
+         size_info["count"],
+         size_info["size_mb"]))
     db.commit()
 
-    prev = db.execute("SELECT total_items, total_size_mb FROM bin_snapshots ORDER BY id DESC LIMIT 1 OFFSET 1").fetchone()
+    prev = db.execute(
+        "SELECT total_items, total_size_mb FROM bin_snapshots ORDER BY id DESC LIMIT 1 OFFSET 1").fetchone()
     trend = "stable"
     if prev:
         if size_info["count"] > (prev[0] or 0):
@@ -107,6 +131,7 @@ def do_stats():
     db.close()
     return result
 
+
 def do_clean():
     db = init_db()
     before = get_bin_size()
@@ -116,9 +141,16 @@ def do_clean():
     freed_mb = max(0, (before["size_mb"] or 0) - (after["size_mb"] or 0))
     items_cleaned = max(0, (before["count"] or 0) - (after["count"] or 0))
 
-    db.execute("INSERT INTO bin_actions (ts, action, items_affected, size_freed_mb, details, success) VALUES (?,?,?,?,?,?)",
-               (datetime.now().isoformat(), "clean", items_cleaned, freed_mb,
-                f"Before: {before['count']} items ({before['size_mb']} MB)", int(success)))
+    db.execute(
+        "INSERT INTO bin_actions (ts, action, items_affected, size_freed_mb, details, success) VALUES (?,?,?,?,?,?)",
+        (datetime.now().isoformat(),
+         "clean",
+         items_cleaned,
+         freed_mb,
+         f"Before: {
+            before['count']} items ({
+            before['size_mb']} MB)",
+            int(success)))
     db.commit()
 
     result = {
@@ -132,6 +164,7 @@ def do_clean():
     }
     db.close()
     return result
+
 
 def do_recover():
     """Show top 10 recoverable items."""
@@ -154,7 +187,12 @@ for ($i = 0; $i -lt $count; $i++) {
 }
 $result | ConvertTo-Json
 "'''
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=20, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=20,
+            shell=True)
         items = []
         if r.stdout.strip():
             data = json.loads(r.stdout)
@@ -174,9 +212,11 @@ $result | ConvertTo-Json
     db.close()
     return result
 
+
 def do_schedule():
     db = init_db()
-    row = db.execute("SELECT max_age_days, max_size_mb, auto_clean, check_interval_hours, last_clean FROM bin_schedule LIMIT 1").fetchone()
+    row = db.execute(
+        "SELECT max_age_days, max_size_mb, auto_clean, check_interval_hours, last_clean FROM bin_schedule LIMIT 1").fetchone()
     result = {
         "action": "schedule",
         "config": {
@@ -192,11 +232,14 @@ def do_schedule():
     db.close()
     return result
 
+
 def do_once():
     db = init_db()
     size_info = get_bin_size()
-    total_actions = db.execute("SELECT COUNT(*) FROM bin_actions").fetchone()[0]
-    total_freed = db.execute("SELECT SUM(size_freed_mb) FROM bin_actions WHERE action='clean'").fetchone()[0] or 0
+    total_actions = db.execute(
+        "SELECT COUNT(*) FROM bin_actions").fetchone()[0]
+    total_freed = db.execute(
+        "SELECT SUM(size_freed_mb) FROM bin_actions WHERE action='clean'").fetchone()[0] or 0
     result = {
         "status": "ok",
         "current_items": size_info["count"],
@@ -208,13 +251,30 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Recycle Bin Manager — COWORK #230")
-    parser.add_argument("--stats", action="store_true", help="Show recycle bin statistics")
-    parser.add_argument("--clean", action="store_true", help="Empty recycle bin")
-    parser.add_argument("--recover", action="store_true", help="List recoverable items")
-    parser.add_argument("--schedule", action="store_true", help="Show auto-clean schedule")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser = argparse.ArgumentParser(
+        description="Recycle Bin Manager — COWORK #230")
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show recycle bin statistics")
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Empty recycle bin")
+    parser.add_argument(
+        "--recover",
+        action="store_true",
+        help="List recoverable items")
+    parser.add_argument(
+        "--schedule",
+        action="store_true",
+        help="Show auto-clean schedule")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.stats:
@@ -227,6 +287,7 @@ def main():
         print(json.dumps(do_schedule(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

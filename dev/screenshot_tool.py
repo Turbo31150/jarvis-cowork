@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """JARVIS Screenshot Tool — Capture d'ecran Windows avec PowerShell."""
-import json, sys, os, subprocess
+import json
+import sys
+import os
+import subprocess
 from datetime import datetime
+import argparse
 
 SCREENSHOT_DIR = "C:/Users/franc/.openclaw/workspace/dev/screenshots"
 
+
 def ensure_dir():
     os.makedirs(SCREENSHOT_DIR, exist_ok=True)
+
 
 def take_screenshot(filename=None):
     ensure_dir()
@@ -29,7 +35,7 @@ Write-Output "Saved: {filepath.replace(chr(92), "/")}"
 """
     try:
         r = subprocess.run(["powershell", "-Command", ps],
-                          capture_output=True, text=True, timeout=15)
+                           capture_output=True, text=True, timeout=15)
         if r.returncode == 0 and os.path.exists(filepath):
             size_kb = round(os.path.getsize(filepath) / 1024, 1)
             print(f"Screenshot saved: {filepath} ({size_kb} KB)")
@@ -39,6 +45,7 @@ Write-Output "Saved: {filepath.replace(chr(92), "/")}"
     except Exception as e:
         print(f"Screenshot error: {e}")
         return None
+
 
 def take_window_screenshot(filename=None):
     ensure_dir()
@@ -59,7 +66,7 @@ if ($img) {{
 """
     try:
         r = subprocess.run(["powershell", "-Command", ps],
-                          capture_output=True, text=True, timeout=15)
+                           capture_output=True, text=True, timeout=15)
         if os.path.exists(filepath):
             size_kb = round(os.path.getsize(filepath) / 1024, 1)
             print(f"Window screenshot: {filepath} ({size_kb} KB)")
@@ -70,9 +77,11 @@ if ($img) {{
         print(f"Error: {e}")
         return None
 
+
 def list_screenshots():
     ensure_dir()
-    files = sorted([f for f in os.listdir(SCREENSHOT_DIR) if f.endswith(".png")], reverse=True)
+    files = sorted([f for f in os.listdir(SCREENSHOT_DIR)
+                   if f.endswith(".png")], reverse=True)
     total_kb = 0
     print(f"[SCREENSHOTS] {len(files)} files in {SCREENSHOT_DIR}:")
     for f in files[:20]:
@@ -82,15 +91,18 @@ def list_screenshots():
         print(f"  {f} ({size_kb} KB)")
     print(f"  Total: {round(total_kb / 1024, 1)} MB")
 
+
 def cleanup(keep=10):
     ensure_dir()
-    files = sorted([f for f in os.listdir(SCREENSHOT_DIR) if f.endswith(".png")])
+    files = sorted([f for f in os.listdir(
+        SCREENSHOT_DIR) if f.endswith(".png")])
     removed = 0
     while len(files) > keep:
         oldest = files.pop(0)
         os.remove(os.path.join(SCREENSHOT_DIR, oldest))
         removed += 1
     print(f"Cleanup: removed {removed} screenshots, kept {len(files)}")
+
 
 if __name__ == "__main__":
     if "--capture" in sys.argv or "--once" in sys.argv:
@@ -106,4 +118,5 @@ if __name__ == "__main__":
             keep = int(sys.argv[idx + 1]) if len(sys.argv) > idx + 1 else 10
         cleanup(keep)
     else:
-        print("Usage: screenshot_tool.py --capture | --window | --list | --cleanup [--keep N]")
+        print(
+            "Usage: screenshot_tool.py --capture | --window | --list | --cleanup [--keep N]")

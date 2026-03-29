@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """win_screen_analyzer.py — Analyseur ecran Windows.
 
@@ -75,9 +76,13 @@ def do_capture():
         "dpi_aware": True,
     }
 
-    db.execute("INSERT INTO captures (ts, width, height, monitors, report) VALUES (?,?,?,?,?)",
-               (time.time(), screen["primary_width"], screen["primary_height"],
-                screen["monitors"], json.dumps(report)))
+    db.execute(
+        "INSERT INTO captures (ts, width, height, monitors, report) VALUES (?,?,?,?,?)",
+        (time.time(),
+         screen["primary_width"],
+         screen["primary_height"],
+         screen["monitors"],
+         json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -85,7 +90,11 @@ def do_capture():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Screen Analyzer")
-    parser.add_argument("--once", "--capture", action="store_true", help="Capture info")
+    parser.add_argument(
+        "--once",
+        "--capture",
+        action="store_true",
+        help="Capture info")
     parser.add_argument("--analyze", action="store_true", help="Analyze")
     parser.add_argument("--ocr", action="store_true", help="OCR")
     parser.add_argument("--diff", action="store_true", help="Diff")

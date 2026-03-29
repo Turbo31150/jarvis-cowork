@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """metrics_collector.py
 Collecte périodiquement les métriques système (CPU, RAM, GPU, disque, réseau) et les stocke dans une base SQLite.
@@ -47,7 +48,8 @@ def _get_cpu_percent() -> float:
 def _get_ram() -> tuple[int, int]:
     # Retourne (used_mb, total_mb)
     try:
-        out = _run_cmd(["wmic", "OS", "get", "FreePhysicalMemory,TotalVisibleMemorySize", "/Value"])
+        out = _run_cmd(
+            ["wmic", "OS", "get", "FreePhysicalMemory,TotalVisibleMemorySize", "/Value"])
         # format: FreePhysicalMemory=xxxx\nTotalVisibleMemorySize=yyyyy
         data = {}
         for part in out.splitlines():
@@ -66,7 +68,9 @@ def _get_ram() -> tuple[int, int]:
 def _get_gpu_util() -> tuple[int, int]:
     # Retourne (util_percent, used_mem_mb) – utilise nvidia‑smi si présent
     try:
-        out = _run_cmd(["nvidia-smi", "--query-gpu=utilization.gpu,memory.used", "--format=csv,noheader,nounits"])
+        out = _run_cmd(["nvidia-smi",
+                        "--query-gpu=utilization.gpu,memory.used",
+                        "--format=csv,noheader,nounits"])
         if out:
             util_str, mem_str = out.split(",")
             return int(util_str.strip()), int(mem_str.strip())
@@ -78,7 +82,13 @@ def _get_gpu_util() -> tuple[int, int]:
 def _get_disk() -> tuple[float, float]:
     # Retourne (used_gb, total_gb) pour le disque système (C:)
     try:
-        out = _run_cmd(["wmic", "logicaldisk", "where", "DeviceID='C:'", "get", "Size,FreeSpace", "/Value"])
+        out = _run_cmd(["wmic",
+                        "logicaldisk",
+                        "where",
+                        "DeviceID='C:'",
+                        "get",
+                        "Size,FreeSpace",
+                        "/Value"])
         data = {}
         for part in out.splitlines():
             if "=" in part:
@@ -94,7 +104,8 @@ def _get_disk() -> tuple[float, float]:
 
 
 def _get_network() -> tuple[int, int]:
-    # Bytes sent / received depuis le dernier reset du compteur (cumulatif depuis le démarrage).
+    # Bytes sent / received depuis le dernier reset du compteur (cumulatif
+    # depuis le démarrage).
     try:
         out = _run_cmd(["netstat", "-e"])
         lines = out.splitlines()
@@ -143,7 +154,16 @@ def collect_and_store() -> None:
     _init_db(conn)
     conn.execute(
         "INSERT OR REPLACE INTO metrics (ts, cpu, ram_used_mb, ram_total_mb, gpu_util, gpu_mem_mb, disk_used_gb, disk_total_gb, net_sent_bytes, net_recv_bytes) VALUES (?,?,?,?,?,?,?,?,?,?)",
-        (ts, cpu, ram_used, ram_total, gpu_util, gpu_mem, disk_used, disk_total, net_sent, net_recv),
+        (ts,
+         cpu,
+         ram_used,
+         ram_total,
+         gpu_util,
+         gpu_mem,
+         disk_used,
+         disk_total,
+         net_sent,
+         net_recv),
     )
     # purge old rows
     cutoff = datetime.utcnow() - timedelta(days=RETENTION_DAYS)
@@ -186,23 +206,46 @@ def export_data(filepath: str | None, fmt: str, days: int | None) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Collecte métriques système et exportation.")
+    parser = argparse.ArgumentParser(
+        description="Collecte métriques système et exportation.")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--collect", action="store_true", help="Effectuer une collecte et la persister.")
-    group.add_argument("--export", nargs="?", const="-", metavar="FILE", help="Exporter les données (CSV par défaut, .json force JSON). Utiliser '-' pour stdout.")
-    parser.add_argument("--history", type=int, metavar="DAYS", help="Limiter l'export aux D jours précédents.")
-    parser.add_argument("--format", choices=["csv", "json"], help="Forcer le format d'export.")
+    group.add_argument(
+        "--collect",
+        action="store_true",
+        help="Effectuer une collecte et la persister.")
+    group.add_argument(
+        "--export",
+        nargs="?",
+        const="-",
+        metavar="FILE",
+        help="Exporter les données (CSV par défaut, .json force JSON). Utiliser '-' pour stdout.")
+    parser.add_argument(
+        "--history",
+        type=int,
+        metavar="DAYS",
+        help="Limiter l'export aux D jours précédents.")
+    parser.add_argument(
+        "--format",
+        choices=[
+            "csv",
+            "json"],
+        help="Forcer le format d'export.")
     args = parser.parse_args()
 
     if args.collect:
         collect_and_store()
     elif args.export is not None:
-        fmt = "json" if (args.export and args.export.lower().endswith('.json')) else "csv"
+        fmt = "json" if (
+            args.export and args.export.lower().endswith('.json')) else "csv"
         if args.format:
             fmt = args.format
-        export_data(None if args.export == "-" else args.export, fmt, args.history)
+        export_data(
+            None if args.export == "-" else args.export,
+            fmt,
+            args.history)
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

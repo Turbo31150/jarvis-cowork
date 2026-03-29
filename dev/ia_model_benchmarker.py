@@ -22,21 +22,49 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "model_benchmarker.db"
 
-BENCHMARK_PROMPTS = [
-    {"id": "py_sort", "prompt": "Write a Python function to merge sort a list", "expect": "def", "category": "code"},
-    {"id": "py_class", "prompt": "Write a Python class for a binary search tree with insert and search", "expect": "class", "category": "code"},
-    {"id": "math_deriv", "prompt": "What is the integral of sin(x)*cos(x)?", "expect": "sin", "category": "math"},
-    {"id": "logic_1", "prompt": "If A implies B and B implies C, does A imply C? Explain.", "expect": "yes", "category": "reasoning"},
-    {"id": "json_gen", "prompt": "Generate a JSON config for a web server with host, port, ssl, and logging fields", "expect": "{", "category": "structured"},
-    {"id": "debug", "prompt": "Find the bug: def fib(n): return fib(n-1)+fib(n-2)", "expect": "base", "category": "debug"},
-    {"id": "explain", "prompt": "Explain how a hash table works in 3 sentences", "expect": "key", "category": "knowledge"},
-    {"id": "translate", "prompt": "Translate to French: The server is running smoothly with no errors", "expect": "serveur", "category": "language"},
-]
+BENCHMARK_PROMPTS = [{"id": "py_sort",
+                      "prompt": "Write a Python function to merge sort a list",
+                      "expect": "def",
+                      "category": "code"},
+                     {"id": "py_class",
+                      "prompt": "Write a Python class for a binary search tree with insert and search",
+                      "expect": "class",
+                      "category": "code"},
+                     {"id": "math_deriv",
+                      "prompt": "What is the integral of sin(x)*cos(x)?",
+                      "expect": "sin",
+                      "category": "math"},
+                     {"id": "logic_1",
+                      "prompt": "If A implies B and B implies C, does A imply C? Explain.",
+                      "expect": "yes",
+                      "category": "reasoning"},
+                     {"id": "json_gen",
+                      "prompt": "Generate a JSON config for a web server with host, port, ssl, and logging fields",
+                      "expect": "{",
+                      "category": "structured"},
+                     {"id": "debug",
+                      "prompt": "Find the bug: def fib(n): return fib(n-1)+fib(n-2)",
+                      "expect": "base",
+                      "category": "debug"},
+                     {"id": "explain",
+                      "prompt": "Explain how a hash table works in 3 sentences",
+                      "expect": "key",
+                      "category": "knowledge"},
+                     {"id": "translate",
+                      "prompt": "Translate to French: The server is running smoothly with no errors",
+                      "expect": "serveur",
+                      "category": "language"},
+                     ]
 
-MODELS = [
-    {"name": "M1/qwen3-8b", "type": "lmstudio", "url": "http://127.0.0.1:1234/api/v1/chat", "model": "qwen3-8b"},
-    {"name": "OL1/qwen3:1.7b", "type": "ollama", "url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b"},
-]
+MODELS = [{"name": "M1/qwen3-8b",
+           "type": "lmstudio",
+           "url": "http://127.0.0.1:1234/api/v1/chat",
+           "model": "qwen3-8b"},
+          {"name": "OL1/qwen3:1.7b",
+           "type": "ollama",
+           "url": "http://127.0.0.1:11434/api/chat",
+           "model": "qwen3:1.7b"},
+          ]
 
 
 def init_db():
@@ -66,8 +94,9 @@ def query_model(model_cfg, prompt, timeout=30):
                 "temperature": 0.2, "max_output_tokens": 512,
                 "stream": False, "store": False,
             }).encode()
-            req = urllib.request.Request(model_cfg["url"], data=data,
-                                         headers={"Content-Type": "application/json"})
+            req = urllib.request.Request(
+                model_cfg["url"], data=data, headers={
+                    "Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 result = json.loads(r.read().decode())
                 latency = time.time() - start
@@ -89,8 +118,9 @@ def query_model(model_cfg, prompt, timeout=30):
                 "messages": [{"role": "user", "content": prompt}],
                 "stream": False,
             }).encode()
-            req = urllib.request.Request(model_cfg["url"], data=data,
-                                         headers={"Content-Type": "application/json"})
+            req = urllib.request.Request(
+                model_cfg["url"], data=data, headers={
+                    "Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 result = json.loads(r.read().decode())
                 latency = time.time() - start
@@ -129,12 +159,20 @@ def do_benchmark():
 
             db.execute(
                 "INSERT INTO benchmarks (ts, model, prompt_id, score, latency_s, tokens, tok_per_s) VALUES (?,?,?,?,?,?,?)",
-                (time.time(), model["name"], prompt["id"], score, latency, tokens, tok_s)
-            )
+                (time.time(),
+                 model["name"],
+                    prompt["id"],
+                    score,
+                    latency,
+                    tokens,
+                    tok_s))
 
-        total_score = sum(r["score"] for r in model_results) / max(len(model_results), 1)
-        avg_latency = sum(r["latency_s"] for r in model_results) / max(len(model_results), 1)
-        avg_tok = sum(r["tok_s"] for r in model_results) / max(len(model_results), 1)
+        total_score = sum(r["score"]
+                          for r in model_results) / max(len(model_results), 1)
+        avg_latency = sum(r["latency_s"]
+                          for r in model_results) / max(len(model_results), 1)
+        avg_tok = sum(r["tok_s"]
+                      for r in model_results) / max(len(model_results), 1)
         passed = sum(1 for r in model_results if r["score"] >= 0.5)
 
         results[model["name"]] = {
@@ -148,8 +186,12 @@ def do_benchmark():
 
         db.execute(
             "INSERT INTO runs (ts, model, total_score, avg_latency_s, avg_tok_s, tests_passed) VALUES (?,?,?,?,?,?)",
-            (time.time(), model["name"], total_score, avg_latency, avg_tok, passed)
-        )
+            (time.time(),
+             model["name"],
+                total_score,
+                avg_latency,
+                avg_tok,
+                passed))
 
     db.commit()
     db.close()
@@ -172,9 +214,19 @@ def show_leaderboard():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Model Benchmarker")
-    parser.add_argument("--once", "--run", action="store_true", help="Run benchmark")
-    parser.add_argument("--leaderboard", action="store_true", help="Show leaderboard")
-    parser.add_argument("--compare", action="store_true", help="Compare models")
+    parser.add_argument(
+        "--once",
+        "--run",
+        action="store_true",
+        help="Run benchmark")
+    parser.add_argument(
+        "--leaderboard",
+        action="store_true",
+        help="Show leaderboard")
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        help="Compare models")
     parser.add_argument("--history", action="store_true", help="History")
     args = parser.parse_args()
 

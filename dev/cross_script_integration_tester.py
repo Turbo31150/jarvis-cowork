@@ -50,7 +50,8 @@ def init_db(conn):
         error TEXT
     )""")
     # Migrate: old schema had 'details' and 'pattern' instead of 'error'
-    cols = [r[1] for r in conn.execute("PRAGMA table_info(integration_tests)").fetchall()]
+    cols = [r[1] for r in conn.execute(
+        "PRAGMA table_info(integration_tests)").fetchall()]
     if "error" not in cols:
         try:
             conn.execute("ALTER TABLE integration_tests ADD COLUMN error TEXT")
@@ -125,7 +126,8 @@ def test_pipeline_health():
     errors = []
 
     # Step 1: Run health watchdog
-    rc1, out1, err1 = run_script("cluster_health_watchdog", "--once", timeout=30)
+    rc1, out1, err1 = run_script(
+        "cluster_health_watchdog", "--once", timeout=30)
     if rc1 != 0:
         return f"cluster_health_watchdog failed (rc={rc1}): {err1[:150]}"
 
@@ -148,8 +150,10 @@ def test_pipeline_health():
                 errors.append(f"node {node.get('node', '?')}: {nk_err}")
                 break
 
-    # Step 2: Run alert monitor (internally calls health watchdog and reads its data)
-    rc2, out2, err2 = run_script("proactive_alert_monitor", "--once", timeout=60)
+    # Step 2: Run alert monitor (internally calls health watchdog and reads
+    # its data)
+    rc2, out2, err2 = run_script(
+        "proactive_alert_monitor", "--once", timeout=60)
     if rc2 != 0:
         return f"proactive_alert_monitor failed (rc={rc2}): {err2[:150]}"
 
@@ -176,7 +180,8 @@ def test_pipeline_quality():
     errors = []
 
     # Step 1: Run quality scorer
-    rc1, out1, err1 = run_script("dispatch_quality_scorer", "--once", timeout=60)
+    rc1, out1, err1 = run_script(
+        "dispatch_quality_scorer", "--once", timeout=60)
     if rc1 != 0:
         return f"dispatch_quality_scorer failed (rc={rc1}): {err1[:150]}"
 
@@ -189,7 +194,8 @@ def test_pipeline_quality():
         errors.append(f"quality_scorer: {key_err}")
 
     # Step 2: Run auto-improver in dry-run mode (reads quality data from DB)
-    rc2, out2, err2 = run_script("cowork_auto_improver", "--dry-run", timeout=120)
+    rc2, out2, err2 = run_script(
+        "cowork_auto_improver", "--dry-run", timeout=120)
     if rc2 != 0:
         return f"cowork_auto_improver --dry-run failed (rc={rc2}): {err2[:150]}"
 
@@ -204,7 +210,8 @@ def test_pipeline_quality():
     # Verify dry-run did not apply anything
     applied = data2.get("applied", 0)
     if applied != 0:
-        errors.append(f"auto_improver --dry-run applied {applied} changes (expected 0)")
+        errors.append(
+            f"auto_improver --dry-run applied {applied} changes (expected 0)")
 
     return "; ".join(errors) if errors else None
 
@@ -220,7 +227,8 @@ def test_pipeline_cycle():
         return f"cowork_full_cycle output: {jerr}"
 
     errors = []
-    key_err = assert_keys(data, ["total_scripts", "ok", "errors", "duration_ms", "results"])
+    key_err = assert_keys(
+        data, ["total_scripts", "ok", "errors", "duration_ms", "results"])
     if key_err:
         return f"full_cycle: {key_err}"
 
@@ -263,7 +271,11 @@ def test_pipeline_scheduler():
         errors.append("scheduler has 0 tasks")
 
     # Verify each task has required structure
-    required_task_keys = ["task_name", "script_name", "interval_minutes", "enabled"]
+    required_task_keys = [
+        "task_name",
+        "script_name",
+        "interval_minutes",
+        "enabled"]
     for task in tasks:
         tk_err = assert_keys(task, required_task_keys)
         if tk_err:
@@ -350,7 +362,8 @@ def test_dashboard_sections():
     errors = []
     failed_sections = [s for s in data.get("sections", []) if not s.get("ok")]
     if failed_sections:
-        msgs = [f"{s['name']}: {s.get('error', '?')}" for s in failed_sections[:5]]
+        msgs = [
+            f"{s['name']}: {s.get('error', '?')}" for s in failed_sections[:5]]
         errors.extend(msgs)
 
     return "; ".join(errors) if errors else None
@@ -376,7 +389,8 @@ def test_data_consistency():
         if "agent_dispatch_log" not in tables:
             errors.append("agent_dispatch_log table missing")
         else:
-            count = conn.execute("SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
+            count = conn.execute(
+                "SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
             if count == 0:
                 errors.append("agent_dispatch_log is empty")
 
@@ -393,7 +407,8 @@ def test_data_consistency():
         if "cowork_script_mapping" not in tables:
             errors.append("cowork_script_mapping table missing")
         else:
-            count = conn.execute("SELECT COUNT(*) FROM cowork_script_mapping").fetchone()[0]
+            count = conn.execute(
+                "SELECT COUNT(*) FROM cowork_script_mapping").fetchone()[0]
             if count == 0:
                 errors.append("cowork_script_mapping is empty")
 
@@ -428,7 +443,9 @@ def test_self_test_levels():
             errors.append(f"Level {level} output: {jerr}")
             continue
 
-        key_err = assert_keys(data, ["passed", "failed", "success_rate_pct", "total_tests"])
+        key_err = assert_keys(
+            data, [
+                "passed", "failed", "success_rate_pct", "total_tests"])
         if key_err:
             errors.append(f"Level {level}: {key_err}")
             continue
@@ -442,8 +459,7 @@ def test_self_test_levels():
             errors.append(f"Level {level}: 0 tests ran")
         elif rate < 80:
             errors.append(
-                f"Level {level}: {rate}% pass rate ({passed}/{total}), {failed} failed"
-            )
+                f"Level {level}: {rate}% pass rate ({passed}/{total}), {failed} failed")
 
     return "; ".join(errors) if errors else None
 
@@ -471,7 +487,8 @@ def run_integration_tests(quick=False):
     ts = datetime.now().isoformat()
     t0_global = time.time()
 
-    tests_to_run = [(n, f) for n, f in ALL_TESTS if not quick or n in QUICK_TESTS]
+    tests_to_run = [(n, f)
+                    for n, f in ALL_TESTS if not quick or n in QUICK_TESTS]
 
     results = []
     passed = 0
@@ -573,12 +590,20 @@ def show_stats():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Cross-Script Integration Tester — verifies COWORK pipeline interoperability"
-    )
+        description="Cross-Script Integration Tester — verifies COWORK pipeline interoperability")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--once", action="store_true", help="Run all integration tests")
-    group.add_argument("--quick", action="store_true", help="Run fast subset (health, cycle, data)")
-    group.add_argument("--stats", action="store_true", help="Show test history")
+    group.add_argument(
+        "--once",
+        action="store_true",
+        help="Run all integration tests")
+    group.add_argument(
+        "--quick",
+        action="store_true",
+        help="Run fast subset (health, cycle, data)")
+    group.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show test history")
     args = parser.parse_args()
 
     if args.stats:

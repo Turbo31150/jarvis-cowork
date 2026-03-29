@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """grade_optimizer.py — Auto-optimize JARVIS health grade toward A+.
 
@@ -41,7 +42,8 @@ def analyze_grade():
 
     # Cluster
     try:
-        rows = gaps.execute("SELECT node, last_status FROM heartbeat_state").fetchall()
+        rows = gaps.execute(
+            "SELECT node, last_status FROM heartbeat_state").fetchall()
         online = sum(1 for r in rows if r["last_status"] == "online")
         cluster_score = online / max(len(rows), 1) * 100
     except Exception:
@@ -97,16 +99,33 @@ def analyze_grade():
     edb.close()
 
     return {
-        "overall": overall, "grade": grade,
-        "cluster": round(cluster_score, 1),
-        "dispatch": round(dispatch_score, 1),
-        "orchestrator": round(orch_score, 1),
-        "risk": round(risk_score, 1),
+        "overall": overall,
+        "grade": grade,
+        "cluster": round(
+            cluster_score,
+            1),
+        "dispatch": round(
+            dispatch_score,
+            1),
+        "orchestrator": round(
+            orch_score,
+            1),
+        "risk": round(
+            risk_score,
+            1),
         "targets": {
-            "cluster": "OK" if cluster_score >= 95 else f"need {95 - cluster_score:.0f}+ pts",
-            "dispatch": "OK" if dispatch_score >= 85 else f"need {85 - dispatch_score:.0f}+ pts",
-            "orchestrator": "OK" if orch_score >= 95 else f"need {95 - orch_score:.0f}+ pts",
-            "risk": "OK" if risk_score >= 55 else f"need {55 - risk_score:.0f}+ pts",
+            "cluster": "OK" if cluster_score >= 95 else f"need {
+                95 -
+                cluster_score:.0f}+ pts",
+            "dispatch": "OK" if dispatch_score >= 85 else f"need {
+                85 -
+                dispatch_score:.0f}+ pts",
+            "orchestrator": "OK" if orch_score >= 95 else f"need {
+                            95 -
+                            orch_score:.0f}+ pts",
+            "risk": "OK" if risk_score >= 55 else f"need {
+                55 -
+                risk_score:.0f}+ pts",
         },
     }
 
@@ -142,11 +161,15 @@ def optimize_dispatch(aggressive=False):
                         ORDER BY id ASC LIMIT 5
                     )
                 """, (n["node"],))
-                fixes.append(f"Pruned 5 oldest failures for {n['node']} ({rate:.0f}% rate)")
+                fixes.append(
+                    f"Pruned 5 oldest failures for {
+                        n['node']} ({
+                        rate:.0f}% rate)")
 
         # Update routing recommendations in gaps DB to deprioritize weak nodes
         gaps = get_db(GAPS_DB)
-        weak_nodes = [n["node"] for n in nodes if n["ok"] / max(n["total"], 1) < 0.5]
+        weak_nodes = [n["node"]
+                      for n in nodes if n["ok"] / max(n["total"], 1) < 0.5]
 
         for wn in weak_nodes:
             # Ensure weak nodes are not primary in routing
@@ -184,15 +207,20 @@ def optimize_orchestrator():
         """).fetchall()
 
         for r in rows:
-            rate = (r["run_count"] - r["fail_count"]) / max(r["run_count"], 1) * 100
+            rate = (r["run_count"] - r["fail_count"]) / \
+                max(r["run_count"], 1) * 100
             if rate >= 90:
-                # Task is now mostly stable — reduce fail_count to reflect recovery
+                # Task is now mostly stable — reduce fail_count to reflect
+                # recovery
                 new_fails = max(0, r["fail_count"] - 1)
                 gaps.execute("""
                     UPDATE orchestrator_schedule SET fail_count = ?
                     WHERE task_name = ?
                 """, (new_fails, r["task_name"]))
-                fixes.append(f"Reduced fail_count for {r['task_name']} ({r['fail_count']}->{new_fails})")
+                fixes.append(
+                    f"Reduced fail_count for {
+                        r['task_name']} ({
+                        r['fail_count']}->{new_fails})")
 
     except Exception as e:
         fixes.append(f"Error: {e}")
@@ -228,7 +256,12 @@ def optimize_risk():
                         recommended_action = recommended_action || ' [routing adjusted]'
                     WHERE id = ?
                 """, (p["id"],))
-                fixes.append(f"Mitigated {p['target']} quality risk ({p['risk_score']:.0f}->{p['risk_score']*0.7:.0f})")
+                fixes.append(
+                    f"Mitigated {
+                        p['target']} quality risk ({
+                        p['risk_score']:.0f}->{
+                        p['risk_score'] *
+                        0.7:.0f})")
 
             elif p["category"] == "disk_space" and p["risk_score"] < 60:
                 # Mark as acknowledged
@@ -250,9 +283,15 @@ def optimize_risk():
 
 def main():
     parser = argparse.ArgumentParser(description="Grade Optimizer")
-    parser.add_argument("--once", action="store_true", help="Single optimization pass")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Single optimization pass")
     parser.add_argument("--analyze", action="store_true", help="Analyze only")
-    parser.add_argument("--aggressive", action="store_true", help="Aggressive mode")
+    parser.add_argument(
+        "--aggressive",
+        action="store_true",
+        help="Aggressive mode")
     args = parser.parse_args()
 
     if not any([args.once, args.analyze]):
@@ -263,10 +302,22 @@ def main():
     before = analyze_grade()
     print(f"=== Grade Analysis ===")
     print(f"  Overall: {before['grade']} ({before['overall']}/100)")
-    print(f"  Cluster:      {before['cluster']:5.1f}  {before['targets']['cluster']}")
-    print(f"  Dispatch:     {before['dispatch']:5.1f}  {before['targets']['dispatch']}")
-    print(f"  Orchestrator: {before['orchestrator']:5.1f}  {before['targets']['orchestrator']}")
-    print(f"  Risk:         {before['risk']:5.1f}  {before['targets']['risk']}")
+    print(
+        f"  Cluster:      {
+            before['cluster']:5.1f}  {
+            before['targets']['cluster']}")
+    print(
+        f"  Dispatch:     {
+            before['dispatch']:5.1f}  {
+            before['targets']['dispatch']}")
+    print(
+        f"  Orchestrator: {
+            before['orchestrator']:5.1f}  {
+            before['targets']['orchestrator']}")
+    print(
+        f"  Risk:         {
+            before['risk']:5.1f}  {
+            before['targets']['risk']}")
 
     if args.analyze:
         print(json.dumps(before, indent=2))
@@ -293,12 +344,18 @@ def main():
     # After
     after = analyze_grade()
     print(f"\n=== Result ===")
-    print(f"  Grade: {before['grade']} ({before['overall']}) => {after['grade']} ({after['overall']})")
+    print(
+        f"  Grade: {
+            before['grade']} ({
+            before['overall']}) => {
+                after['grade']} ({
+                    after['overall']})")
     delta = after['overall'] - before['overall']
     print(f"  Delta: {'+' if delta >= 0 else ''}{delta:.1f}")
     print(f"  Fixes applied: {len(all_fixes)}")
 
-    print(json.dumps({"before": before, "after": after, "fixes": all_fixes}, indent=2))
+    print(json.dumps(
+        {"before": before, "after": after, "fixes": all_fixes}, indent=2))
 
 
 if __name__ == "__main__":

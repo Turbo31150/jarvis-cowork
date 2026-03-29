@@ -76,7 +76,11 @@ def profile_pattern(edb, pattern):
     for r in rows:
         n = r["node"] or "?"
         if n not in node_stats:
-            node_stats[n] = {"total": 0, "success": 0, "latencies": [], "qualities": []}
+            node_stats[n] = {
+                "total": 0,
+                "success": 0,
+                "latencies": [],
+                "qualities": []}
         node_stats[n]["total"] += 1
         if r["success"]:
             node_stats[n]["success"] += 1
@@ -92,7 +96,8 @@ def profile_pattern(edb, pattern):
         rate = s["success"] / max(s["total"], 1) * 100
         avg_lat = sum(s["latencies"]) / max(len(s["latencies"]), 1)
         avg_q = sum(s["qualities"]) / max(len(s["qualities"]), 1)
-        score = rate * 0.5 + (100 - min(avg_lat / 500, 100)) * 0.2 + avg_q * 100 * 0.3
+        score = rate * 0.5 + (100 - min(avg_lat / 500, 100)
+                              ) * 0.2 + avg_q * 100 * 0.3
         nodes[n] = {
             "total": s["total"], "success_rate": round(rate, 1),
             "avg_latency_ms": round(avg_lat), "avg_quality": round(avg_q, 3),
@@ -134,7 +139,8 @@ def profile_pattern(edb, pattern):
     older_q = [r["quality_score"] for r in rows[mid:] if r["quality_score"]]
     recent_avg = sum(recent_q) / max(len(recent_q), 1)
     older_avg = sum(older_q) / max(len(older_q), 1)
-    q_trend = "improving" if recent_avg > older_avg * 1.05 else "declining" if recent_avg < older_avg * 0.95 else "stable"
+    q_trend = "improving" if recent_avg > older_avg * \
+        1.05 else "declining" if recent_avg < older_avg * 0.95 else "stable"
 
     # Token usage
     tokens_in = [r["tokens_in"] for r in rows if r["tokens_in"]]
@@ -189,7 +195,10 @@ def profile_all(edb):
 
 def main():
     parser = argparse.ArgumentParser(description="Dispatch Pattern Profiler")
-    parser.add_argument("--once", action="store_true", help="Profile all patterns")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Profile all patterns")
     parser.add_argument("--pattern", type=str, help="Profile specific pattern")
     parser.add_argument("--stats", action="store_true", help="Show history")
     args = parser.parse_args()
@@ -222,8 +231,9 @@ def main():
             conn = get_db()
             conn.execute(
                 "INSERT INTO pattern_profiles (timestamp, pattern, profile_json) VALUES (?, ?, ?)",
-                (datetime.now().isoformat(), args.pattern, json.dumps(profile))
-            )
+                (datetime.now().isoformat(),
+                 args.pattern,
+                 json.dumps(profile)))
             conn.commit()
             conn.close()
         result = profile or {"error": f"Pattern '{args.pattern}' not found"}
@@ -242,14 +252,22 @@ def main():
         conn.close()
 
         # Summary
-        best = max(profiles, key=lambda x: x["success_rate"]) if profiles else None
-        worst = min(profiles, key=lambda x: x["success_rate"]) if profiles else None
+        best = max(
+            profiles,
+            key=lambda x: x["success_rate"]) if profiles else None
+        worst = min(
+            profiles,
+            key=lambda x: x["success_rate"]) if profiles else None
 
         result = {
             "timestamp": ts,
             "patterns_profiled": len(profiles),
-            "best_pattern": {"name": best["pattern"], "rate": best["success_rate"]} if best else None,
-            "worst_pattern": {"name": worst["pattern"], "rate": worst["success_rate"]} if worst else None,
+            "best_pattern": {
+                "name": best["pattern"],
+                "rate": best["success_rate"]} if best else None,
+            "worst_pattern": {
+                "name": worst["pattern"],
+                "rate": worst["success_rate"]} if worst else None,
             "profiles": profiles,
         }
 

@@ -9,7 +9,12 @@ Usage:
     python dev/jarvis_multi_language.py --stats
     python dev/jarvis_multi_language.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -20,39 +25,40 @@ DB_PATH = DEV / "data" / "multi_language.db"
 LANG_KEYWORDS = {
     "fr": {
         "keywords": ["le", "la", "les", "de", "du", "des", "un", "une", "est", "sont",
-                      "dans", "pour", "avec", "sur", "pas", "que", "qui", "ce", "cette",
-                      "mais", "ou", "et", "donc", "car", "nous", "vous", "ils", "elles",
-                      "bonjour", "merci", "salut", "oui", "non", "comment", "pourquoi",
-                      "je", "tu", "il", "elle", "mon", "ton", "son", "notre", "votre"],
+                     "dans", "pour", "avec", "sur", "pas", "que", "qui", "ce", "cette",
+                     "mais", "ou", "et", "donc", "car", "nous", "vous", "ils", "elles",
+                     "bonjour", "merci", "salut", "oui", "non", "comment", "pourquoi",
+                     "je", "tu", "il", "elle", "mon", "ton", "son", "notre", "votre"],
         "name": "Francais",
         "name_en": "French"
     },
     "en": {
         "keywords": ["the", "is", "are", "was", "were", "have", "has", "had", "will",
-                      "would", "could", "should", "can", "may", "might", "this", "that",
-                      "these", "those", "with", "from", "into", "about", "between",
-                      "hello", "please", "thank", "yes", "no", "how", "why", "what",
-                      "which", "where", "when", "who", "not", "but", "and", "or"],
+                     "would", "could", "should", "can", "may", "might", "this", "that",
+                     "these", "those", "with", "from", "into", "about", "between",
+                     "hello", "please", "thank", "yes", "no", "how", "why", "what",
+                     "which", "where", "when", "who", "not", "but", "and", "or"],
         "name": "English",
         "name_en": "English"
     },
     "es": {
         "keywords": ["el", "la", "los", "las", "de", "del", "un", "una", "es", "son",
-                      "en", "con", "para", "por", "como", "que", "pero", "mas", "muy",
-                      "hola", "gracias", "si", "no", "yo", "tu", "nosotros", "ellos",
-                      "esta", "este", "eso", "donde", "cuando", "porque", "como"],
+                     "en", "con", "para", "por", "como", "que", "pero", "mas", "muy",
+                     "hola", "gracias", "si", "no", "yo", "tu", "nosotros", "ellos",
+                     "esta", "este", "eso", "donde", "cuando", "porque", "como"],
         "name": "Espanol",
         "name_en": "Spanish"
     },
     "de": {
         "keywords": ["der", "die", "das", "ein", "eine", "ist", "sind", "hat", "haben",
-                      "mit", "von", "auf", "fur", "und", "oder", "aber", "nicht", "auch",
-                      "hallo", "danke", "ja", "nein", "ich", "du", "er", "sie", "wir",
-                      "kann", "wird", "war", "sehr", "gut", "bitte", "warum", "wie"],
+                     "mit", "von", "auf", "fur", "und", "oder", "aber", "nicht", "auch",
+                     "hallo", "danke", "ja", "nein", "ich", "du", "er", "sie", "wir",
+                     "kann", "wird", "war", "sehr", "gut", "bitte", "warum", "wie"],
         "name": "Deutsch",
         "name_en": "German"
     }
 }
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -90,9 +96,11 @@ def init_db():
     db.commit()
     return db
 
+
 def text_hash(text):
     import hashlib
     return hashlib.md5(text.strip().lower().encode()).hexdigest()[:16]
+
 
 def detect_language(text):
     """Detect language by keyword frequency."""
@@ -118,6 +126,7 @@ def detect_language(text):
 
     return best_lang, confidence, scores
 
+
 def translate_via_m1(text, source_lang, target_lang):
     """Translate text via M1 (curl to LM Studio)."""
     lang_names = {k: v["name_en"] for k, v in LANG_KEYWORDS.items()}
@@ -135,9 +144,15 @@ def translate_via_m1(text, source_lang, target_lang):
     })
 
     try:
-        cmd = f'curl -s --max-time 30 http://127.0.0.1:1234/api/v1/chat -H "Content-Type: application/json" -d {json.dumps(payload)}'
+        cmd = f'curl -s --max-time 30 http://127.0.0.1:1234/api/v1/chat -H "Content-Type: application/json" -d {
+            json.dumps(payload)}'
         start = time.time()
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=35, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=35,
+            shell=True)
         elapsed_ms = int((time.time() - start) * 1000)
 
         if r.stdout.strip():
@@ -158,6 +173,7 @@ def translate_via_m1(text, source_lang, target_lang):
         return None, 0, "M1_error"
     except Exception as e:
         return None, 0, f"error:{str(e)[:50]}"
+
 
 def do_detect(text):
     db = init_db()
@@ -181,19 +197,32 @@ def do_detect(text):
     db.close()
     return result
 
+
 def do_translate(text, target_lang):
     db = init_db()
     source_lang, _, _ = detect_language(text)
     th = text_hash(text)
 
     # Check cache
-    cached = db.execute("SELECT translated_text FROM translation_cache WHERE source_text_hash=? AND target_lang=?",
-                        (th, target_lang)).fetchone()
+    cached = db.execute(
+        "SELECT translated_text FROM translation_cache WHERE source_text_hash=? AND target_lang=?",
+        (th,
+         target_lang)).fetchone()
     if cached:
-        db.execute("UPDATE translation_cache SET hit_count = hit_count + 1 WHERE source_text_hash=? AND target_lang=?",
-                   (th, target_lang))
-        db.execute("INSERT INTO translations (ts, source_lang, target_lang, source_text, translated_text, method, cached, duration_ms) VALUES (?,?,?,?,?,?,?,?)",
-                   (datetime.now().isoformat(), source_lang, target_lang, text, cached[0], "cache", 1, 0))
+        db.execute(
+            "UPDATE translation_cache SET hit_count = hit_count + 1 WHERE source_text_hash=? AND target_lang=?",
+            (th,
+             target_lang))
+        db.execute(
+            "INSERT INTO translations (ts, source_lang, target_lang, source_text, translated_text, method, cached, duration_ms) VALUES (?,?,?,?,?,?,?,?)",
+            (datetime.now().isoformat(),
+             source_lang,
+             target_lang,
+             text,
+             cached[0],
+                "cache",
+                1,
+                0))
         db.commit()
         result = {
             "action": "translate",
@@ -209,13 +238,27 @@ def do_translate(text, target_lang):
         return result
 
     # Translate via M1
-    translated, elapsed_ms, method = translate_via_m1(text, source_lang, target_lang)
+    translated, elapsed_ms, method = translate_via_m1(
+        text, source_lang, target_lang)
     if translated:
         # Save to cache
-        db.execute("INSERT OR REPLACE INTO translation_cache (source_text_hash, source_lang, target_lang, translated_text, created_at) VALUES (?,?,?,?,?)",
-                   (th, source_lang, target_lang, translated, datetime.now().isoformat()))
-    db.execute("INSERT INTO translations (ts, source_lang, target_lang, source_text, translated_text, method, cached, duration_ms) VALUES (?,?,?,?,?,?,?,?)",
-               (datetime.now().isoformat(), source_lang, target_lang, text, translated, method, 0, elapsed_ms))
+        db.execute(
+            "INSERT OR REPLACE INTO translation_cache (source_text_hash, source_lang, target_lang, translated_text, created_at) VALUES (?,?,?,?,?)",
+            (th,
+             source_lang,
+             target_lang,
+             translated,
+             datetime.now().isoformat()))
+    db.execute(
+        "INSERT INTO translations (ts, source_lang, target_lang, source_text, translated_text, method, cached, duration_ms) VALUES (?,?,?,?,?,?,?,?)",
+        (datetime.now().isoformat(),
+         source_lang,
+         target_lang,
+         text,
+         translated,
+         method,
+         0,
+         elapsed_ms))
     db.commit()
 
     result = {
@@ -231,6 +274,7 @@ def do_translate(text, target_lang):
     }
     db.close()
     return result
+
 
 def do_supported():
     langs = []
@@ -249,27 +293,37 @@ def do_supported():
         "ts": datetime.now().isoformat()
     }
 
+
 def do_stats():
     db = init_db()
-    total_detections = db.execute("SELECT COUNT(*) FROM detections").fetchone()[0]
-    total_translations = db.execute("SELECT COUNT(*) FROM translations").fetchone()[0]
-    cache_size = db.execute("SELECT COUNT(*) FROM translation_cache").fetchone()[0]
-    cache_hits = db.execute("SELECT SUM(hit_count) FROM translation_cache").fetchone()[0] or 0
-    lang_dist = db.execute("SELECT detected_lang, COUNT(*) FROM detections GROUP BY detected_lang").fetchall()
-    recent = db.execute("SELECT ts, source_lang, target_lang, method, cached FROM translations ORDER BY id DESC LIMIT 10").fetchall()
+    total_detections = db.execute(
+        "SELECT COUNT(*) FROM detections").fetchone()[0]
+    total_translations = db.execute(
+        "SELECT COUNT(*) FROM translations").fetchone()[0]
+    cache_size = db.execute(
+        "SELECT COUNT(*) FROM translation_cache").fetchone()[0]
+    cache_hits = db.execute(
+        "SELECT SUM(hit_count) FROM translation_cache").fetchone()[0] or 0
+    lang_dist = db.execute(
+        "SELECT detected_lang, COUNT(*) FROM detections GROUP BY detected_lang").fetchall()
+    recent = db.execute(
+        "SELECT ts, source_lang, target_lang, method, cached FROM translations ORDER BY id DESC LIMIT 10").fetchall()
 
-    result = {
-        "action": "stats",
-        "total_detections": total_detections,
-        "total_translations": total_translations,
-        "cache_entries": cache_size,
-        "cache_hits": cache_hits,
-        "language_distribution": {r[0]: r[1] for r in lang_dist},
-        "recent_translations": [{"ts": r[0], "from": r[1], "to": r[2], "method": r[3], "cached": bool(r[4])} for r in recent],
-        "ts": datetime.now().isoformat()
-    }
+    result = {"action": "stats",
+              "total_detections": total_detections,
+              "total_translations": total_translations,
+              "cache_entries": cache_size,
+              "cache_hits": cache_hits,
+              "language_distribution": {r[0]: r[1] for r in lang_dist},
+              "recent_translations": [{"ts": r[0],
+                                       "from": r[1],
+                                       "to": r[2],
+                                       "method": r[3],
+                                       "cached": bool(r[4])} for r in recent],
+              "ts": datetime.now().isoformat()}
     db.close()
     return result
+
 
 def do_once():
     db = init_db()
@@ -289,26 +343,53 @@ def do_once():
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Multi-Language — COWORK #224")
-    parser.add_argument("--detect", type=str, metavar="TEXT", help="Detect language of text")
-    parser.add_argument("--translate", type=str, metavar="TEXT", help="Translate text")
-    parser.add_argument("--to", type=str, default="fr", help="Target language code (default: fr)")
-    parser.add_argument("--supported", action="store_true", help="List supported languages")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Multi-Language — COWORK #224")
+    parser.add_argument(
+        "--detect",
+        type=str,
+        metavar="TEXT",
+        help="Detect language of text")
+    parser.add_argument(
+        "--translate",
+        type=str,
+        metavar="TEXT",
+        help="Translate text")
+    parser.add_argument(
+        "--to",
+        type=str,
+        default="fr",
+        help="Target language code (default: fr)")
+    parser.add_argument(
+        "--supported",
+        action="store_true",
+        help="List supported languages")
     parser.add_argument("--stats", action="store_true", help="Show statistics")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.detect:
         print(json.dumps(do_detect(args.detect), ensure_ascii=False, indent=2))
     elif args.translate:
-        print(json.dumps(do_translate(args.translate, args.to), ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                do_translate(
+                    args.translate,
+                    args.to),
+                ensure_ascii=False,
+                indent=2))
     elif args.supported:
         print(json.dumps(do_supported(), ensure_ascii=False, indent=2))
     elif args.stats:
         print(json.dumps(do_stats(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

@@ -192,10 +192,12 @@ def check_gpu_thermal():
     """Check GPU temperatures via nvidia-smi."""
     alerts = []
     try:
-        r = subprocess.run(
-            ["nvidia-smi", "--query-gpu=name,temperature.gpu", "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=10
-        )
+        r = subprocess.run(["nvidia-smi",
+                            "--query-gpu=name,temperature.gpu",
+                            "--format=csv,noheader,nounits"],
+                           capture_output=True,
+                           text=True,
+                           timeout=10)
         if r.returncode == 0:
             for line in r.stdout.strip().split("\n"):
                 parts = line.split(",")
@@ -265,14 +267,18 @@ def action_continuous():
         result = run_checks()
         status = result["status"]
         alerts = result["alerts_generated"]
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Status: {status} | Alerts: {alerts}")
+        print(
+            f"[{datetime.now().strftime('%H:%M:%S')}] Status: {status} | Alerts: {alerts}")
         time.sleep(CHECK_INTERVAL_S)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Proactive Alert Monitor")
     parser.add_argument("--once", action="store_true", help="Single check")
-    parser.add_argument("--continuous", action="store_true", help="Run periodically")
+    parser.add_argument(
+        "--continuous",
+        action="store_true",
+        help="Run periodically")
     parser.add_argument("--stats", action="store_true", help="Alert history")
     args = parser.parse_args()
 

@@ -22,24 +22,35 @@ from typing import Dict, List, Any
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT_ID = "2010747443"
 
+
 def telegram_send(msg: str):
-    import urllib.parse, urllib.request
+    import urllib.parse
+    import urllib.request
     try:
-        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
+        data = urllib.parse.urlencode(
+            {"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=10)
+        urllib.request.urlopen(
+            urllib.request.Request(
+                url, data=data), timeout=10)
     except Exception:
         pass
 
+
 def run_cmd(cmd: list, timeout: int = 10) -> str:
     try:
-        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=timeout).strip()
+        return subprocess.check_output(
+            cmd,
+            text=True,
+            stderr=subprocess.DEVNULL,
+            timeout=timeout).strip()
     except Exception:
         return ""
 
 # ---------------------------------------------------------------------------
 # Validators
 # ---------------------------------------------------------------------------
+
 
 def check_databases() -> Dict[str, Any]:
     """Vérifie les bases SQLite JARVIS."""
@@ -68,7 +79,9 @@ def check_databases() -> Dict[str, Any]:
             issues.append(f"DB erreur {name}: {e}")
 
     score = int(100 * ok / len(dbs)) if dbs else 0
-    return {"name": "databases", "score": score, "issues": issues, "details": f"{ok}/{len(dbs)} OK"}
+    return {"name": "databases", "score": score,
+            "issues": issues, "details": f"{ok}/{len(dbs)} OK"}
+
 
 def check_scripts() -> Dict[str, Any]:
     """Vérifie que tous les scripts du workspace sont valides."""
@@ -85,13 +98,25 @@ def check_scripts() -> Dict[str, Any]:
             issues.append(f"Syntax error: {s.name} L{e.lineno}")
 
     score = int(100 * ok / len(scripts)) if scripts else 0
-    return {"name": "scripts", "score": score, "issues": issues, "details": f"{ok}/{len(scripts)} valides"}
+    return {"name": "scripts", "score": score, "issues": issues,
+            "details": f"{ok}/{len(scripts)} valides"}
+
 
 def check_services() -> Dict[str, Any]:
     """Vérifie les services IA."""
     services = {
-        "M1 (LMStudio)": ("curl", "-s", "--max-time", "3", "http://127.0.0.1:1234/api/v1/models"),
-        "OL1 (Ollama)": ("curl", "-s", "--max-time", "3", "http://127.0.0.1:11434/api/tags"),
+        "M1 (LMStudio)": (
+            "curl",
+            "-s",
+            "--max-time",
+            "3",
+            "http://127.0.0.1:1234/api/v1/models"),
+        "OL1 (Ollama)": (
+            "curl",
+            "-s",
+            "--max-time",
+            "3",
+            "http://127.0.0.1:11434/api/tags"),
     }
     issues = []
     ok = 0
@@ -103,7 +128,9 @@ def check_services() -> Dict[str, Any]:
             issues.append(f"Service offline: {name}")
 
     score = int(100 * ok / len(services)) if services else 0
-    return {"name": "services", "score": score, "issues": issues, "details": f"{ok}/{len(services)} online"}
+    return {"name": "services", "score": score, "issues": issues,
+            "details": f"{ok}/{len(services)} online"}
+
 
 def check_disk() -> Dict[str, Any]:
     """Vérifie l'espace disque."""
@@ -119,14 +146,22 @@ def check_disk() -> Dict[str, Any]:
         free_gb = usage.free / (1024**3)
         free_pct = usage.free / usage.total * 100
         if free_pct < 10:
-            issues.append(f"Espace critique {d}: {free_gb:.1f} GB ({free_pct:.1f}%)")
+            issues.append(
+                f"Espace critique {d}: {
+                    free_gb:.1f} GB ({
+                    free_pct:.1f}%)")
         elif free_pct < 20:
-            issues.append(f"Espace faible {d}: {free_gb:.1f} GB ({free_pct:.1f}%)")
+            issues.append(
+                f"Espace faible {d}: {
+                    free_gb:.1f} GB ({
+                    free_pct:.1f}%)")
         else:
             ok += 1
 
     score = int(100 * ok / len(drives)) if drives else 0
-    return {"name": "disk", "score": score, "issues": issues, "details": f"{ok}/{len(drives)} OK"}
+    return {"name": "disk", "score": score, "issues": issues,
+            "details": f"{ok}/{len(drives)} OK"}
+
 
 def check_network() -> Dict[str, Any]:
     """Vérifie la connectivité réseau."""
@@ -140,7 +175,12 @@ def check_network() -> Dict[str, Any]:
         issues.append("Pas de connexion internet")
         details = "Internet KO"
 
-    return {"name": "network", "score": score, "issues": issues, "details": details}
+    return {
+        "name": "network",
+        "score": score,
+        "issues": issues,
+        "details": details}
+
 
 def check_telegram() -> Dict[str, Any]:
     """Vérifie la connectivité Telegram."""
@@ -150,14 +190,17 @@ def check_telegram() -> Dict[str, Any]:
         resp = urllib.request.urlopen(url, timeout=5)
         data = json.loads(resp.read())
         if data.get("ok"):
-            return {"name": "telegram", "score": 100, "issues": [], "details": f"Bot @{data['result']['username']}"}
+            return {"name": "telegram", "score": 100, "issues": [],
+                    "details": f"Bot @{data['result']['username']}"}
     except Exception:
         pass
-    return {"name": "telegram", "score": 0, "issues": ["Telegram bot inaccessible"], "details": "KO"}
+    return {"name": "telegram", "score": 0, "issues": [
+        "Telegram bot inaccessible"], "details": "KO"}
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def validate_all() -> List[Dict]:
     checks = [
@@ -169,6 +212,7 @@ def validate_all() -> List[Dict]:
         check_telegram(),
     ]
     return checks
+
 
 def display_results(checks: List[Dict]):
     total = sum(c["score"] for c in checks)
@@ -196,12 +240,23 @@ def display_results(checks: List[Dict]):
 
     return avg, grade
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Validateur de configuration JARVIS.")
+    parser = argparse.ArgumentParser(
+        description="Validateur de configuration JARVIS.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--once", action="store_true", help="Validation complète")
-    group.add_argument("--fix", action="store_true", help="Valider et corriger")
-    group.add_argument("--report", action="store_true", help="Rapport détaillé")
+    group.add_argument(
+        "--once",
+        action="store_true",
+        help="Validation complète")
+    group.add_argument(
+        "--fix",
+        action="store_true",
+        help="Valider et corriger")
+    group.add_argument(
+        "--report",
+        action="store_true",
+        help="Rapport détaillé")
     args = parser.parse_args()
 
     checks = validate_all()
@@ -209,7 +264,9 @@ def main():
 
     if args.report or args.once:
         all_issues = sum(len(c["issues"]) for c in checks)
-        telegram_send(f"🔧 Config Validator — Score {avg:.0f}/100 (Grade {grade}) | {all_issues} issue(s)")
+        telegram_send(
+            f"🔧 Config Validator — Score {
+                avg:.0f}/100 (Grade {grade}) | {all_issues} issue(s)")
 
     if args.fix:
         print("\n--- Auto-fix ---")
@@ -219,6 +276,7 @@ def main():
                 run_cmd(["taskkill", "/F", "/IM", "ollama.exe"], timeout=5)
                 run_cmd(["cmd", "/c", "start", "", "ollama", "serve"], timeout=5)
                 print("  Ollama restart tenté.")
+
 
 if __name__ == "__main__":
     main()

@@ -74,7 +74,8 @@ def classify_text(text):
             continue
         # Count keyword matches
         matches = sum(1 for t in tokens if t in keywords)
-        # Weighted by inverse category frequency (more specific = higher weight)
+        # Weighted by inverse category frequency (more specific = higher
+        # weight)
         idf = math.log(len(CATEGORIES) / max(1, len(keywords)))
         scores[cat] = round(matches * idf / max(len(tokens), 1), 4)
 
@@ -160,10 +161,20 @@ def do_classify(text):
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Intent Classifier")
-    parser.add_argument("--once", "--train", action="store_true", help="Train and evaluate")
+    parser.add_argument(
+        "--once",
+        "--train",
+        action="store_true",
+        help="Train and evaluate")
     parser.add_argument("--classify", metavar="TEXT", help="Classify text")
-    parser.add_argument("--accuracy", action="store_true", help="Show accuracy")
-    parser.add_argument("--confusion", action="store_true", help="Confusion matrix")
+    parser.add_argument(
+        "--accuracy",
+        action="store_true",
+        help="Show accuracy")
+    parser.add_argument(
+        "--confusion",
+        action="store_true",
+        help="Confusion matrix")
     args = parser.parse_args()
 
     if args.classify:

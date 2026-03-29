@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ia_knowledge_graph.py — Graphe de connaissances JARVIS.
 
@@ -43,14 +44,20 @@ def init_db():
 
 def extract_module_info(filepath):
     """Extract module info from a Python file."""
-    info = {"name": filepath.stem, "type": "script" if "dev" in str(filepath) else "module",
-            "filepath": str(filepath), "description": "", "imports": [], "functions": []}
+    info = {
+        "name": filepath.stem,
+        "type": "script" if "dev" in str(filepath) else "module",
+        "filepath": str(filepath),
+        "description": "",
+        "imports": [],
+        "functions": []}
     try:
         content = filepath.read_text(encoding="utf-8", errors="ignore")
         tree = ast.parse(content)
 
         # Module docstring
-        if (isinstance(tree.body[0], ast.Expr) and isinstance(tree.body[0].value, ast.Constant)):
+        if (isinstance(tree.body[0], ast.Expr) and isinstance(
+                tree.body[0].value, ast.Constant)):
             info["description"] = str(tree.body[0].value.value)[:200]
 
         # Imports
@@ -125,8 +132,11 @@ def build_graph():
     nodes_count = db.execute("SELECT COUNT(*) FROM nodes").fetchone()[0]
     edges_count = db.execute("SELECT COUNT(*) FROM edges").fetchone()[0]
 
-    db.execute("INSERT INTO builds (ts, nodes_count, edges_count) VALUES (?,?,?)",
-               (time.time(), nodes_count, edges_count))
+    db.execute(
+        "INSERT INTO builds (ts, nodes_count, edges_count) VALUES (?,?,?)",
+        (time.time(),
+         nodes_count,
+         edges_count))
     db.commit()
     db.close()
 
@@ -162,7 +172,11 @@ def query_graph(topic):
 
 def main():
     parser = argparse.ArgumentParser(description="IA Knowledge Graph")
-    parser.add_argument("--once", "--build", action="store_true", help="Build graph")
+    parser.add_argument(
+        "--once",
+        "--build",
+        action="store_true",
+        help="Build graph")
     parser.add_argument("--query", metavar="TOPIC", help="Query graph")
     parser.add_argument("--update", action="store_true", help="Update graph")
     args = parser.parse_args()

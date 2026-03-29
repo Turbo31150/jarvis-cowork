@@ -33,6 +33,7 @@ WINDOWS_SERVICES = [
 # FastAPI service is identified by listening TCP port 9742
 FASTAPI_PORT = 9742
 
+
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
@@ -49,6 +50,7 @@ def init_db():
     )
     conn.commit()
     conn.close()
+
 
 def send_telegram(message: str):
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
@@ -67,6 +69,7 @@ def send_telegram(message: str):
     except Exception:
         pass
 
+
 def get_windows_service_status(name: str) -> str:
     try:
         result = subprocess.run([
@@ -78,6 +81,7 @@ def get_windows_service_status(name: str) -> str:
     except Exception:
         return "Error"
 
+
 def is_port_open(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(2)
@@ -87,6 +91,7 @@ def is_port_open(port: int) -> bool:
         except Exception:
             return False
 
+
 def check_service(name: str):
     if name in WINDOWS_SERVICES:
         status = get_windows_service_status(name)
@@ -95,6 +100,7 @@ def check_service(name: str):
     else:
         status = "Unknown"
     return status
+
 
 def update_db(service: str, status: str, restarted: bool = False):
     conn = sqlite3.connect(DB_PATH)
@@ -123,6 +129,7 @@ def update_db(service: str, status: str, restarted: bool = False):
     conn.commit()
     conn.close()
 
+
 def restart_service(name: str) -> bool:
     try:
         subprocess.run([
@@ -134,6 +141,7 @@ def restart_service(name: str) -> bool:
     except Exception as e:
         send_telegram(f"❌ Échec du redémarrage du service <b>{name}</b>: {e}")
         return False
+
 
 def monitor_once():
     results = []
@@ -148,8 +156,10 @@ def monitor_once():
                 restarted = success
                 status = "Running" if success else "Stopped"
         update_db(svc, status, restarted)
-        results.append({"service": svc, "status": status, "restarted": restarted})
+        results.append(
+            {"service": svc, "status": status, "restarted": restarted})
     print(json.dumps(results, ensure_ascii=False, indent=2))
+
 
 def show_status():
     conn = sqlite3.connect(DB_PATH)
@@ -163,12 +173,26 @@ def show_status():
     ]
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Surveille et redémarre les services critiques.")
-    parser.add_argument("--once", action="store_true", help="Exécuter une vérification unique")
-    parser.add_argument("--loop", action="store_true", help="Boucle de surveillance continuelle (intervalle 60s)")
-    parser.add_argument("--status", action="store_true", help="Afficher l'état actuel depuis la base SQLite")
-    parser.add_argument("--restart", metavar="SERVICE", help="Redémarrer immédiatement le service indiqué")
+    parser = argparse.ArgumentParser(
+        description="Surveille et redémarre les services critiques.")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Exécuter une vérification unique")
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Boucle de surveillance continuelle (intervalle 60s)")
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Afficher l'état actuel depuis la base SQLite")
+    parser.add_argument(
+        "--restart",
+        metavar="SERVICE",
+        help="Redémarrer immédiatement le service indiqué")
     args = parser.parse_args()
 
     init_db()
@@ -188,9 +212,12 @@ def main():
                 ], capture_output=True, text=True, timeout=5)
                 pid = pid_res.stdout.strip()
                 if pid:
-                    subprocess.run(["powershell", "-Command", f"Stop-Process -Id {pid} -Force"], check=True)
+                    subprocess.run(
+                        ["powershell", "-Command", f"Stop-Process -Id {pid} -Force"], check=True)
                     time.sleep(2)
-                    # relance éventuelle via le script fastapi si connu – ici on suppose que le service est déjà configuré pour redémarrer automatiquement.
+                    # relance éventuelle via le script fastapi si connu – ici
+                    # on suppose que le service est déjà configuré pour
+                    # redémarrer automatiquement.
                     print(f"FastAPI process {pid} arrêté.")
                 else:
                     print("FastAPI n'est pas en écoute.")
@@ -220,6 +247,7 @@ def main():
 
     # Aucun argument = afficher l'aide
     parser.print_help()
+
 
 if __name__ == "__main__":
     main()

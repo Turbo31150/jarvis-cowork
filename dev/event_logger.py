@@ -37,6 +37,7 @@ MAX_TAIL = 20
 # SQLite helpers
 # ---------------------------------------------------------------------------
 
+
 def init_db(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute(
@@ -52,7 +53,12 @@ def init_db(conn: sqlite3.Connection):
     )
     conn.commit()
 
-def insert_event(conn: sqlite3.Connection, source: str, level: str, message: str):
+
+def insert_event(
+        conn: sqlite3.Connection,
+        source: str,
+        level: str,
+        message: str):
     cur = conn.cursor()
     cur.execute(
         "INSERT INTO events (ts, source, level, message) VALUES (?,?,?,?)",
@@ -60,12 +66,15 @@ def insert_event(conn: sqlite3.Connection, source: str, level: str, message: str
     )
     conn.commit()
 
+
 def fetch_tail(conn: sqlite3.Connection, n: int = MAX_TAIL):
     cur = conn.cursor()
-    cur.execute("SELECT ts, source, level, message FROM events ORDER BY id DESC LIMIT ?", (n,))
+    cur.execute(
+        "SELECT ts, source, level, message FROM events ORDER BY id DESC LIMIT ?", (n,))
     rows = cur.fetchall()
     # reverse to chronological order
     return rows[::-1]
+
 
 def fetch_stats(conn: sqlite3.Connection):
     cur = conn.cursor()
@@ -75,6 +84,7 @@ def fetch_stats(conn: sqlite3.Connection):
     by_level = dict(cur.fetchall())
     return by_source, by_level
 
+
 def fetch_all(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute("SELECT ts, source, level, message FROM events ORDER BY id")
@@ -83,6 +93,7 @@ def fetch_all(conn: sqlite3.Connection):
 # ---------------------------------------------------------------------------
 # UDP server – runs in a thread
 # ---------------------------------------------------------------------------
+
 
 def server_loop(stop_event: threading.Event):
     print(f"[event_logger] UDP server listening on {HOST}:{PORT}")
@@ -114,8 +125,11 @@ def server_loop(stop_event: threading.Event):
 # ---------------------------------------------------------------------------
 # Client helper – send a single event
 # ---------------------------------------------------------------------------
+
+
 def send_event(source: str, level: str, message: str):
-    payload = json.dumps({"source": source, "level": level, "message": message}).encode()
+    payload = json.dumps(
+        {"source": source, "level": level, "message": message}).encode()
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         s.sendto(payload, (HOST, PORT))
     print(f"[event_logger] Event sent: [{level}] {source} – {message}")
@@ -123,16 +137,34 @@ def send_event(source: str, level: str, message: str):
 # ---------------------------------------------------------------------------
 # CLI handling
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Hub centralisé d'évènements JARVIS (UDP, SQLite).")
+    parser = argparse.ArgumentParser(
+        description="Hub centralisé d'évènements JARVIS (UDP, SQLite).")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--server", action="store_true", help="Lancer le serveur UDP qui écoute les évènements")
-    group.add_argument("--send", nargs=3, metavar=("SOURCE", "LEVEL", "MESSAGE"),
-                       help="Envoyer un évènement au serveur (exemple: --send myscript warning \"quelque chose\"")
+    group.add_argument(
+        "--server",
+        action="store_true",
+        help="Lancer le serveur UDP qui écoute les évènements")
+    group.add_argument(
+        "--send",
+        nargs=3,
+        metavar=(
+            "SOURCE",
+            "LEVEL",
+            "MESSAGE"),
+        help="Envoyer un évènement au serveur (exemple: --send myscript warning \"quelque chose\"")
     group.add_argument("--tail", nargs='?', const=MAX_TAIL, type=int,
                        help="Afficher les derniers N évènements (défaut 20)")
-    group.add_argument("--stats", action="store_true", help="Statistiques par source et par niveau")
-    group.add_argument("--history", action="store_true", help="Afficher tout l'historique des évènements")
+    group.add_argument(
+        "--stats",
+        action="store_true",
+        help="Statistiques par source et par niveau")
+    group.add_argument(
+        "--history",
+        action="store_true",
+        help="Afficher tout l'historique des évènements")
     args = parser.parse_args()
 
     if args.server:
@@ -169,6 +201,7 @@ def main():
         conn.close()
         for ts, src, lvl, msg in rows:
             print(f"{ts} | [{lvl}] {src}: {msg}")
+
 
 if __name__ == "__main__":
     main()

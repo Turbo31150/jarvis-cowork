@@ -132,26 +132,44 @@ def score_local(text):
     """Local scoring fallback (0-100 scale)."""
     a = analyze_text_local(text)
     comp = 30
-    if a["word_count"] >= 20: comp += 10
-    if a["word_count"] >= 50: comp += 10
-    if a["word_count"] >= 100: comp += 10
-    if a["has_structure"]: comp += 15
-    if a["has_examples"]: comp += 15
-    if a["has_reasoning"]: comp += 10
+    if a["word_count"] >= 20:
+        comp += 10
+    if a["word_count"] >= 50:
+        comp += 10
+    if a["word_count"] >= 100:
+        comp += 10
+    if a["has_structure"]:
+        comp += 15
+    if a["has_examples"]:
+        comp += 15
+    if a["has_reasoning"]:
+        comp += 10
     comp = min(comp, 100)
 
     prec = 50
-    hedges = ["maybe", "perhaps", "i think", "not sure", "might be", "possibly"]
+    hedges = [
+        "maybe",
+        "perhaps",
+        "i think",
+        "not sure",
+        "might be",
+        "possibly"]
     prec -= sum(5 for h in hedges if h in text.lower())
-    if bool(re.search(r'\d+', text)): prec += 15
-    if a["has_reasoning"]: prec += 15
+    if bool(re.search(r'\d+', text)):
+        prec += 15
+    if a["has_reasoning"]:
+        prec += 15
     prec = max(0, min(prec, 100))
 
     clar = 40
-    if 8 <= a["avg_sentence_length"] <= 25: clar += 20
-    if a["has_structure"]: clar += 15
-    if a["paragraph_count"] >= 2: clar += 10
-    if a["word_count"] >= 30: clar += 10
+    if 8 <= a["avg_sentence_length"] <= 25:
+        clar += 20
+    if a["has_structure"]:
+        clar += 15
+    if a["paragraph_count"] >= 2:
+        clar += 10
+    if a["word_count"] >= 30:
+        clar += 10
     clar = max(0, min(clar, 100))
 
     overall = round(comp * 0.35 + prec * 0.35 + clar * 0.30)
@@ -212,9 +230,11 @@ def evaluate_response(db, response):
         if scores["overall"] < 70:
             scores["improvements"].append("Add more detail and examples")
         if not analysis["has_structure"]:
-            scores["improvements"].append("Use structured formatting (lists, headers)")
+            scores["improvements"].append(
+                "Use structured formatting (lists, headers)")
         if not analysis["has_reasoning"]:
-            scores["improvements"].append("Explain reasoning behind statements")
+            scores["improvements"].append(
+                "Explain reasoning behind statements")
 
     db.execute(
         """INSERT INTO evaluations
@@ -278,7 +298,8 @@ def improve_response(db, response):
             )
             improved = query_m1(prompt, max_tokens=2048)
             if improved and len(improved.strip()) > 20:
-                eval_id = db.execute("SELECT MAX(id) FROM evaluations").fetchone()[0]
+                eval_id = db.execute(
+                    "SELECT MAX(id) FROM evaluations").fetchone()[0]
                 db.execute(
                     "INSERT INTO iterations (ts, eval_id, iteration, score_before, score_after, improved_text) "
                     "VALUES (?,?,?,?,?,?)",
@@ -322,8 +343,7 @@ def get_history(db, limit=20):
     """Get recent evaluations."""
     rows = db.execute(
         """SELECT ts, response_preview, completeness, precision, clarity, overall, source
-           FROM evaluations ORDER BY ts DESC LIMIT ?""", (limit,)
-    ).fetchall()
+           FROM evaluations ORDER BY ts DESC LIMIT ?""", (limit,)).fetchall()
     return {
         "status": "ok",
         "total": db.execute("SELECT COUNT(*) FROM evaluations").fetchone()[0],
@@ -348,11 +368,12 @@ def once(db):
         "It's good for local applications because it requires no server setup. "
         "For example, JARVIS uses SQLite for all its local data storage across "
         "19 tables with over 17,000 rows. This makes it ideal for embedded systems "
-        "and desktop applications where simplicity and zero-configuration are key advantages."
-    )
+        "and desktop applications where simplicity and zero-configuration are key advantages.")
     demo_result = evaluate_response(db, demo_text)
     total = db.execute("SELECT COUNT(*) FROM evaluations").fetchone()[0]
-    avg = round(db.execute("SELECT COALESCE(AVG(overall), 0) FROM evaluations").fetchone()[0], 1)
+    avg = round(
+        db.execute("SELECT COALESCE(AVG(overall), 0) FROM evaluations").fetchone()[0],
+        1)
 
     return {
         "status": "ok",
@@ -372,8 +393,11 @@ def main():
     )
     parser.add_argument("--evaluate", type=str, metavar="RESPONSE",
                         help="Evaluate a response text")
-    parser.add_argument("--improve", type=str, metavar="RESPONSE",
-                        help="Evaluate and iteratively improve (max 3 iterations)")
+    parser.add_argument(
+        "--improve",
+        type=str,
+        metavar="RESPONSE",
+        help="Evaluate and iteratively improve (max 3 iterations)")
     parser.add_argument("--score", type=str, metavar="RESPONSE",
                         help="Quick score only (no DB storage)")
     parser.add_argument("--history", action="store_true",

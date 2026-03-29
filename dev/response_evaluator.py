@@ -25,6 +25,8 @@ DB_PATH = Path(__file__).parent / "data" / "evaluator.db"
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
+
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -40,6 +42,8 @@ def init_db():
 # ---------------------------------------------------------------------------
 # Scoring heuristics (sans IA externe)
 # ---------------------------------------------------------------------------
+
+
 def score_response(prompt: str, response: str) -> dict:
     """Score une reponse selon plusieurs criteres."""
     scores = {}
@@ -59,7 +63,9 @@ def score_response(prompt: str, response: str) -> dict:
         expected_min = 20
     else:  # complex
         expected_min = 50
-    scores["completeness"] = min(response_length / expected_min * 100, 100) if expected_min > 0 else 0
+    scores["completeness"] = min(
+        response_length / expected_min * 100,
+        100) if expected_min > 0 else 0
 
     # 3. Format quality
     format_score = 50  # base
@@ -90,7 +96,8 @@ def score_response(prompt: str, response: str) -> dict:
     scores["coherence"] = max(0, min(coherence, 100))
 
     # 5. Code quality (if code response expected)
-    if any(kw in prompt.lower() for kw in ['code', 'python', 'function', 'script']):
+    if any(kw in prompt.lower()
+           for kw in ['code', 'python', 'function', 'script']):
         code_score = 50
         if '```' in response or 'def ' in response or 'import ' in response:
             code_score += 30
@@ -101,8 +108,13 @@ def score_response(prompt: str, response: str) -> dict:
         scores["code_quality"] = min(code_score, 100)
 
     # Total
-    weights = {"relevance": 0.3, "completeness": 0.25, "format": 0.2, "coherence": 0.25}
-    total = sum(scores.get(k, 0) * w for k, w in weights.items()) / sum(weights.values())
+    weights = {
+        "relevance": 0.3,
+        "completeness": 0.25,
+        "format": 0.2,
+        "coherence": 0.25}
+    total = sum(scores.get(k, 0) * w for k,
+                w in weights.items()) / sum(weights.values())
 
     return {
         "scores": scores,
@@ -110,6 +122,7 @@ def score_response(prompt: str, response: str) -> dict:
         "response_length": len(response),
         "response_words": response_length,
     }
+
 
 def compare_responses(prompt: str, responses: dict) -> dict:
     """Compare les reponses de plusieurs noeuds."""
@@ -122,12 +135,17 @@ def compare_responses(prompt: str, responses: dict) -> dict:
             evaluations[node] = score_response(prompt, text)
 
     # Rank
-    ranked = sorted(evaluations.items(), key=lambda x: x[1].get("total", 0), reverse=True)
+    ranked = sorted(
+        evaluations.items(),
+        key=lambda x: x[1].get(
+            "total",
+            0),
+        reverse=True)
 
     return {
         "prompt": prompt[:100],
         "evaluations": evaluations,
-        "ranking": [{"rank": i+1, "node": name, "score": ev.get("total", 0)}
+        "ranking": [{"rank": i + 1, "node": name, "score": ev.get("total", 0)}
                     for i, (name, ev) in enumerate(ranked)],
         "winner": ranked[0][0] if ranked else None,
     }
@@ -135,13 +153,31 @@ def compare_responses(prompt: str, responses: dict) -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS Response Evaluator — Qualite des reponses IA")
-    parser.add_argument("--eval", nargs=2, metavar=("PROMPT", "RESPONSE"), help="Evaluer une reponse")
-    parser.add_argument("--score", type=str, help="Scorer un texte (prompt auto)")
-    parser.add_argument("--compare", type=str, help="Comparer tous les noeuds (requiert prompt_router)")
+    parser = argparse.ArgumentParser(
+        description="JARVIS Response Evaluator — Qualite des reponses IA")
+    parser.add_argument(
+        "--eval",
+        nargs=2,
+        metavar=(
+            "PROMPT",
+            "RESPONSE"),
+        help="Evaluer une reponse")
+    parser.add_argument(
+        "--score",
+        type=str,
+        help="Scorer un texte (prompt auto)")
+    parser.add_argument(
+        "--compare",
+        type=str,
+        help="Comparer tous les noeuds (requiert prompt_router)")
     parser.add_argument("--history", action="store_true", help="Historique")
-    parser.add_argument("--leaderboard", action="store_true", help="Classement")
+    parser.add_argument(
+        "--leaderboard",
+        action="store_true",
+        help="Classement")
     args = parser.parse_args()
 
     db = init_db()
@@ -174,7 +210,8 @@ def main():
             result = compare_responses(args.compare, responses)
             print(json.dumps(result, indent=2, ensure_ascii=False))
         except ImportError:
-            print(json.dumps({"error": "prompt_router.py requis pour --compare"}, ensure_ascii=False))
+            print(json.dumps(
+                {"error": "prompt_router.py requis pour --compare"}, ensure_ascii=False))
 
     elif args.history:
         rows = db.execute(
@@ -198,6 +235,7 @@ def main():
         parser.print_help()
 
     db.close()
+
 
 if __name__ == "__main__":
     main()

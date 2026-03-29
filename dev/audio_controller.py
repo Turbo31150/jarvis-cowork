@@ -5,7 +5,7 @@ Contrôle du volume audio sous Windows.
 
 Fonctionnalités :
 * ``--volume N`` : définit le volume système à ``N`` (0‑100).  Si l'utilitaire
-  ``nircmd.exe`` est présent (habituellement dans ``C:\\Program Files\\nircmd``),
+  ``nircmd.exe`` est présent (habituellement dans ``C:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Program Files\\nircmd``),
   on utilise ``nircmd setsysvolume`` ; sinon on simule la montée/descente du
   volume via les touches de media (PowerShell ``SendKeys``).
 * ``--mute`` / ``--unmute`` : active ou désactive le mute du son (même logique que
@@ -30,7 +30,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Ensure Unicode output works on Windows consoles (cp1252 cannot encode all chars)
+# Ensure Unicode output works on Windows consoles (cp1252 cannot encode
+# all chars)
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
@@ -41,8 +42,18 @@ if hasattr(sys.stderr, "reconfigure"):
 # ---------------------------------------------------------------------------
 NIRCMD_PATH = None
 possible_paths = [
-    Path(os.getenv("ProgramFiles", "C:/Program Files")) / "nircmd" / "nircmd.exe",
-    Path(os.getenv("ProgramFiles(x86)", "C:/Program Files (x86)")) / "nircmd" / "nircmd.exe",
+    Path(
+        os.getenv(
+            "ProgramFiles",
+            "C:/Program Files")) /
+    "nircmd" /
+    "nircmd.exe",
+    Path(
+        os.getenv(
+            "ProgramFiles(x86)",
+            "C:/Program Files (x86)")) /
+    "nircmd" /
+    "nircmd.exe",
 ]
 for p in possible_paths:
     if p.is_file():
@@ -52,6 +63,8 @@ for p in possible_paths:
 # ---------------------------------------------------------------------------
 # PowerShell execution wrapper
 # ---------------------------------------------------------------------------
+
+
 def ps(command: str):
     """Execute a PowerShell command and return its stdout stripped.
     Returns an empty string on error.
@@ -71,6 +84,8 @@ def ps(command: str):
 # ---------------------------------------------------------------------------
 # Volume actions – nircmd preferred, fallback to SendKeys
 # ---------------------------------------------------------------------------
+
+
 def set_volume_percent(percent: int):
     percent = max(0, min(100, percent))
     if NIRCMD_PATH:
@@ -86,7 +101,9 @@ def set_volume_percent(percent: int):
         steps = percent // 2  # each SendKeys volume up ~2% on many systems
         for _ in range(steps):
             ps("(New-Object -ComObject WScript.Shell).SendKeys([char]175)")
-        print(f"[audio_controller] Volume approximativement réglé à {percent}% via SendKeys.")
+        print(
+            f"[audio_controller] Volume approximativement réglé à {percent}% via SendKeys.")
+
 
 def mute():
     if NIRCMD_PATH:
@@ -95,6 +112,7 @@ def mute():
     else:
         ps("(New-Object -ComObject WScript.Shell).SendKeys([char]173)")
         print("[audio_controller] Son muet (SendKeys).")
+
 
 def unmute():
     if NIRCMD_PATH:
@@ -105,23 +123,27 @@ def unmute():
         ps("(New-Object -ComObject WScript.Shell).SendKeys([char]173)")
         print("[audio_controller] Son réactivé (SendKeys).")
 
+
 def get_status():
     if NIRCMD_PATH:
         # nircmd getsysvolume returns a value 0‑65535
-        out = subprocess.check_output([NIRCMD_PATH, "getsysvolume"], text=True).strip()
+        out = subprocess.check_output(
+            [NIRCMD_PATH, "getsysvolume"], text=True).strip()
         try:
             val = int(out)
             percent = round(val * 100 / 65535)
         except Exception:
             percent = "?"
         # mute status
-        mute_out = subprocess.check_output([NIRCMD_PATH, "mutesysvolume", "2"], text=True).strip()
+        mute_out = subprocess.check_output(
+            [NIRCMD_PATH, "mutesysvolume", "2"], text=True).strip()
         mute_state = "muted" if mute_out == "1" else "unmuted"
         print(f"Volume : {percent}% – {mute_state}")
     else:
         print("[audio_controller] Statut du volume indisponible sans nircmd.")
         # Attempt a best‑effort using PowerShell to query current audio endpoint
-        # This requires the WindowsAudioDevice-Powershell module which may not be present.
+        # This requires the WindowsAudioDevice-Powershell module which may not
+        # be present.
         ps_cmd = "(Get-AudioDevice -Playback).Volume"
         vol = ps(ps_cmd)
         if vol:
@@ -133,6 +155,7 @@ def get_status():
         mute = ps(mute_ps)
         if mute:
             print(f"Mute : {mute}")
+
 
 def list_devices():
     # Try PowerShell
@@ -148,14 +171,26 @@ def list_devices():
 # CLI parsing
 # ---------------------------------------------------------------------------
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Contrôleur audio Windows (volume, mute, statut, périphériques).")
+    parser = argparse.ArgumentParser(
+        description="Contrôleur audio Windows (volume, mute, statut, périphériques).")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--volume", type=int, metavar="N", help="Définit le volume système à N (0‑100).")
+    group.add_argument(
+        "--volume",
+        type=int,
+        metavar="N",
+        help="Définit le volume système à N (0‑100).")
     group.add_argument("--mute", action="store_true", help="Mute le son.")
     group.add_argument("--unmute", action="store_true", help="Démute le son.")
-    group.add_argument("--status", action="store_true", help="Affiche le volume et le statut mute.")
-    group.add_argument("--devices", action="store_true", help="Liste les périphériques audio et le défaut.")
+    group.add_argument(
+        "--status",
+        action="store_true",
+        help="Affiche le volume et le statut mute.")
+    group.add_argument(
+        "--devices",
+        action="store_true",
+        help="Liste les périphériques audio et le défaut.")
     args = parser.parse_args()
 
     if args.volume is not None:
@@ -168,6 +203,7 @@ def main():
         get_status()
     elif args.devices:
         list_devices()
+
 
 if __name__ == "__main__":
     main()

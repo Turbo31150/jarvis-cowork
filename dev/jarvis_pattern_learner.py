@@ -40,17 +40,32 @@ def collect_history():
         return actions
     try:
         db = sqlite3.connect(str(ETOILE_DB))
-        for t in [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]:
-            cols = [c[1] for c in db.execute(f"PRAGMA table_info([{t}])").fetchall()]
+        for t in [t[0] for t in db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]:
+            cols = [
+                c[1] for c in db.execute(
+                    f"PRAGMA table_info([{t}])").fetchall()]
             if "ts" in cols:
-                action_col = next((c for c in cols if c in ("action", "command", "tool", "node")), None)
+                action_col = next(
+                    (c for c in cols if c in (
+                        "action",
+                        "command",
+                        "tool",
+                        "node")),
+                    None)
                 if action_col:
                     try:
-                        for r in db.execute(f"SELECT ts, [{action_col}] FROM [{t}] WHERE ts > ? ORDER BY ts", (time.time() - 604800,)).fetchall():
+                        for r in db.execute(
+                            f"SELECT ts, [{action_col}] FROM [{t}] WHERE ts > ? ORDER BY ts",
+                            (time.time() - 604800,
+                             )).fetchall():
                             if r[1]:
-                                hour = datetime.fromtimestamp(r[0]).hour if r[0] > 1000000000 else 0
-                                weekday = datetime.fromtimestamp(r[0]).weekday() if r[0] > 1000000000 else 0
-                                actions.append({"ts": r[0], "action": r[1], "hour": hour, "weekday": weekday})
+                                hour = datetime.fromtimestamp(
+                                    r[0]).hour if r[0] > 1000000000 else 0
+                                weekday = datetime.fromtimestamp(
+                                    r[0]).weekday() if r[0] > 1000000000 else 0
+                                actions.append(
+                                    {"ts": r[0], "action": r[1], "hour": hour, "weekday": weekday})
                     except Exception:
                         pass
         db.close()
@@ -128,8 +143,13 @@ def do_learn():
     patterns = detect_patterns(actions)
 
     for p in patterns:
-        db.execute("INSERT INTO patterns (ts, pattern_type, description, frequency, confidence) VALUES (?,?,?,?,?)",
-                   (time.time(), p["type"], p["description"], p["frequency"], p["confidence"]))
+        db.execute(
+            "INSERT INTO patterns (ts, pattern_type, description, frequency, confidence) VALUES (?,?,?,?,?)",
+            (time.time(),
+             p["type"],
+                p["description"],
+                p["frequency"],
+                p["confidence"]))
     db.commit()
     db.close()
 
@@ -138,18 +158,32 @@ def do_learn():
         "actions_analyzed": len(actions),
         "patterns_found": len(patterns),
         "by_type": {
-            "hourly": sum(1 for p in patterns if p["type"] == "hourly"),
-            "weekly": sum(1 for p in patterns if p["type"] == "weekly"),
-            "sequence": sum(1 for p in patterns if p["type"] == "sequence"),
+            "hourly": sum(
+                1 for p in patterns if p["type"] == "hourly"),
+            "weekly": sum(
+                1 for p in patterns if p["type"] == "weekly"),
+            "sequence": sum(
+                1 for p in patterns if p["type"] == "sequence"),
         },
-        "top_patterns": sorted(patterns, key=lambda x: x["confidence"], reverse=True)[:10],
+        "top_patterns": sorted(
+            patterns,
+            key=lambda x: x["confidence"],
+            reverse=True)[
+            :10],
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Pattern Learner")
-    parser.add_argument("--once", "--learn", action="store_true", help="Learn patterns")
-    parser.add_argument("--patterns", action="store_true", help="Show patterns")
+    parser.add_argument(
+        "--once",
+        "--learn",
+        action="store_true",
+        help="Learn patterns")
+    parser.add_argument(
+        "--patterns",
+        action="store_true",
+        help="Show patterns")
     parser.add_argument("--predict", action="store_true", help="Predict next")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()

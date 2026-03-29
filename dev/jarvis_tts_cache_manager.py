@@ -106,9 +106,17 @@ def do_stats():
         if c.get("exists"):
             db.execute(
                 "INSERT INTO cache_stats (ts, total_files, total_size_mb, oldest_days, cache_dir) VALUES (?,?,?,?,?)",
-                (time.time(), c.get("files", 0), c.get("size_mb", 0),
-                 c.get("oldest_days", 0), c["dir"])
-            )
+                (time.time(),
+                 c.get(
+                    "files",
+                    0),
+                    c.get(
+                    "size_mb",
+                    0),
+                    c.get(
+                    "oldest_days",
+                    0),
+                    c["dir"]))
 
     db.commit()
     db.close()
@@ -161,10 +169,20 @@ def do_prune():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS TTS Cache Manager")
-    parser.add_argument("--once", "--stats", action="store_true", help="Show stats")
+    parser.add_argument(
+        "--once",
+        "--stats",
+        action="store_true",
+        help="Show stats")
     parser.add_argument("--prune", action="store_true", help="Prune old files")
-    parser.add_argument("--preload", action="store_true", help="Preload common phrases")
-    parser.add_argument("--benchmark", action="store_true", help="Benchmark latency")
+    parser.add_argument(
+        "--preload",
+        action="store_true",
+        help="Preload common phrases")
+    parser.add_argument(
+        "--benchmark",
+        action="store_true",
+        help="Benchmark latency")
     args = parser.parse_args()
 
     if args.prune:

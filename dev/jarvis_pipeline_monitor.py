@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """jarvis_pipeline_monitor.py — Moniteur pipelines JARVIS.
 
@@ -81,10 +82,16 @@ def check_pipeline(pipeline):
     """Check a single pipeline status."""
     if pipeline["check"] == "url":
         ok = check_url(pipeline["url"])
-        return {"name": pipeline["name"], "status": "running" if ok else "down", "type": "url"}
+        return {
+            "name": pipeline["name"],
+            "status": "running" if ok else "down",
+            "type": "url"}
     elif pipeline["check"] in ("python", "node"):
         ok = check_process(pipeline["pattern"])
-        return {"name": pipeline["name"], "status": "running" if ok else "down", "type": "process"}
+        return {
+            "name": pipeline["name"],
+            "status": "running" if ok else "down",
+            "type": "process"}
     return {"name": pipeline["name"], "status": "unknown", "type": "unknown"}
 
 
@@ -100,8 +107,10 @@ def do_status():
 
         db.execute(
             "INSERT INTO checks (ts, pipeline, status, details) VALUES (?,?,?,?)",
-            (time.time(), result["name"], result["status"], json.dumps(result))
-        )
+            (time.time(),
+             result["name"],
+                result["status"],
+                json.dumps(result)))
 
         if result["status"] == "down":
             failures.append(result["name"])
@@ -118,8 +127,9 @@ def do_status():
         "SELECT COUNT(*) FROM checks WHERE ts > ?", (time.time() - 86400,)
     ).fetchone()[0]
     ok_checks = db.execute(
-        "SELECT COUNT(*) FROM checks WHERE ts > ? AND status='running'", (time.time() - 86400,)
-    ).fetchone()[0]
+        "SELECT COUNT(*) FROM checks WHERE ts > ? AND status='running'",
+        (time.time() - 86400,
+         )).fetchone()[0]
     uptime = round(ok_checks / max(total_checks, 1) * 100, 1)
 
     db.commit()
@@ -151,8 +161,15 @@ def show_failures():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Pipeline Monitor")
-    parser.add_argument("--once", "--status", action="store_true", help="Check status")
-    parser.add_argument("--failures", action="store_true", help="Show failures")
+    parser.add_argument(
+        "--once",
+        "--status",
+        action="store_true",
+        help="Check status")
+    parser.add_argument(
+        "--failures",
+        action="store_true",
+        help="Show failures")
     parser.add_argument("--restart", metavar="NAME", help="Restart pipeline")
     parser.add_argument("--health", action="store_true", help="Health report")
     args = parser.parse_args()

@@ -34,14 +34,28 @@ TELEGRAM_CHAT_ID = "2010747443"
 
 # Cluster nodes
 NODES = {
-    "M1":  {"url": "http://127.0.0.1:1234/api/v1/chat", "model": "qwen3-8b",
-            "auth": None, "prefix": "/nothink\n"},
-    "M2":  {"url": "http://192.168.1.26:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
-            "auth": None, "max_tokens": 2048, "timeout": 60},
-    "M3":  {"url": "http://192.168.1.113:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
-            "auth": None, "max_tokens": 2048, "timeout": 60},
-    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b",
-            "auth": None, "ollama": True},
+    "M1": {
+        "url": "http://127.0.0.1:1234/api/v1/chat",
+        "model": "qwen3-8b",
+        "auth": None,
+        "prefix": "/nothink\n"},
+    "M2": {
+        "url": "http://192.168.1.26:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "auth": None,
+        "max_tokens": 2048,
+        "timeout": 60},
+    "M3": {
+        "url": "http://192.168.1.113:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "auth": None,
+        "max_tokens": 2048,
+        "timeout": 60},
+    "OL1": {
+        "url": "http://127.0.0.1:11434/api/chat",
+        "model": "qwen3:1.7b",
+        "auth": None,
+        "ollama": True},
 }
 
 # Quality test prompts with expected outputs
@@ -180,7 +194,10 @@ def run_benchmark(db):
         node_results = []
         node_timeout = NODES[node_name].get("timeout", 30)
         for test in QUALITY_TESTS:
-            r = dispatch_to_node(node_name, test["prompt"], timeout=node_timeout)
+            r = dispatch_to_node(
+                node_name,
+                test["prompt"],
+                timeout=node_timeout)
             quality = 0.0
             if r["success"]:
                 try:
@@ -188,7 +205,13 @@ def run_benchmark(db):
                     quality = 1.0 if passed else 0.3
                 except Exception:
                     quality = 0.2
-            log_dispatch(db, node_name, test["type"], test["prompt"], r, quality)
+            log_dispatch(
+                db,
+                node_name,
+                test["type"],
+                test["prompt"],
+                r,
+                quality)
             node_results.append({
                 "type": test["type"],
                 "success": r["success"],
@@ -196,7 +219,15 @@ def run_benchmark(db):
                 "latency_ms": r.get("latency_ms", 0),
                 "error": r.get("error", ""),
             })
-            print(f"  {node_name:4} {test['type']:10} {'OK' if r['success'] else 'FAIL':4} q={quality:.1f} {r.get('latency_ms', 0):5}ms")
+            print(
+                f"  {
+                    node_name:4} {
+                    test['type']:10} {
+                    'OK' if r['success'] else 'FAIL':4} q={
+                    quality:.1f} {
+                        r.get(
+                            'latency_ms',
+                            0):5}ms")
 
         total = len(node_results)
         ok = sum(1 for r in node_results if r["success"])
@@ -219,7 +250,9 @@ def analyze_quality(db):
         "SELECT COUNT(*) FROM agent_dispatch_log"
     ).fetchone()[0]
     if not has_data:
-        return {"status": "no_data", "recommendations": ["Run --benchmark first"]}
+        return {
+            "status": "no_data",
+            "recommendations": ["Run --benchmark first"]}
 
     # Per-node stats
     nodes = db.execute("""
@@ -250,13 +283,19 @@ def analyze_quality(db):
         if rate < 70:
             recs.append(f"DISABLE {n['node']}: {rate:.0f}% success (too low)")
         elif n["avg_q"] and n["avg_q"] < 0.4:
-            recs.append(f"DEPRIORITIZE {n['node']}: quality {n['avg_q']:.2f} (below 0.4)")
+            recs.append(
+                f"DEPRIORITIZE {
+                    n['node']}: quality {
+                    n['avg_q']:.2f} (below 0.4)")
         if n["avg_lat"] and n["avg_lat"] > 30000:
             recs.append(f"SLOW {n['node']}: {n['avg_lat']:.0f}ms avg (>30s)")
 
     for t in types:
         if t["avg_q"] and t["avg_q"] < 0.5:
-            recs.append(f"WEAK type '{t['classified_type']}': quality {t['avg_q']:.2f}")
+            recs.append(
+                f"WEAK type '{
+                    t['classified_type']}': quality {
+                    t['avg_q']:.2f}")
 
     return {
         "nodes": [dict(n) for n in nodes],
@@ -290,7 +329,11 @@ def format_report(analysis, benchmark=None):
         lines.append("")
         for node, stats in benchmark.items():
             emoji = "+" if stats["avg_quality"] >= 0.7 else "-" if stats["avg_quality"] >= 0.4 else "!!"
-            lines.append(f" {emoji} {node}: {stats['success_rate']}% ok, q={stats['avg_quality']}, {stats['avg_latency_ms']}ms")
+            lines.append(
+                f" {emoji} {node}: {
+                    stats['success_rate']}% ok, q={
+                    stats['avg_quality']}, {
+                    stats['avg_latency_ms']}ms")
 
     if analysis.get("recommendations"):
         lines.append("")
@@ -335,11 +378,24 @@ def apply_fixes(db, analysis):
 
 def main():
     parser = argparse.ArgumentParser(description="Dispatch Quality Tracker")
-    parser.add_argument("--init", action="store_true", help="Initialize tables")
+    parser.add_argument(
+        "--init",
+        action="store_true",
+        help="Initialize tables")
     parser.add_argument("--once", action="store_true", help="Analyze + report")
-    parser.add_argument("--watch", action="store_true", help="Continuous monitoring")
-    parser.add_argument("--interval", type=int, default=10, help="Check interval (min)")
-    parser.add_argument("--benchmark", action="store_true", help="Run quality benchmark")
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Continuous monitoring")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=10,
+        help="Check interval (min)")
+    parser.add_argument(
+        "--benchmark",
+        action="store_true",
+        help="Run quality benchmark")
     parser.add_argument("--fix", action="store_true", help="Auto-fix issues")
     args = parser.parse_args()
 
@@ -351,7 +407,8 @@ def main():
 
     if args.init:
         print("Tables initialized in etoile.db")
-        cnt = db.execute("SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
+        cnt = db.execute(
+            "SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
         print(f"  agent_dispatch_log: {cnt} rows")
         db.close()
         return
@@ -402,7 +459,8 @@ def main():
             else:
                 analysis = analyze_quality(db)
                 if analysis.get("recommendations"):
-                    print(f"[{ts}] {len(analysis['recommendations'])} recommendations pending")
+                    print(
+                        f"[{ts}] {len(analysis['recommendations'])} recommendations pending")
 
             time.sleep(args.interval * 60)
 

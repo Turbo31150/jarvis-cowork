@@ -7,7 +7,14 @@ Usage:
     python dev/ia_experiment_runner.py --report
     python dev/ia_experiment_runner.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os, math, urllib.request
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
+import math
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -177,9 +184,23 @@ def run_experiment(db, spec):
         succ = sum(1 for r in all_results[model] if r["success"])
         db.execute(
             "INSERT INTO stats (experiment_id, model, mean_latency, std_latency, mean_output_len, success_rate, runs) VALUES (?,?,?,?,?,?,?)",
-            (exp_id, model, round(_mean(lats), 2), round(_std(lats), 2),
-             round(_mean(olens), 1), round(succ / repeats * 100, 1), repeats)
-        )
+            (exp_id,
+             model,
+             round(
+                 _mean(lats),
+                 2),
+                round(
+                 _std(lats),
+                 2),
+                round(
+                 _mean(olens),
+                 1),
+                round(
+                 succ /
+                 repeats *
+                 100,
+                 1),
+                repeats))
 
     db.execute(
         "UPDATE experiments SET status='completed', finished_at=datetime('now','localtime') WHERE id=?",
@@ -210,18 +231,26 @@ def get_results(db, limit=10):
             "SELECT model, mean_latency, std_latency, mean_output_len, success_rate, runs FROM stats WHERE experiment_id=?",
             (eid,)
         ).fetchall()
-        result.append({
-            "id": eid, "name": ename, "hypothesis": ehyp, "status": estatus,
-            "created": ecreated,
-            "stats": [{"model": s[0], "mean_latency": s[1], "std_latency": s[2],
-                        "mean_output_len": s[3], "success_rate": s[4], "runs": s[5]} for s in stats]
-        })
+        result.append({"id": eid,
+                       "name": ename,
+                       "hypothesis": ehyp,
+                       "status": estatus,
+                       "created": ecreated,
+                       "stats": [{"model": s[0],
+                                  "mean_latency": s[1],
+                                  "std_latency": s[2],
+                                  "mean_output_len": s[3],
+                                  "success_rate": s[4],
+                                  "runs": s[5]} for s in stats]})
     return {"experiments": result, "total": len(result)}
 
 
 def compare_experiment(db, exp_id):
     """Compare models for a specific experiment."""
-    exp = db.execute("SELECT name, hypothesis, prompt FROM experiments WHERE id=?", (exp_id,)).fetchone()
+    exp = db.execute(
+        "SELECT name, hypothesis, prompt FROM experiments WHERE id=?",
+        (exp_id,
+         )).fetchone()
     if not exp:
         return {"error": f"Experiment {exp_id} not found"}
 
@@ -247,8 +276,8 @@ def compare_experiment(db, exp_id):
         "name": exp[0],
         "hypothesis": exp[1],
         "comparison": comparison,
-        "verdict": f"Fastest: {comparison[0]['model']}" if comparison else "No data"
-    }
+        "verdict": f"Fastest: {
+            comparison[0]['model']}" if comparison else "No data"}
 
 
 def do_status(db):
@@ -270,12 +299,27 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="IA Experiment Runner — A/B test models")
-    parser.add_argument("--run", type=str, metavar="SPEC_JSON", help="Run experiment from JSON spec")
-    parser.add_argument("--results", action="store_true", help="Show recent results")
-    parser.add_argument("--compare", type=int, metavar="EXP_ID", help="Compare models for experiment")
+    parser = argparse.ArgumentParser(
+        description="IA Experiment Runner — A/B test models")
+    parser.add_argument(
+        "--run",
+        type=str,
+        metavar="SPEC_JSON",
+        help="Run experiment from JSON spec")
+    parser.add_argument(
+        "--results",
+        action="store_true",
+        help="Show recent results")
+    parser.add_argument(
+        "--compare",
+        type=int,
+        metavar="EXP_ID",
+        help="Compare models for experiment")
     parser.add_argument("--report", action="store_true", help="Full report")
-    parser.add_argument("--once", action="store_true", help="Show status and exit")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Show status and exit")
     args = parser.parse_args()
 
     db = init_db()

@@ -9,12 +9,18 @@ Usage:
     python dev/win_sound_mixer.py --schedule
     python dev/win_sound_mixer.py --once
 """
-import argparse, json, sqlite3, time, subprocess, os
+import argparse
+import json
+import sqlite3
+import time
+import subprocess
+import os
 from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "sound_mixer.db"
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -56,33 +62,71 @@ def init_db():
             ("normal", 50, '{"chrome": 50, "spotify": 50}'),
         ]
         for name, vol, apps in defaults:
-            db.execute("INSERT INTO volume_profiles (name, master_volume, app_volumes, created_at, updated_at) VALUES (?,?,?,?,?)",
-                       (name, vol, apps, now, now))
+            db.execute(
+                "INSERT INTO volume_profiles (name, master_volume, app_volumes, created_at, updated_at) VALUES (?,?,?,?,?)",
+                (name,
+                 vol,
+                 apps,
+                 now,
+                 now))
     db.commit()
     return db
 
+
 def log_event(db, action, app=None, volume=None, profile=None, details=None):
-    db.execute("INSERT INTO volume_events (ts, action, app, volume, profile, details) VALUES (?,?,?,?,?,?)",
-               (datetime.now().isoformat(), action, app, volume, profile, details))
+    db.execute(
+        "INSERT INTO volume_events (ts, action, app, volume, profile, details) VALUES (?,?,?,?,?,?)",
+        (datetime.now().isoformat(),
+         action,
+         app,
+         volume,
+         profile,
+         details))
     db.commit()
+
 
 def get_audio_apps():
     """Get running apps that may produce audio."""
     try:
         cmd = 'powershell -NoProfile -Command "Get-Process | Where-Object { $_.MainWindowTitle -ne \'\'} | Select-Object ProcessName, Id, MainWindowTitle | ConvertTo-Json"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            shell=True)
         if r.stdout.strip():
             data = json.loads(r.stdout)
             if isinstance(data, dict):
                 data = [data]
             apps = []
-            audio_hints = ["chrome", "firefox", "spotify", "vlc", "discord", "teams", "zoom",
-                           "steam", "brave", "edge", "opera", "foobar", "musicbee", "winamp",
-                           "obs", "audacity", "media", "video", "music", "player"]
+            audio_hints = [
+                "chrome",
+                "firefox",
+                "spotify",
+                "vlc",
+                "discord",
+                "teams",
+                "zoom",
+                "steam",
+                "brave",
+                "edge",
+                "opera",
+                "foobar",
+                "musicbee",
+                "winamp",
+                "obs",
+                "audacity",
+                "media",
+                "video",
+                "music",
+                "player"]
             for proc in data:
                 name = proc.get("ProcessName", "").lower()
                 title = proc.get("MainWindowTitle", "")
-                is_audio = any(h in name for h in audio_hints) or any(h in title.lower() for h in audio_hints)
+                is_audio = any(
+                    h in name for h in audio_hints) or any(
+                    h in title.lower() for h in audio_hints)
                 apps.append({
                     "name": proc.get("ProcessName", ""),
                     "pid": proc.get("Id", 0),
@@ -94,17 +138,31 @@ def get_audio_apps():
     except Exception as e:
         return [{"error": str(e)}]
 
+
 def get_master_volume():
     """Get master volume via powershell."""
     try:
         cmd = 'powershell -NoProfile -Command "try { $audio = New-Object -ComObject WScript.Shell; Write-Output \'volume_check_ok\' } catch { Write-Output \'no_com\' }"'
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=True)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
         # Alternative: nircmd approach or registry
-        cmd2 = 'powershell -NoProfile -Command "(Get-ItemProperty -Path \'HKCU:\\SOFTWARE\\Microsoft\\Multimedia\\Audio\' -ErrorAction SilentlyContinue) | ConvertTo-Json"'
-        r2 = subprocess.run(cmd2, capture_output=True, text=True, timeout=10, shell=True)
-        return {"status": "checked", "note": "Use Windows Volume Mixer for per-app control"}
+        cmd2 = 'powershell -NoProfile -Command "(Get-ItemProperty -Path \'HKCU:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\SOFTWARE\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Microsoft\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Multimedia\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Audio\' -ErrorAction SilentlyContinue) | ConvertTo-Json"'
+        r2 = subprocess.run(
+            cmd2,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            shell=True)
+        return {
+            "status": "checked",
+            "note": "Use Windows Volume Mixer for per-app control"}
     except Exception:
         return {"status": "unknown"}
+
 
 def set_app_volume(app_name, volume):
     """Set volume concept - logs the intent. Actual per-app volume needs COM/pycaw."""
@@ -119,6 +177,7 @@ def set_app_volume(app_name, volume):
         "ts": datetime.now().isoformat()
     }
 
+
 def do_apps():
     db = init_db()
     apps = get_audio_apps()
@@ -131,13 +190,18 @@ def do_apps():
         "master_volume": get_master_volume(),
         "ts": datetime.now().isoformat()
     }
-    log_event(db, "list_apps", details=f"{len(apps)} apps, {len(audio_apps)} audio")
+    log_event(
+        db, "list_apps", details=f"{
+            len(apps)} apps, {
+            len(audio_apps)} audio")
     db.close()
     return result
 
+
 def do_profiles():
     db = init_db()
-    rows = db.execute("SELECT name, master_volume, app_volumes, updated_at FROM volume_profiles ORDER BY name").fetchall()
+    rows = db.execute(
+        "SELECT name, master_volume, app_volumes, updated_at FROM volume_profiles ORDER BY name").fetchall()
     profiles = []
     for r in rows:
         profiles.append({
@@ -156,9 +220,11 @@ def do_profiles():
     db.close()
     return result
 
+
 def do_schedule():
     db = init_db()
-    rows = db.execute("SELECT id, profile, hour_start, hour_end, days, active FROM volume_schedule ORDER BY hour_start").fetchall()
+    rows = db.execute(
+        "SELECT id, profile, hour_start, hour_end, days, active FROM volume_schedule ORDER BY hour_start").fetchall()
     schedules = []
     for r in rows:
         schedules.append({
@@ -183,33 +249,53 @@ def do_schedule():
     db.close()
     return result
 
+
 def do_once():
     db = init_db()
     apps = get_audio_apps()
     audio_apps = [a for a in apps if a.get("likely_audio")]
     profiles = db.execute("SELECT COUNT(*) FROM volume_profiles").fetchone()[0]
     events = db.execute("SELECT COUNT(*) FROM volume_events").fetchone()[0]
-    recent = db.execute("SELECT ts, action, app, volume FROM volume_events ORDER BY id DESC LIMIT 5").fetchall()
-    result = {
-        "status": "ok",
-        "audio_apps": len(audio_apps),
-        "total_windowed_apps": len(apps),
-        "profiles_count": profiles,
-        "total_events": events,
-        "recent_events": [{"ts": r[0], "action": r[1], "app": r[2], "volume": r[3]} for r in recent],
-        "ts": datetime.now().isoformat()
-    }
+    recent = db.execute(
+        "SELECT ts, action, app, volume FROM volume_events ORDER BY id DESC LIMIT 5").fetchall()
+    result = {"status": "ok",
+              "audio_apps": len(audio_apps),
+              "total_windowed_apps": len(apps),
+              "profiles_count": profiles,
+              "total_events": events,
+              "recent_events": [{"ts": r[0],
+                                 "action": r[1],
+                                 "app": r[2],
+                                 "volume": r[3]} for r in recent],
+              "ts": datetime.now().isoformat()}
     log_event(db, "once_check")
     db.close()
     return result
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Windows Sound Mixer — COWORK #220")
+    parser = argparse.ArgumentParser(
+        description="Windows Sound Mixer — COWORK #220")
     parser.add_argument("--apps", action="store_true", help="List audio apps")
-    parser.add_argument("--set", nargs=2, metavar=("APP", "VOLUME"), help="Set app volume")
-    parser.add_argument("--profiles", action="store_true", help="List volume profiles")
-    parser.add_argument("--schedule", action="store_true", help="Show volume schedule")
-    parser.add_argument("--once", action="store_true", help="One-shot status check")
+    parser.add_argument(
+        "--set",
+        nargs=2,
+        metavar=(
+            "APP",
+            "VOLUME"),
+        help="Set app volume")
+    parser.add_argument(
+        "--profiles",
+        action="store_true",
+        help="List volume profiles")
+    parser.add_argument(
+        "--schedule",
+        action="store_true",
+        help="Show volume schedule")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="One-shot status check")
     args = parser.parse_args()
 
     if args.apps:
@@ -226,6 +312,7 @@ def main():
         print(json.dumps(do_schedule(), ensure_ascii=False, indent=2))
     else:
         print(json.dumps(do_once(), ensure_ascii=False, indent=2))
+
 
 if __name__ == "__main__":
     main()

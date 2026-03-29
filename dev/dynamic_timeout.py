@@ -44,38 +44,38 @@ ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
 # Base timeouts per task type (seconds) - the "normal walking speed"
 BASE_TIMEOUTS = {
     "classifier": 5,
-    "simple":     10,
-    "quick":      8,
-    "web":        15,
-    "system":     15,
-    "data":       20,
-    "devops":     20,
-    "creative":   30,
-    "code":       30,
-    "math":       30,
-    "analysis":   45,
-    "trading":    45,
+    "simple": 10,
+    "quick": 8,
+    "web": 15,
+    "system": 15,
+    "data": 20,
+    "devops": 20,
+    "creative": 30,
+    "code": 30,
+    "math": 30,
+    "analysis": 45,
+    "trading": 45,
     "architecture": 60,
-    "security":   45,
-    "reasoning":  60,
-    "consensus":  90,
-    "deep":       90,
+    "security": 45,
+    "reasoning": 60,
+    "consensus": 90,
+    "deep": 90,
 }
 
 # Node speed factors - how much slower than baseline
 NODE_FACTORS = {
-    "M1":  1.0,    # Fastest (qwen3-8b, 65 tok/s)
+    "M1": 1.0,    # Fastest (qwen3-8b, 65 tok/s)
     "OL1": 1.2,    # Fast (qwen3:1.7b, 84 tok/s but smaller)
-    "M2":  2.5,    # Slow (deepseek-r1 reasoning, 44 tok/s but thinks)
-    "M3":  3.0,    # Slowest (deepseek-r1, 33 tok/s sequential)
+    "M2": 2.5,    # Slow (deepseek-r1 reasoning, 44 tok/s but thinks)
+    "M3": 3.0,    # Slowest (deepseek-r1, 33 tok/s sequential)
 }
 
 # Max context windows (tokens)
 NODE_CTX = {
-    "M1":  32768,
+    "M1": 32768,
     "OL1": 8192,
-    "M2":  27000,
-    "M3":  25000,
+    "M2": 27000,
+    "M3": 25000,
 }
 
 # Limits
@@ -143,30 +143,42 @@ def estimate_prompt_complexity(prompt):
 def estimate_output_size(task_type, prompt):
     """Estimate expected output size factor."""
     output_factors = {
-        "simple":       0.5,   # Short answer
-        "quick":        0.5,
-        "classifier":   0.3,
-        "math":         0.7,
-        "system":       1.0,
-        "web":          1.2,
-        "data":         1.3,
-        "code":         2.0,   # Code can be long
-        "creative":     1.5,
-        "analysis":     2.0,
-        "trading":      1.5,
+        "simple": 0.5,   # Short answer
+        "quick": 0.5,
+        "classifier": 0.3,
+        "math": 0.7,
+        "system": 1.0,
+        "web": 1.2,
+        "data": 1.3,
+        "code": 2.0,   # Code can be long
+        "creative": 1.5,
+        "analysis": 2.0,
+        "trading": 1.5,
         "architecture": 2.5,
-        "reasoning":    2.0,
-        "security":     1.8,
-        "consensus":    2.5,
-        "deep":         3.0,
+        "reasoning": 2.0,
+        "security": 1.8,
+        "consensus": 2.5,
+        "deep": 3.0,
     }
     base = output_factors.get(task_type, 1.0)
 
     # Adjust by prompt signals
     prompt_lower = prompt.lower()
-    if any(k in prompt_lower for k in ["uniquement", "un mot", "nombre", "only", "one word"]):
+    if any(
+        k in prompt_lower for k in [
+            "uniquement",
+            "un mot",
+            "nombre",
+            "only",
+            "one word"]):
         base *= 0.3
-    if any(k in prompt_lower for k in ["detailed", "complete", "all", "comprehensive", "detaille"]):
+    if any(
+        k in prompt_lower for k in [
+            "detailed",
+            "complete",
+            "all",
+            "comprehensive",
+            "detaille"]):
         base *= 1.5
 
     return round(base, 2)
@@ -254,7 +266,8 @@ def compute_timeout(task_type, prompt, node="M1"):
 
     # Compute adaptive timeout
     # Formula: base * node_speed * sqrt(complexity * output_factor) * ctx_pressure
-    computed = base * node_factor * math.sqrt(complexity * output_factor) * ctx_pressure
+    computed = base * node_factor * \
+        math.sqrt(complexity * output_factor) * ctx_pressure
 
     # If we have historical data, blend 50/50
     if historical:
@@ -343,7 +356,7 @@ def show_matrix():
     """Show timeout matrix for all type/node combos."""
     print("=== Dynamic Timeout Matrix (seconds) ===")
     print(f"  {'Type':15} {'M1':>6} {'OL1':>6} {'M2':>6} {'M3':>6}")
-    print(f"  {'-'*15} {'-'*6} {'-'*6} {'-'*6} {'-'*6}")
+    print(f"  {'-' * 15} {'-' * 6} {'-' * 6} {'-' * 6} {'-' * 6}")
 
     sample_prompt = "/nothink\nDo the task."
     for task_type in sorted(BASE_TIMEOUTS.keys()):
@@ -357,7 +370,10 @@ def show_matrix():
     long_prompt = "x " * 5000  # ~5000 tokens
     for node in ["M1", "OL1"]:
         result = compute_timeout("code", long_prompt, node)
-        print(f"    {node}: {result['timeout_s']}s (ctx_pressure={result['factors']['ctx_pressure']})")
+        print(
+            f"    {node}: {
+                result['timeout_s']}s (ctx_pressure={
+                result['factors']['ctx_pressure']})")
 
 
 def run_test():
@@ -365,34 +381,74 @@ def run_test():
     print("=== Dynamic Timeout Tests ===\n")
 
     tests = [
-        ("simple", "OK", "M1", "Ultra-simple"),
-        ("simple", "Quelle est la capitale de la France?", "OL1", "Simple question"),
-        ("code", "/nothink\nEcris une fonction fibonacci recursive en Python", "M1", "Code M1"),
-        ("code", "/nothink\nEcris une fonction fibonacci recursive en Python", "M2", "Code M2 (slower)"),
-        ("reasoning", "Explique en detail pourquoi P!=NP est un probleme ouvert. Analyse complete.", "M2", "Complex reasoning"),
-        ("analysis", "Compare en detail les architectures microservices vs monolithique. Avantages, inconvenients, cas d'usage, exemples, metriques.", "M1", "Deep analysis"),
-        ("simple", "OK", "M3", "Simple on slow node"),
-        ("consensus", "Analyse complete du marche crypto avec prediction et strategie detaillee pour les 3 prochains mois", "M1", "Heavy consensus"),
+        ("simple",
+         "OK",
+         "M1",
+         "Ultra-simple"),
+        ("simple",
+         "Quelle est la capitale de la France?",
+         "OL1",
+         "Simple question"),
+        ("code",
+         "/nothink\nEcris une fonction fibonacci recursive en Python",
+         "M1",
+         "Code M1"),
+        ("code",
+         "/nothink\nEcris une fonction fibonacci recursive en Python",
+         "M2",
+         "Code M2 (slower)"),
+        ("reasoning",
+         "Explique en detail pourquoi P!=NP est un probleme ouvert. Analyse complete.",
+         "M2",
+         "Complex reasoning"),
+        ("analysis",
+         "Compare en detail les architectures microservices vs monolithique. Avantages, inconvenients, cas d'usage, exemples, metriques.",
+         "M1",
+         "Deep analysis"),
+        ("simple",
+         "OK",
+         "M3",
+         "Simple on slow node"),
+        ("consensus",
+         "Analyse complete du marche crypto avec prediction et strategie detaillee pour les 3 prochains mois",
+         "M1",
+         "Heavy consensus"),
     ]
 
     for task_type, prompt, node, desc in tests:
         result = compute_timeout(task_type, prompt, node)
         t = result["timeout_s"]
         c = result["factors"]["complexity"]
-        print(f"  {desc:30} -> {t:5.0f}s  (type={task_type}, node={node}, complexity={c})")
+        print(
+            f"  {desc:30} -> {t:5.0f}s  (type={task_type}, node={node}, complexity={c})")
 
     print(f"\n  Context pressure tests:")
     for size in [100, 1000, 5000, 20000]:
         prompt = "x " * size
         result = compute_timeout("code", prompt, "OL1")
-        print(f"    {size} tokens -> {result['timeout_s']}s (pressure={result['factors']['ctx_pressure']})")
+        print(
+            f"    {size} tokens -> {
+                result['timeout_s']}s (pressure={
+                result['factors']['ctx_pressure']})")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Dynamic Timeout Manager")
-    parser.add_argument("--compute", nargs="+", metavar=("TYPE", "PROMPT"), help="Compute timeout")
-    parser.add_argument("--learn", action="store_true", help="Learn from history")
-    parser.add_argument("--matrix", action="store_true", help="Show timeout matrix")
+    parser.add_argument(
+        "--compute",
+        nargs="+",
+        metavar=(
+            "TYPE",
+            "PROMPT"),
+        help="Compute timeout")
+    parser.add_argument(
+        "--learn",
+        action="store_true",
+        help="Learn from history")
+    parser.add_argument(
+        "--matrix",
+        action="store_true",
+        help="Show timeout matrix")
     parser.add_argument("--test", action="store_true", help="Test scenarios")
     parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args()

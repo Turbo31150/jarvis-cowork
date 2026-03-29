@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """JARVIS Win Backup — Backup automatique fichiers importants."""
-import json, sys, os, shutil, zipfile
+import argparse
+import json
+import sys
+import os
+import shutil
+import zipfile
 from datetime import datetime
 
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
@@ -30,13 +35,20 @@ TARGETS = {
     ],
 }
 
+
 def send_telegram(msg):
     import urllib.request
     data = json.dumps({"chat_id": TELEGRAM_CHAT, "text": msg}).encode()
-    req = urllib.request.Request(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-                                 data=data, headers={"Content-Type": "application/json"})
-    try: urllib.request.urlopen(req, timeout=10)
-    except: pass
+    req = urllib.request.Request(
+        f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
+        data=data,
+        headers={
+            "Content-Type": "application/json"})
+    try:
+        urllib.request.urlopen(req, timeout=10)
+    except BaseException:
+        pass
+
 
 def backup_files():
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -53,7 +65,9 @@ def backup_files():
             path = path.replace("/", os.sep)
             try:
                 if os.path.isdir(path):
-                    dest = os.path.join(cat_dir, os.path.basename(path.rstrip("/\\")))
+                    dest = os.path.join(
+                        cat_dir, os.path.basename(
+                            path.rstrip("/\\")))
                     shutil.copytree(path, dest, dirs_exist_ok=True)
                     stats["dirs"] += 1
                 elif os.path.isfile(path):
@@ -84,6 +98,7 @@ def backup_files():
 
     return stats
 
+
 def cleanup_old_backups(keep=5):
     if not os.path.exists(BACKUP_DIR):
         return 0
@@ -94,6 +109,7 @@ def cleanup_old_backups(keep=5):
         os.remove(os.path.join(BACKUP_DIR, old))
         removed += 1
     return removed
+
 
 if __name__ == "__main__":
     os.makedirs(BACKUP_DIR, exist_ok=True)
@@ -117,7 +133,13 @@ if __name__ == "__main__":
         while True:
             stats = backup_files()
             cleanup_old_backups()
-            send_telegram(f"[JARVIS BACKUP] {stats['zip_mb']}MB | {stats['files']} files | {stats.get('zip','?')}")
+            send_telegram(
+                f"[JARVIS BACKUP] {
+                    stats['zip_mb']}MB | {
+                    stats['files']} files | {
+                    stats.get(
+                        'zip',
+                        '?')}")
             time.sleep(interval)
     else:
         print("Usage: win_backup.py --once [--notify] | --loop")

@@ -56,7 +56,8 @@ def analyze_trends():
     edb = sqlite3.connect(str(ETOILE_DB))
     edb.row_factory = sqlite3.Row
 
-    total = edb.execute("SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
+    total = edb.execute(
+        "SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
     midpoint = total // 2
 
     # Recent half vs older half

@@ -134,11 +134,14 @@ def analyze_costs(rows):
     # Enrich pattern stats
     pattern_results = []
     for pat, d in by_pattern.items():
-        waste = (d["failed_cost"] / d["total_cost"] * 100) if d["total_cost"] > 0 else 0.0
+        waste = (
+            d["failed_cost"] /
+            d["total_cost"] *
+            100) if d["total_cost"] > 0 else 0.0
         successful_time = d["total_latency_ms"] - sum(
-            r.get("latency_ms", 0) for r in rows
-            if (r.get("classified_type") or "unknown") == pat and not r.get("success")
-        )
+            r.get(
+                "latency_ms", 0) for r in rows if (
+                r.get("classified_type") or "unknown") == pat and not r.get("success"))
         efficiency = (
             d["total_tokens_out"] / (successful_time / 1000.0)
             if successful_time > 0 else 0.0
@@ -158,7 +161,10 @@ def analyze_costs(rows):
     # Enrich node stats
     node_results = []
     for nd, d in by_node.items():
-        waste = (d["failed_cost"] / d["total_cost"] * 100) if d["total_cost"] > 0 else 0.0
+        waste = (
+            d["failed_cost"] /
+            d["total_cost"] *
+            100) if d["total_cost"] > 0 else 0.0
         successful_time = d["total_latency_ms"] - sum(
             r.get("latency_ms", 0) for r in rows
             if (r.get("node") or "unknown") == nd and not r.get("success")
@@ -202,7 +208,9 @@ def analyze_costs(rows):
                 "potential_saving": round(saving_if_fixed, 2),
                 "recommendation": _recommend(p),
             })
-    optimization_targets.sort(key=lambda x: x["potential_saving"], reverse=True)
+    optimization_targets.sort(
+        key=lambda x: x["potential_saving"],
+        reverse=True)
 
     waste_pct = (failed_cost / total_cost * 100) if total_cost > 0 else 0.0
 
@@ -255,8 +263,10 @@ def do_once():
     gdb.execute(
         "INSERT INTO cost_estimates (timestamp, total_cost, waste_pct, details_json) "
         "VALUES (?, ?, ?, ?)",
-        (result["timestamp"], result["total_cost_units"],
-         result["waste_pct"], json.dumps(result)),
+        (result["timestamp"],
+         result["total_cost_units"],
+         result["waste_pct"],
+         json.dumps(result)),
     )
     gdb.commit()
     gdb.close()
@@ -276,13 +286,28 @@ def do_by_pattern():
     patterns = result["by_pattern"]
 
     # Table output
-    print(f"\n{'Pattern':<20} {'Count':>6} {'OK':>5} {'Fail':>5} {'TotalCost':>12} "
-          f"{'AvgCost':>10} {'Waste%':>7} {'Eff tok/s':>10}")
+    print(
+        f"\n{
+            'Pattern':<20} {
+            'Count':>6} {
+                'OK':>5} {
+                    'Fail':>5} {
+                        'TotalCost':>12} " f"{
+                            'AvgCost':>10} {
+                                'Waste%':>7} {
+                                    'Eff tok/s':>10}")
     print("-" * 85)
     for p in patterns:
-        print(f"{p['pattern']:<20} {p['count']:>6} {p['success']:>5} {p['failed']:>5} "
-              f"{p['total_cost']:>12.2f} {p['avg_cost']:>10.2f} "
-              f"{p['waste_pct']:>6.1f}% {p['efficiency_tok_per_s']:>10.2f}")
+        print(
+            f"{
+                p['pattern']:<20} {
+                p['count']:>6} {
+                p['success']:>5} {
+                    p['failed']:>5} " f"{
+                        p['total_cost']:>12.2f} {
+                            p['avg_cost']:>10.2f} " f"{
+                                p['waste_pct']:>6.1f}% {
+                                    p['efficiency_tok_per_s']:>10.2f}")
 
     total = result["total_cost_units"]
     waste = result["waste_pct"]
@@ -307,7 +332,8 @@ def do_stats():
     gdb.close()
 
     if not rows:
-        print(json.dumps({"message": "No historical estimates yet. Run --once first."}, indent=2))
+        print(json.dumps(
+            {"message": "No historical estimates yet. Run --once first."}, indent=2))
         return
 
     print(f"\n{'ID':>4} {'Timestamp':<22} {'TotalCost':>12} {'Waste%':>8}")
@@ -333,18 +359,23 @@ def do_stats():
           f"Failed: {details.get('failed', 0)}  |  "
           f"Retries: {details.get('retry_dispatches', 0)}")
     if details.get("optimization_targets"):
-        print(f"    Top target: {details['optimization_targets'][0]['pattern']} "
-              f"(save ~{details['optimization_targets'][0]['potential_saving']:.2f})")
+        print(
+            f"    Top target: {
+                details['optimization_targets'][0]['pattern']} " f"(save ~{
+                details['optimization_targets'][0]['potential_saving']:.2f})")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Dispatch Cost Estimator — analyze resource cost of cluster dispatches"
-    )
-    parser.add_argument("--once", action="store_true",
-                        help="Full cost analysis (JSON output, stored in cowork_gaps.db)")
-    parser.add_argument("--by-pattern", action="store_true",
-                        help="Cost breakdown per dispatch pattern (table output)")
+        description="Dispatch Cost Estimator — analyze resource cost of cluster dispatches")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Full cost analysis (JSON output, stored in cowork_gaps.db)")
+    parser.add_argument(
+        "--by-pattern",
+        action="store_true",
+        help="Cost breakdown per dispatch pattern (table output)")
     parser.add_argument("--stats", action="store_true",
                         help="Historical cost estimates from cowork_gaps.db")
     args = parser.parse_args()

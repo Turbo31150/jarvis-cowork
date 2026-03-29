@@ -78,14 +78,16 @@ def analyze_connections(connections):
     for conn in connections:
         by_state[conn["state"]] += 1
 
-        remote_ip = conn["remote"].rsplit(":", 1)[0] if ":" in conn["remote"] else conn["remote"]
+        remote_ip = conn["remote"].rsplit(
+            ":", 1)[0] if ":" in conn["remote"] else conn["remote"]
         by_remote[remote_ip] += 1
 
         # Check if suspicious
         if conn["state"] == "ESTABLISHED":
             if remote_ip not in CLUSTER_IPS and remote_ip != "*":
                 # External connection
-                port = conn["remote"].rsplit(":", 1)[-1] if ":" in conn["remote"] else "0"
+                port = conn["remote"].rsplit(
+                    ":", 1)[-1] if ":" in conn["remote"] else "0"
                 try:
                     port_num = int(port)
                     if port_num not in (80, 443, 53, 8080, 3389):
@@ -97,11 +99,8 @@ def analyze_connections(connections):
                 except ValueError:
                     pass
 
-    return {
-        "by_state": dict(by_state),
-        "top_remotes": sorted(by_remote.items(), key=lambda x: x[1], reverse=True)[:10],
-        "suspicious": suspicious[:10],
-    }
+    return {"by_state": dict(by_state), "top_remotes": sorted(by_remote.items(
+    ), key=lambda x: x[1], reverse=True)[:10], "suspicious": suspicious[:10], }
 
 
 def test_dns(domains=None):
@@ -115,9 +114,11 @@ def test_dns(domains=None):
             start = time.time()
             ip = socket.gethostbyname(domain)
             latency = (time.time() - start) * 1000
-            results.append({"domain": domain, "ip": ip, "latency_ms": round(latency, 1), "ok": True})
+            results.append({"domain": domain, "ip": ip,
+                           "latency_ms": round(latency, 1), "ok": True})
         except Exception:
-            results.append({"domain": domain, "ip": "", "latency_ms": 0, "ok": False})
+            results.append({"domain": domain, "ip": "",
+                           "latency_ms": 0, "ok": False})
 
     return results
 
@@ -134,11 +135,15 @@ def do_scan():
 
     # Store
     for conn in connections[:100]:
-        is_suspicious = 1 if any(s["remote"] == conn["remote"] for s in analysis["suspicious"]) else 0
+        is_suspicious = 1 if any(s["remote"] == conn["remote"]
+                                 for s in analysis["suspicious"]) else 0
         db.execute(
             "INSERT INTO connections (ts, local_addr, remote_addr, state, suspicious) VALUES (?,?,?,?,?)",
-            (time.time(), conn["local"], conn["remote"], conn["state"], is_suspicious)
-        )
+            (time.time(),
+             conn["local"],
+                conn["remote"],
+                conn["state"],
+                is_suspicious))
 
     report = {
         "ts": datetime.now().isoformat(),
@@ -163,10 +168,20 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Network Analyzer")
-    parser.add_argument("--once", "--scan", action="store_true", help="Full scan")
-    parser.add_argument("--connections", action="store_true", help="List connections")
+    parser.add_argument(
+        "--once",
+        "--scan",
+        action="store_true",
+        help="Full scan")
+    parser.add_argument(
+        "--connections",
+        action="store_true",
+        help="List connections")
     parser.add_argument("--dns", action="store_true", help="DNS test")
-    parser.add_argument("--bandwidth", action="store_true", help="Bandwidth test")
+    parser.add_argument(
+        "--bandwidth",
+        action="store_true",
+        help="Bandwidth test")
     args = parser.parse_args()
 
     if args.dns:

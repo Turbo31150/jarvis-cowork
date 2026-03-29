@@ -22,7 +22,9 @@ if os.name == "nt":
     import winreg
 
 REG_RUN_PATH = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
-STARTUP_FOLDER = os.path.expandvars(r"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup")
+STARTUP_FOLDER = os.path.expandvars(
+    r"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup")
+
 
 def get_registry_entries():
     entries = []
@@ -34,13 +36,15 @@ def get_registry_entries():
             while True:
                 try:
                     name, value, _ = winreg.EnumValue(key, i)
-                    entries.append({"name": name, "path": value, "source": "registry"})
+                    entries.append(
+                        {"name": name, "path": value, "source": "registry"})
                     i += 1
                 except OSError:
                     break
     except FileNotFoundError:
         pass
     return entries
+
 
 def get_startup_folder_entries():
     entries = []
@@ -49,28 +53,35 @@ def get_startup_folder_entries():
         return entries
     for file in folder.iterdir():
         if file.is_file():
-            entries.append({"name": file.name, "path": str(file), "source": "folder"})
+            entries.append(
+                {"name": file.name, "path": str(file), "source": "folder"})
     return entries
+
 
 def list_entries():
     data = get_registry_entries() + get_startup_folder_entries()
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
+
 def add_entry(path_str):
     if os.name != "nt":
-        print(json.dumps({"error": "Add only supported on Windows"}, ensure_ascii=False))
+        print(json.dumps(
+            {"error": "Add only supported on Windows"}, ensure_ascii=False))
         return
     path = Path(path_str).expanduser().resolve()
     if not path.is_file():
-        print(json.dumps({"error": f"File not found: {path}"}, ensure_ascii=False))
+        print(json.dumps(
+            {"error": f"File not found: {path}"}, ensure_ascii=False))
         return
     name = path.stem
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_RUN_PATH, 0, winreg.KEY_SET_VALUE) as key:
             winreg.SetValueEx(key, name, 0, winreg.REG_SZ, str(path))
-        print(json.dumps({"added": {"name": name, "path": str(path), "source": "registry"}}, ensure_ascii=False))
+        print(json.dumps({"added": {"name": name, "path": str(
+            path), "source": "registry"}}, ensure_ascii=False))
     except PermissionError as e:
         print(json.dumps({"error": str(e)}, ensure_ascii=False))
+
 
 def remove_entry(name):
     removed = []
@@ -96,22 +107,29 @@ def remove_entry(name):
     if removed:
         print(json.dumps({"removed": removed}, ensure_ascii=False, indent=2))
     else:
-        print(json.dumps({"error": f"Entry '{name}' not found"}, ensure_ascii=False))
+        print(json.dumps(
+            {"error": f"Entry '{name}' not found"}, ensure_ascii=False))
+
 
 def optimize_entries():
-    # Simple heuristic: recommend removal of entries >1 MiB (files) or path string >100 chars (registry)
+    # Simple heuristic: recommend removal of entries >1 MiB (files) or path
+    # string >100 chars (registry)
     recommendations = []
     for entry in get_startup_folder_entries():
         try:
             size = os.path.getsize(entry["path"])
             if size > 1_048_576:  # 1 MiB
-                recommendations.append({"name": entry["name"], "size_bytes": size, "reason": "large file"})
+                recommendations.append(
+                    {"name": entry["name"], "size_bytes": size, "reason": "large file"})
         except OSError:
             continue
     for entry in get_registry_entries():
         if len(entry["path"]) > 100:
-            recommendations.append({"name": entry["name"], "path_length": len(entry["path"]), "reason": "long path"})
-    print(json.dumps({"recommendations": recommendations}, ensure_ascii=False, indent=2))
+            recommendations.append({"name": entry["name"], "path_length": len(
+                entry["path"]), "reason": "long path"})
+    print(json.dumps({"recommendations": recommendations},
+          ensure_ascii=False, indent=2))
+
 
 def report():
     regs = get_registry_entries()
@@ -132,14 +150,31 @@ def report():
     }
     print(json.dumps(report_data, ensure_ascii=False, indent=2))
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Gestion des programmes au démarrage Windows")
+    parser = argparse.ArgumentParser(
+        description="Gestion des programmes au démarrage Windows")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--list", action="store_true", help="Lister les entrées de démarrage")
-    group.add_argument("--add", metavar="PATH", help="Ajouter un programme (registre)")
-    group.add_argument("--remove", metavar="NAME", help="Supprimer une entrée par son nom")
-    group.add_argument("--optimize", action="store_true", help="Proposer des optimisations")
-    group.add_argument("--report", action="store_true", help="Rapport synthétique")
+    group.add_argument(
+        "--list",
+        action="store_true",
+        help="Lister les entrées de démarrage")
+    group.add_argument(
+        "--add",
+        metavar="PATH",
+        help="Ajouter un programme (registre)")
+    group.add_argument(
+        "--remove",
+        metavar="NAME",
+        help="Supprimer une entrée par son nom")
+    group.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Proposer des optimisations")
+    group.add_argument(
+        "--report",
+        action="store_true",
+        help="Rapport synthétique")
     args = parser.parse_args()
 
     if args.list:
@@ -152,6 +187,7 @@ def main():
         optimize_entries()
     elif args.report:
         report()
+
 
 if __name__ == "__main__":
     main()

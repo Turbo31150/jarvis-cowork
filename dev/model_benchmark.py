@@ -114,7 +114,11 @@ class ClusterBenchmark:
             """)
             conn.commit()
 
-    def _lm_studio_request(self, node_name: str, node_config: dict, prompt: str) -> tuple:
+    def _lm_studio_request(
+            self,
+            node_name: str,
+            node_config: dict,
+            prompt: str) -> tuple:
         """Send request to LM Studio endpoint."""
         url = f"http://{node_config['host']}:{node_config['port']}/api/v1/chat"
 
@@ -157,7 +161,11 @@ class ClusterBenchmark:
         except Exception as e:
             return (False, 0, 0, "", f"Error: {str(e)}")
 
-    def _ollama_request(self, node_name: str, node_config: dict, prompt: str) -> tuple:
+    def _ollama_request(
+            self,
+            node_name: str,
+            node_config: dict,
+            prompt: str) -> tuple:
         """Send request to Ollama endpoint."""
         url = f"http://{node_config['host']}:{node_config['port']}/api/chat"
 
@@ -208,7 +216,12 @@ class ClusterBenchmark:
             "tests": []
         }
 
-        print(f"  Benchmarking {node_name} ({node_config['host']}:{node_config['port']})...", end=" ", flush=True)
+        print(
+            f"  Benchmarking {node_name} ({
+                node_config['host']}:{
+                node_config['port']})...",
+            end=" ",
+            flush=True)
 
         for prompt_config in prompts:
             prompt_name = prompt_config["name"]
@@ -217,12 +230,10 @@ class ClusterBenchmark:
             # Send request based on node type
             if node_config["type"] == "lm_studio":
                 success, latency_ms, tokens, response_text, error = self._lm_studio_request(
-                    node_name, node_config, prompt_text
-                )
+                    node_name, node_config, prompt_text)
             else:  # ollama
                 success, latency_ms, tokens, response_text, error = self._ollama_request(
-                    node_name, node_config, prompt_text
-                )
+                    node_name, node_config, prompt_text)
 
             test_result = {
                 "prompt": prompt_name,
@@ -260,7 +271,8 @@ class ClusterBenchmark:
         # Calculate summary stats
         successful = [t for t in results["tests"] if t["success"]]
         if successful:
-            avg_latency = sum(t["latency_ms"] for t in successful) / len(successful)
+            avg_latency = sum(t["latency_ms"]
+                              for t in successful) / len(successful)
             avg_tokens_per_sec = sum(
                 (t["tokens_approx"] / (t["latency_ms"] / 1000)) if t["latency_ms"] > 0 else 0
                 for t in successful
@@ -384,16 +396,17 @@ class ClusterBenchmark:
                 ORDER BY avg_latency_ms ASC
             """, (latest_timestamp,)).fetchall()
 
-            comparison = {
-                "timestamp": datetime.now().isoformat(),
-                "benchmark_timestamp": latest_timestamp,
-                "nodes_compared": [dict(row) for row in results],
-                "rankings": {
-                    "latency": sorted([dict(r) for r in results], key=lambda x: x["avg_latency_ms"]),
-                    "throughput": sorted([dict(r) for r in results], key=lambda x: x["avg_tokens_per_sec"], reverse=True),
-                    "reliability": sorted([dict(r) for r in results], key=lambda x: x["success_rate"], reverse=True)
-                }
-            }
+            comparison = {"timestamp": datetime.now().isoformat(),
+                          "benchmark_timestamp": latest_timestamp,
+                          "nodes_compared": [dict(row) for row in results],
+                          "rankings": {"latency": sorted([dict(r) for r in results],
+                                                         key=lambda x: x["avg_latency_ms"]),
+                                       "throughput": sorted([dict(r) for r in results],
+                                                            key=lambda x: x["avg_tokens_per_sec"],
+                                                            reverse=True),
+                                       "reliability": sorted([dict(r) for r in results],
+                                                             key=lambda x: x["success_rate"],
+                                                             reverse=True)}}
 
         return comparison
 
@@ -412,11 +425,26 @@ Examples:
         """
     )
 
-    parser.add_argument("--run", action="store_true", help="Run full benchmark on all nodes")
-    parser.add_argument("--quick", action="store_true", help="Quick benchmark (1 prompt per node)")
-    parser.add_argument("--history", action="store_true", help="Show past benchmark history")
-    parser.add_argument("--compare", action="store_true", help="Compare latest benchmark scores")
-    parser.add_argument("--db", default="dev/data/benchmark.db", help="Database path (default: dev/data/benchmark.db)")
+    parser.add_argument(
+        "--run",
+        action="store_true",
+        help="Run full benchmark on all nodes")
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Quick benchmark (1 prompt per node)")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Show past benchmark history")
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        help="Compare latest benchmark scores")
+    parser.add_argument(
+        "--db",
+        default="dev/data/benchmark.db",
+        help="Database path (default: dev/data/benchmark.db)")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     args = parser.parse_args()

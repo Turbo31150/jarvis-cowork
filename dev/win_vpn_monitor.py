@@ -43,7 +43,8 @@ def check_vpn_connections():
         lines = out.stdout.strip().split("\n")
         for line in lines:
             line = line.strip()
-            if line and "connected" not in line.lower() and "no connections" not in line.lower() and "command" not in line.lower():
+            if line and "connected" not in line.lower(
+            ) and "no connections" not in line.lower() and "command" not in line.lower():
                 connections.append(line)
     except Exception:
         pass
@@ -86,8 +87,13 @@ def do_status():
     public_ip = get_public_ip()
     vpn_active = len(vpn_conns) > 0
 
-    db.execute("INSERT INTO vpn_checks (ts, vpn_active, profile, public_ip) VALUES (?,?,?,?)",
-               (time.time(), int(vpn_active), ",".join(vpn_conns)[:200], public_ip))
+    db.execute(
+        "INSERT INTO vpn_checks (ts, vpn_active, profile, public_ip) VALUES (?,?,?,?)",
+        (time.time(),
+         int(vpn_active),
+         ",".join(vpn_conns)[
+            :200],
+            public_ip))
     db.commit()
     db.close()
 
@@ -102,7 +108,11 @@ def do_status():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows VPN Monitor")
-    parser.add_argument("--once", "--status", action="store_true", help="Status")
+    parser.add_argument(
+        "--once",
+        "--status",
+        action="store_true",
+        help="Status")
     parser.add_argument("--connect", metavar="PROFILE", help="Connect VPN")
     parser.add_argument("--disconnect", action="store_true", help="Disconnect")
     parser.add_argument("--history", action="store_true", help="History")

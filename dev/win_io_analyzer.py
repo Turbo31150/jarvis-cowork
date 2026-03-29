@@ -106,8 +106,13 @@ def do_monitor():
                    (time.time(), p["name"], p["pid"], p["read_ops"], p["write_ops"],
                     int(p["read_mb"] * 1024 * 1024), int(p["write_mb"] * 1024 * 1024)))
     for d in disks:
-        db.execute("INSERT INTO disk_stats (ts, drive, total_gb, free_gb, pct_used) VALUES (?,?,?,?,?)",
-                   (time.time(), d["drive"], d["total_gb"], d["free_gb"], d["pct_used"]))
+        db.execute(
+            "INSERT INTO disk_stats (ts, drive, total_gb, free_gb, pct_used) VALUES (?,?,?,?,?)",
+            (time.time(),
+             d["drive"],
+                d["total_gb"],
+                d["free_gb"],
+                d["pct_used"]))
 
     bottlenecks = [p for p in procs if (p["read_mb"] + p["write_mb"]) > 1000]
     db.commit()
@@ -125,9 +130,16 @@ def do_monitor():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows I/O Analyzer")
-    parser.add_argument("--once", "--monitor", action="store_true", help="Monitor I/O")
+    parser.add_argument(
+        "--once",
+        "--monitor",
+        action="store_true",
+        help="Monitor I/O")
     parser.add_argument("--top", action="store_true", help="Top I/O processes")
-    parser.add_argument("--bottleneck", action="store_true", help="Detect bottlenecks")
+    parser.add_argument(
+        "--bottleneck",
+        action="store_true",
+        help="Detect bottlenecks")
     parser.add_argument("--history", action="store_true", help="History")
     args = parser.parse_args()
     print(json.dumps(do_monitor(), ensure_ascii=False, indent=2))

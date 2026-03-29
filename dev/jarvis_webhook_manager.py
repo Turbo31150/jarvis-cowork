@@ -73,7 +73,8 @@ def test_webhook(url, secret=None):
 
     start = time.time()
     try:
-        req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+        req = urllib.request.Request(
+            url, data=payload, headers=headers, method="POST")
         with urllib.request.urlopen(req, timeout=10) as resp:
             latency = (time.time() - start) * 1000
             body = resp.read().decode("utf-8", errors="replace")
@@ -93,8 +94,10 @@ def do_list():
         "SELECT id, url, events, active, created_at, last_tested, last_status FROM webhooks ORDER BY id"
     ).fetchall()
 
-    total_deliveries = db.execute("SELECT COUNT(*) FROM deliveries").fetchone()[0]
-    successful = db.execute("SELECT COUNT(*) FROM deliveries WHERE success=1").fetchone()[0]
+    total_deliveries = db.execute(
+        "SELECT COUNT(*) FROM deliveries").fetchone()[0]
+    successful = db.execute(
+        "SELECT COUNT(*) FROM deliveries WHERE success=1").fetchone()[0]
 
     result = {
         "ts": datetime.now().isoformat(), "action": "list",
@@ -115,7 +118,10 @@ def do_add(url):
     """Add a new webhook."""
     db = init_db()
     now = datetime.now()
-    secret = hashlib.sha256(f"{url}{now.isoformat()}".encode()).hexdigest()[:32]
+    secret = hashlib.sha256(
+        f"{url}{
+            now.isoformat()}".encode()).hexdigest()[
+        :32]
 
     try:
         db.execute(
@@ -194,7 +200,9 @@ def do_test():
 def do_status():
     db = init_db()
     result = {
-        "ts": datetime.now().isoformat(), "script": "jarvis_webhook_manager.py", "script_id": 256,
+        "ts": datetime.now().isoformat(),
+        "script": "jarvis_webhook_manager.py",
+        "script_id": 256,
         "db": str(DB_PATH),
         "total_webhooks": db.execute("SELECT COUNT(*) FROM webhooks").fetchone()[0],
         "active_webhooks": db.execute("SELECT COUNT(*) FROM webhooks WHERE active=1").fetchone()[0],
@@ -206,12 +214,26 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="jarvis_webhook_manager.py — Webhook manager (#256)")
-    parser.add_argument("--list", action="store_true", help="List all webhooks")
+    parser = argparse.ArgumentParser(
+        description="jarvis_webhook_manager.py — Webhook manager (#256)")
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List all webhooks")
     parser.add_argument("--add", type=str, metavar="URL", help="Add a webhook")
-    parser.add_argument("--remove", type=str, metavar="URL", help="Remove a webhook")
-    parser.add_argument("--test", action="store_true", help="Test all webhooks")
-    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument(
+        "--remove",
+        type=str,
+        metavar="URL",
+        help="Remove a webhook")
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Test all webhooks")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Run once and exit")
     args = parser.parse_args()
 
     if args.list:

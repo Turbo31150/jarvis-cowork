@@ -7,7 +7,11 @@ Usage:
     python dev/ia_curriculum_planner.py --adjust
     python dev/ia_curriculum_planner.py --once
 """
-import argparse, json, sqlite3, time, os
+import argparse
+import json
+import sqlite3
+import time
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -103,7 +107,10 @@ def create_plan(db):
     """Generate/update curriculum plan based on current levels."""
     plan = {}
     for domain, config in SKILL_DOMAINS.items():
-        row = db.execute("SELECT current_level, current_score FROM skill_levels WHERE domain=?", (domain,)).fetchone()
+        row = db.execute(
+            "SELECT current_level, current_score FROM skill_levels WHERE domain=?",
+            (domain,
+             )).fetchone()
         current_level = row[0] if row else 1
         current_score = row[1] if row else 0
 
@@ -140,8 +147,7 @@ def create_plan(db):
             "current_score": current_score,
             "pending_topics": next_topics,
             "threshold": current_config["threshold"] if current_config else 70,
-            "total_levels": len(levels_data)
-        }
+            "total_levels": len(levels_data)}
 
     db.commit()
     return {"plan": plan, "domains": len(plan)}
@@ -198,7 +204,8 @@ def show_progress(db):
             "progress_pct": pct
         }
 
-    overall = sum(p["progress_pct"] for p in progress.values()) / len(progress) if progress else 0
+    overall = sum(p["progress_pct"]
+                  for p in progress.values()) / len(progress) if progress else 0
     return {"progress": progress, "overall_pct": round(overall, 1)}
 
 
@@ -260,9 +267,12 @@ def adjust_curriculum(db):
 
 
 def do_status(db):
-    total_items = db.execute("SELECT COUNT(*) FROM curriculum_items").fetchone()[0]
-    completed = db.execute("SELECT COUNT(*) FROM curriculum_items WHERE status='completed'").fetchone()[0]
-    domains = db.execute("SELECT domain, current_level, current_score FROM skill_levels").fetchall()
+    total_items = db.execute(
+        "SELECT COUNT(*) FROM curriculum_items").fetchone()[0]
+    completed = db.execute(
+        "SELECT COUNT(*) FROM curriculum_items WHERE status='completed'").fetchone()[0]
+    domains = db.execute(
+        "SELECT domain, current_level, current_score FROM skill_levels").fetchall()
     return {
         "script": "ia_curriculum_planner.py",
         "id": 210,
@@ -275,11 +285,24 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="IA Curriculum Planner — adaptive learning progression")
-    parser.add_argument("--plan", action="store_true", help="Create/update curriculum plan")
-    parser.add_argument("--next", action="store_true", help="Get next learning items")
-    parser.add_argument("--progress", action="store_true", help="Show progress")
-    parser.add_argument("--adjust", action="store_true", help="Adaptive adjustment")
+    parser = argparse.ArgumentParser(
+        description="IA Curriculum Planner — adaptive learning progression")
+    parser.add_argument(
+        "--plan",
+        action="store_true",
+        help="Create/update curriculum plan")
+    parser.add_argument(
+        "--next",
+        action="store_true",
+        help="Get next learning items")
+    parser.add_argument(
+        "--progress",
+        action="store_true",
+        help="Show progress")
+    parser.add_argument(
+        "--adjust",
+        action="store_true",
+        help="Adaptive adjustment")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 
