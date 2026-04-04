@@ -5,7 +5,7 @@ from datetime import datetime
 
 TOKEN = "TELEGRAM_TOKEN_REDACTED"
 CHAT_ID = "2010747443"
-DEV_DIR = "C:/Users/franc/.openclaw/workspace/dev"
+DEV_DIR = "/home/turbo/.openclaw/workspace/dev"
 
 # ─── FORMATAGE TELEGRAM SOIGNE ─────────────────────────────────────
 

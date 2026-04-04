@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "test_runner.db"
-TURBO = Path("F:/BUREAU/turbo")
+TURBO = Path("/home/turbo")
 TESTS_DIR = TURBO / "tests"
 
 # Known test suites

@@ -9,7 +9,7 @@ import subprocess
 import time
 from datetime import datetime
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/network.db"
+DB_PATH = "/home/turbo/.openclaw/workspace/dev/network.db"
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
 

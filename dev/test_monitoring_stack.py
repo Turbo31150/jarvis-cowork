@@ -22,7 +22,7 @@ import argparse
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 GAPS_DB = SCRIPT_DIR / "data" / "cowork_gaps.db"
-ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
+ETOILE_DB = Path("/home/turbo/data/etoile.db")
 
 passed = 0
 failed = 0

@@ -11,10 +11,10 @@ import argparse
 
 CACHE_DIRS = [
     os.path.expandvars(r"%TEMP%"),
-    "C:/Users/franc/.openclaw/workspace/dev/tts_cache",
+    "/home/turbo/.openclaw/workspace/dev/tts_cache",
 ]
 TTS_VOICE = "fr-FR-HenriNeural"
-CACHE_DIR = "C:/Users/franc/.openclaw/workspace/dev/tts_cache"
+CACHE_DIR = "/home/turbo/.openclaw/workspace/dev/tts_cache"
 MAX_AGE_DAYS = 7
 
 TOP_PHRASES = [

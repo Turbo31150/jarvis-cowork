@@ -14,7 +14,7 @@ NODES = {
 }
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
-LOG_FILE = "C:/Users/franc/.openclaw/workspace/dev/monitor_log.json"
+LOG_FILE = "/home/turbo/.openclaw/workspace/dev/monitor_log.json"
 
 
 def check_node(name, cfg):

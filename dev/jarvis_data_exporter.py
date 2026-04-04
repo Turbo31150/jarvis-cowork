@@ -23,10 +23,10 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "data_exporter.db"
 EXPORT_DIR = DEV / "data" / "exports"
 DATABASES = {
-    "etoile": "F:/BUREAU/turbo/data/etoile.db",
-    "jarvis": "F:/BUREAU/turbo/data/jarvis.db",
-    "sniper": "F:/BUREAU/turbo/data/sniper.db",
-    "finetuning": "F:/BUREAU/turbo/finetuning/data/finetuning.db",
+    "etoile": "/home/turbo/data/etoile.db",
+    "jarvis": "/home/turbo/data/jarvis.db",
+    "sniper": "/home/turbo/data/sniper.db",
+    "finetuning": "/home/turbo/finetuning/data/finetuning.db",
 }
 
 

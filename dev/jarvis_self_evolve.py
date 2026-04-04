@@ -13,8 +13,8 @@ import urllib.request
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "self_evolve.db"
-TURBO = Path("F:/BUREAU/turbo")
-SRC = TURBO / "src"
+TURBO = Path("/home/turbo")
+SRC = TURBO / "jarvis-cowork" / "dev"
 
 
 def init_db():
@@ -79,13 +79,13 @@ def analyze_file(filepath):
                     "description": f"Fonction {node.name}() trop longue ({length} lignes)",
                 })
 
-    # Check for /FIXME in source
+    # Check for TODO/FIXME/HACK in source
     for i, line in enumerate(lines, 1):
-        if "# " in line or "# FIXME" in line:
+        if "# TODO" in line or "# FIXME" in line or "# HACK" in line:
             comment = line.strip()
             opportunities.append({
                 "file": rel, "line": i,
-                "category": "",
+                "category": "todo_fixme",
                 "description": comment[:100],
             })
 
@@ -182,7 +182,7 @@ def get_summary(db):
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Self-Evolve")
-    parser.add_argument("--scan", action="store_true", help="Scan codebase")
+    parser.add_argument("--scan", "--analyze", action="store_true", help="Scan/analyze codebase")
     parser.add_argument(
         "--generate",
         type=int,

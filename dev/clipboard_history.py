@@ -4,7 +4,7 @@ import json, sys, os, sqlite3, subprocess, time
 from datetime import datetime
 import argparse
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/clipboard.db"
+DB_PATH = "/home/turbo/.openclaw/workspace/dev/clipboard.db"
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)

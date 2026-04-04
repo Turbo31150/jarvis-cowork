@@ -31,7 +31,7 @@ import sys
 import time
 import urllib.request
 
-TURBO_ROOT = "F:/BUREAU/turbo"
+TURBO_ROOT = "/home/turbo"
 PROXY_URL = "http://127.0.0.1:18800"
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"

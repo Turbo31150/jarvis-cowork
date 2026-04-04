@@ -3,7 +3,7 @@
 import json, sys, os, sqlite3, subprocess, time
 from datetime import datetime
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/tasks.db"
+DB_PATH = "/home/turbo/.openclaw/workspace/dev/tasks.db"
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
 MAX_RETRIES = 3

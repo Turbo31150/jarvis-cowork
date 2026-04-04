@@ -6,7 +6,7 @@ Supports glob pattern filtering.
 
 Usage:
     python dev/win_file_watcher.py --once
-    python dev/win_file_watcher.py --watch "C:/Users/franc/.openclaw/workspace/dev"
+    python dev/win_file_watcher.py --watch "/home/turbo/.openclaw/workspace/dev"
     python dev/win_file_watcher.py --patterns "*.py,*.json"
     python dev/win_file_watcher.py --history
 """

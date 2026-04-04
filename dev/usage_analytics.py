@@ -9,8 +9,8 @@ from datetime import datetime
 from collections import Counter
 import argparse
 
-ANALYTICS_DB = "C:/Users/franc/.openclaw/workspace/dev/analytics.db"
-JARVIS_DB = "F:/BUREAU/turbo/data/jarvis.db"
+ANALYTICS_DB = "/home/turbo/.openclaw/workspace/dev/analytics.db"
+JARVIS_DB = "/home/turbo/data/jarvis.db"
 LOG_DIR = os.path.expandvars(r"%USERPROFILE%\.openclaw\agents\main\logs")
 SESSION_DIR = os.path.expandvars(
     r"%USERPROFILE%\.openclaw\agents\main\sessions")

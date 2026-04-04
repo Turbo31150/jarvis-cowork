@@ -20,7 +20,7 @@ from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "weight_calibrator.db"
-ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
+ETOILE_DB = Path("/home/turbo/data/etoile.db")
 CURRENT_WEIGHTS = {
     "gpt-oss:120b": 1.9,
     "M1": 1.8,

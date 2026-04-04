@@ -8,8 +8,8 @@ import glob
 from datetime import datetime
 import argparse
 
-DEV_DIR = "C:/Users/franc/.openclaw/workspace/dev"
-TASKS_FILE = "C:/Users/franc/.openclaw/workspace/COWORK_TASKS.md"
+DEV_DIR = "/home/turbo/.openclaw/workspace/dev"
+TASKS_FILE = "/home/turbo/.openclaw/workspace/COWORK_TASKS.md"
 
 
 def list_scripts():

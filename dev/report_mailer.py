@@ -7,8 +7,8 @@ import subprocess
 from datetime import datetime
 import argparse
 
-MAIL_SCRIPT = "C:/Users/franc/.openclaw/workspace/jarvis_mail.py"
-REPORT_DIR = "C:/Users/franc/.openclaw/workspace/dev/reports"
+MAIL_SCRIPT = "/home/turbo/.openclaw/workspace/jarvis_mail.py"
+REPORT_DIR = "/home/turbo/.openclaw/workspace/dev/reports"
 RECIPIENT = "franck"  # Alias in jarvis_mail.py
 
 

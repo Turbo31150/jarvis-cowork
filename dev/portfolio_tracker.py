@@ -9,7 +9,7 @@ import urllib.request
 from datetime import datetime
 import argparse
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/portfolio.db"
+DB_PATH = "/home/turbo/.openclaw/workspace/dev/portfolio.db"
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
 PAIRS = [

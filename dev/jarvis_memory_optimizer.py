@@ -23,10 +23,10 @@ DB_PATH = DEV / "data" / "memory_optimizer.db"
 
 # Databases to optimize
 DATABASES = [
-    {"name": "etoile", "path": "F:/BUREAU/turbo/data/etoile.db"},
-    {"name": "jarvis", "path": "F:/BUREAU/turbo/data/jarvis.db"},
-    {"name": "sniper", "path": "F:/BUREAU/turbo/data/sniper.db"},
-    {"name": "finetuning", "path": "F:/BUREAU/turbo/finetuning/data/finetuning.db"},
+    {"name": "etoile", "path": "/home/turbo/data/etoile.db"},
+    {"name": "jarvis", "path": "/home/turbo/data/jarvis.db"},
+    {"name": "sniper", "path": "/home/turbo/data/sniper.db"},
+    {"name": "finetuning", "path": "/home/turbo/finetuning/data/finetuning.db"},
 ]
 
 # Tables with timestamp columns that can be pruned

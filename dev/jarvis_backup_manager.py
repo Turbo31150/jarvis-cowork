@@ -25,10 +25,10 @@ BACKUP_DIR = DEV / "data" / "backups"
 RETENTION_DAYS = 30
 
 CRITICAL_FILES = {
-    "etoile.db": Path("F:/BUREAU/turbo/data/etoile.db"),
-    "jarvis.db": Path("F:/BUREAU/turbo/data/jarvis.db"),
-    "sniper.db": Path("F:/BUREAU/turbo/data/sniper.db"),
-    "finetuning.db": Path("F:/BUREAU/turbo/finetuning/data/finetuning.db"),
+    "etoile.db": Path("/home/turbo/data/etoile.db"),
+    "jarvis.db": Path("/home/turbo/data/jarvis.db"),
+    "sniper.db": Path("/home/turbo/data/sniper.db"),
+    "finetuning.db": Path("/home/turbo/finetuning/data/finetuning.db"),
     "CLAUDE.md": Path.home() /
     ".claude" /
     "CLAUDE.md",

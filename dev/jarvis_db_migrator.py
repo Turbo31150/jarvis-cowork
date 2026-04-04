@@ -22,9 +22,9 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "db_migrator.db"
 DATABASES = [
-    {"name": "etoile", "path": "F:/BUREAU/turbo/data/etoile.db"},
-    {"name": "jarvis", "path": "F:/BUREAU/turbo/data/jarvis.db"},
-    {"name": "sniper", "path": "F:/BUREAU/turbo/data/sniper.db"},
+    {"name": "etoile", "path": "/home/turbo/data/etoile.db"},
+    {"name": "jarvis", "path": "/home/turbo/data/jarvis.db"},
+    {"name": "sniper", "path": "/home/turbo/data/sniper.db"},
 ]
 
 EXPECTED_TABLES = {

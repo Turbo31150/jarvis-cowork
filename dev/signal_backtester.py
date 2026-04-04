@@ -3,8 +3,8 @@
 import json, sys, os, sqlite3, urllib.request
 from datetime import datetime
 
-SNIPER_DB = "F:/BUREAU/turbo/data/sniper.db"
-RESULTS_DB = "C:/Users/franc/.openclaw/workspace/dev/backtest.db"
+SNIPER_DB = "/home/turbo/data/sniper.db"
+RESULTS_DB = "/home/turbo/.openclaw/workspace/dev/backtest.db"
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
 

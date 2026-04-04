@@ -41,7 +41,7 @@ if hasattr(sys.stderr, "reconfigure"):
 # ---------------------------------------------------------------------------
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
-ETOILE_DB = Path(r"F:/BUREAU/turbo/etoile.db")
+ETOILE_DB = Path(r"/home/turbo/etoile.db")
 GAPS_DB = DATA_DIR / "cowork_gaps.db"
 
 

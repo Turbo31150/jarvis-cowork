@@ -10,7 +10,7 @@ from datetime import datetime
 
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
-LOG_FILE = "C:/Users/franc/.openclaw/workspace/dev/optimizer_log.json"
+LOG_FILE = "/home/turbo/.openclaw/workspace/dev/optimizer_log.json"
 
 TEMP_DIRS = [
     os.path.expandvars(r"%TEMP%"),

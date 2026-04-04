@@ -9,7 +9,7 @@ import subprocess
 from datetime import datetime
 import argparse
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/conversation.db"
+DB_PATH = "/home/turbo/.openclaw/workspace/dev/conversation.db"
 M1_URL = "http://127.0.0.1:1234/api/v1/chat"
 M1_MODEL = "qwen3-8b"
 SYSTEM_PROMPT = "Tu es JARVIS, assistant IA de Franck. Reponds en francais, de maniere concise et utile. Tu peux executer des commandes systeme si demande."

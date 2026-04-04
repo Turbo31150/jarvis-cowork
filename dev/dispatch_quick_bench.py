@@ -38,7 +38,7 @@ BENCH_PROMPTS = {
     "architecture": "Design un systeme de notification en temps reel pour 1M utilisateurs",
 }
 
-DB_PATH = "F:/BUREAU/turbo/etoile.db"
+DB_PATH = "/home/turbo/etoile.db"
 
 
 async def run_benchmark():

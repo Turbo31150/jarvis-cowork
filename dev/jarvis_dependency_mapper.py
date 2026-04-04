@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
-TURBO_SRC = Path("F:/BUREAU/turbo/src")
+TURBO_SRC = Path("/home/turbo/src")
 DB_PATH = DEV / "data" / "dependency_mapper.db"
 
 

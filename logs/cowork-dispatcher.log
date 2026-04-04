@@ -1,0 +1,3050 @@
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core'
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core'
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core'
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core'
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core'
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core'
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core'
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core'
+Traceback (most recent call last):
+  File "/home/turbo/jarvis-cowork/src/cowork_dispatcher.py", line 18, in <module>
+    from core.unified import UnifiedMemoryStore
+ModuleNotFoundError: No module named 'core.unified'
+{"status": "daemon_started", "patterns_db": "/home/turbo/Workspaces/jarvis-linux/data/db/etoile.db", "mapping_db": "/home/turbo/Workspaces/jarvis-linux/data/db/etoile.db", "interval": 30, "timestamp": "2026-04-03T12:06:03.029029"}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{"status": "daemon_started", "patterns_db": "/home/turbo/Workspaces/jarvis-linux/data/db/etoile.db", "mapping_db": "/home/turbo/Workspaces/jarvis-linux/data/db/etoile.db", "interval": 30, "timestamp": "2026-04-04T02:01:41.275119"}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T02:55:10.917039"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T02:57:40.921343"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:00:10.925143"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:02:40.926914"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:05:10.928999"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:07:40.931442"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:10:10.933335"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:12:40.934832"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:15:10.936888"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:17:40.938309"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:20:10.939845"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:22:40.942825"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:25:10.944333"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:27:40.946551"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:30:10.950845"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:32:40.953463"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:35:10.957550"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:37:40.960071"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:40:10.963784"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:42:40.966872"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:45:10.969396"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:47:40.970785"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:50:10.979695"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:52:40.981346"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:55:10.982817"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T03:57:40.986325"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:00:10.987773"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:02:40.996364"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:05:10.999515"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:07:41.005425"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:10:11.007801"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:12:41.013571"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:15:11.016847"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:17:41.018473"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:20:11.021455"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:22:41.022993"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:25:11.024633"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:27:41.027904"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:30:11.030579"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:32:41.036501"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:35:11.038852"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:37:41.041350"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:40:11.043923"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:42:41.046569"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:45:11.048196"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:47:41.050558"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:50:11.055129"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:52:41.056699"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:55:11.060928"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T04:57:41.062544"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:00:11.065589"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:02:41.067101"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:05:11.070793"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:07:41.073226"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:10:11.075501"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:12:41.078547"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:15:11.080316"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:17:41.082028"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:20:11.084243"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:22:41.085648"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:25:11.087479"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:27:41.088960"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:30:11.095467"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:32:41.099859"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:35:11.103389"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:37:41.108794"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:40:11.117494"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:42:41.119155"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:45:11.121010"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:47:41.127741"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:50:11.129429"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:52:41.131116"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:55:11.132956"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T05:57:41.134695"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:00:11.136213"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:02:41.139562"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:05:11.141243"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:07:41.146838"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:10:11.148271"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:12:41.149866"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:15:11.151605"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:17:41.153407"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:20:11.155063"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:22:41.158952"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:25:11.160689"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:27:41.162533"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:30:11.166718"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:32:41.168424"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:35:11.169832"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:37:41.172440"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:40:11.175407"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:42:41.179037"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:45:11.182105"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:47:41.183558"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:50:11.185125"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:52:41.187936"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:55:11.190308"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T06:57:41.198473"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:00:11.200109"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:02:41.204083"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:05:11.206527"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:07:41.207923"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:10:11.210011"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:12:41.211450"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:15:11.212931"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:17:41.214345"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:20:11.216868"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:22:41.219911"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:25:11.222326"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:27:41.225564"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:30:11.227254"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:32:41.228773"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:35:11.230299"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:37:41.232002"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:40:11.235163"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:42:41.236576"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:45:11.239780"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:47:41.244380"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:50:11.247589"}
+{"status": "daemon_error", "error": "no such table: cowork_script_mapping", "timestamp": "2026-04-04T07:52:41.249633"}
+{"status": "daemon_started", "patterns_db": "/home/turbo/Workspaces/jarvis-linux/data/db/etoile.db", "mapping_db": "/home/turbo/Workspaces/jarvis-linux/data/db/etoile.db", "interval": 30, "timestamp": "2026-04-04T12:23:06.619965"}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}
+{
+  "total": 0,
+  "ok": 0,
+  "missing": 0,
+  "syntax_errors": 0,
+  "errors": []
+}

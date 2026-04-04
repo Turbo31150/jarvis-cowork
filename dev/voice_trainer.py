@@ -8,8 +8,8 @@ from datetime import datetime
 from collections import Counter
 import argparse
 
-JARVIS_DB = "F:/BUREAU/turbo/data/jarvis.db"
-TRAINER_DB = "C:/Users/franc/.openclaw/workspace/dev/trainer.db"
+JARVIS_DB = "/home/turbo/data/jarvis.db"
+TRAINER_DB = "/home/turbo/.openclaw/workspace/dev/trainer.db"
 
 
 def init_db():

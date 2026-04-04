@@ -12,7 +12,7 @@ import urllib.request
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "trading_intel.db"
-TURBO = Path("F:/BUREAU/turbo")
+TURBO = Path("/home/turbo")
 
 PAIRS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "SUIUSDT", "PEPEUSDT",
          "DOGEUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "LINKUSDT"]

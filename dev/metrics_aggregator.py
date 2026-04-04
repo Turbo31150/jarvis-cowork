@@ -31,8 +31,8 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 GAPS_DB = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
-JARVIS_DB = Path("F:/BUREAU/turbo/data/jarvis.db")
+ETOILE_DB = Path("/home/turbo/data/etoile.db")
+JARVIS_DB = Path("/home/turbo/data/jarvis.db")
 
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT_ID = "2010747443"

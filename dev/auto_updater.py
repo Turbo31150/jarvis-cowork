@@ -5,7 +5,7 @@ from datetime import datetime
 
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
-TURBO_DIR = "F:/BUREAU/turbo"
+TURBO_DIR = "/home/turbo"
 UV_BIN = "C:/Users/franc/.local/bin/uv.exe"
 
 def send_telegram(msg):

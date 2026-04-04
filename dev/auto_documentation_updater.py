@@ -2,7 +2,7 @@
 """Auto Documentation Updater — Keep COWORK_TASKS.md in sync with scripts.
 
 Scans all *.py files in dev/, extracts docstrings, CLI args, and status,
-then updates F:/BUREAU/turbo/cowork/COWORK_TASKS.md automatically.
+then updates /home/turbo/cowork/COWORK_TASKS.md automatically.
 Tracks changes in SQLite for history and diffing.
 
 Usage:

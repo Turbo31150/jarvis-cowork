@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
-ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
+ETOILE_DB = Path("/home/turbo/data/etoile.db")
 DB_PATH = DEV / "data" / "load_predictor.db"
 
 

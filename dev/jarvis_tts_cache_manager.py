@@ -20,8 +20,8 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "tts_cache_manager.db"
 TTS_CACHE_DIRS = [
-    Path("F:/BUREAU/turbo/data/tts_cache"),
-    Path("F:/BUREAU/turbo/cache/tts"),
+    Path("/home/turbo/data/tts_cache"),
+    Path("/home/turbo/cache/tts"),
     Path.home() / "AppData" / "Local" / "Temp" / "tts_cache",
 ]
 MAX_CACHE_MB = 500

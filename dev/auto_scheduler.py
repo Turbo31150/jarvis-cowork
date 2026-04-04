@@ -5,49 +5,49 @@ from datetime import datetime, timedelta
 
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
-SCHEDULE_FILE = "C:/Users/franc/.openclaw/workspace/dev/schedule.json"
-LOG_FILE = "C:/Users/franc/.openclaw/workspace/dev/scheduler_log.json"
+SCHEDULE_FILE = "/home/turbo/.openclaw/workspace/dev/schedule.json"
+LOG_FILE = "/home/turbo/.openclaw/workspace/dev/scheduler_log.json"
 
 # Default schedule
 DEFAULT_SCHEDULE = [
     {
         "name": "cluster_check",
-        "command": "python C:/Users/franc/.openclaw/workspace/dev/auto_monitor.py --once",
+        "command": "python /home/turbo/.openclaw/workspace/dev/auto_monitor.py --once",
         "interval_min": 5,
         "enabled": True,
         "description": "Verification cluster toutes les 5 min"
     },
     {
         "name": "trading_scan",
-        "command": "python C:/Users/franc/.openclaw/workspace/dev/auto_trader.py --once",
+        "command": "python /home/turbo/.openclaw/workspace/dev/auto_trader.py --once",
         "interval_min": 10,
         "enabled": True,
         "description": "Scan MEXC toutes les 10 min"
     },
     {
         "name": "daily_report",
-        "command": "python C:/Users/franc/.openclaw/workspace/dev/auto_reporter.py --once --notify",
+        "command": "python /home/turbo/.openclaw/workspace/dev/auto_reporter.py --once --notify",
         "interval_min": 1440,
         "enabled": True,
         "description": "Rapport quotidien"
     },
     {
         "name": "optimize",
-        "command": "python C:/Users/franc/.openclaw/workspace/dev/win_optimizer.py --once --notify",
+        "command": "python /home/turbo/.openclaw/workspace/dev/win_optimizer.py --once --notify",
         "interval_min": 60,
         "enabled": True,
         "description": "Nettoyage systeme toutes les heures"
     },
     {
         "name": "error_scan",
-        "command": "python C:/Users/franc/.openclaw/workspace/dev/auto_learner.py --once --notify",
+        "command": "python /home/turbo/.openclaw/workspace/dev/auto_learner.py --once --notify",
         "interval_min": 30,
         "enabled": True,
         "description": "Scan erreurs toutes les 30 min"
     },
     {
         "name": "backup",
-        "command": "python C:/Users/franc/.openclaw/workspace/dev/win_backup.py --once --notify",
+        "command": "python /home/turbo/.openclaw/workspace/dev/win_backup.py --once --notify",
         "interval_min": 1440,
         "enabled": True,
         "description": "Backup quotidien"

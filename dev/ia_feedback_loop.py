@@ -20,7 +20,7 @@ from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "feedback_loop.db"
-ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
+ETOILE_DB = Path("/home/turbo/data/etoile.db")
 
 # Current MAO weights
 CURRENT_WEIGHTS = {
@@ -58,6 +58,7 @@ def collect_agent_stats():
         tables = [t[0] for t in db.execute(
             "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
 
+        # Source 1: tool_metrics (legacy)
         if "tool_metrics" in tables:
             rows = db.execute(
                 "SELECT node, status, latency_ms FROM tool_metrics WHERE ts > ?",
@@ -70,6 +71,33 @@ def collect_agent_stats():
                 else:
                     stats[node]["fail"] += 1
                 stats[node]["total_latency"] += (r[2] or 0)
+
+        # Source 2: agent_dispatch_log
+        if "agent_dispatch_log" in tables:
+            rows = db.execute(
+                "SELECT node, success, latency_ms FROM agent_dispatch_log"
+            ).fetchall()
+            for r in rows:
+                node = r[0] or "unknown"
+                if r[1]:
+                    stats[node]["ok"] += 1
+                else:
+                    stats[node]["fail"] += 1
+                stats[node]["total_latency"] += (r[2] or 0)
+
+        # Source 3: cluster_night_work
+        if "cluster_night_work" in tables:
+            rows = db.execute(
+                "SELECT node, elapsed_s, error FROM cluster_night_work"
+            ).fetchall()
+            for r in rows:
+                node = r[0] or "unknown"
+                latency_ms = (r[1] or 0) * 1000
+                if not r[2]:  # no error = success
+                    stats[node]["ok"] += 1
+                else:
+                    stats[node]["fail"] += 1
+                stats[node]["total_latency"] += latency_ms
 
         db.close()
     except Exception:
@@ -174,9 +202,12 @@ def main():
     parser = argparse.ArgumentParser(description="IA Feedback Loop")
     parser.add_argument(
         "--once",
+        action="store_true",
+        help="Run full feedback loop")
+    parser.add_argument(
         "--collect",
         action="store_true",
-        help="Collect and analyze")
+        help="Collect stats")
     parser.add_argument("--analyze", action="store_true", help="Analyze stats")
     parser.add_argument(
         "--adjust",

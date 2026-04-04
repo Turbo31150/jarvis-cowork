@@ -20,7 +20,7 @@ from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "update_checker.db"
-PROJECT_ROOT = Path("F:/BUREAU/turbo")
+PROJECT_ROOT = Path("/home/turbo")
 
 
 def init_db():

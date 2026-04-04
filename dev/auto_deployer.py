@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "deployer.db"
-TURBO = Path("F:/BUREAU/turbo")
+TURBO = Path("/home/turbo")
 
 
 def init_db():

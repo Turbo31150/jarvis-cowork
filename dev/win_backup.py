@@ -15,23 +15,23 @@ BACKUP_DIR = "F:/BACKUP_JARVIS"
 TARGETS = {
     "configs": [
         "C:/Users/franc/.claude/CLAUDE.md",
-        "C:/Users/franc/.openclaw/openclaw.json",
-        "F:/BUREAU/turbo/pyproject.toml",
-        "F:/BUREAU/turbo/.env",
+        "/home/turbo/.openclaw/openclaw.json",
+        "/home/turbo/pyproject.toml",
+        "/home/turbo/.env",
     ],
     "databases": [
         "F:/BUREAU/etoile.db",
-        "F:/BUREAU/turbo/data/jarvis.db",
-        "F:/BUREAU/turbo/data/sniper.db",
-        "F:/BUREAU/turbo/finetuning/finetuning.db",
+        "/home/turbo/data/jarvis.db",
+        "/home/turbo/data/sniper.db",
+        "/home/turbo/finetuning/finetuning.db",
     ],
     "scripts": [
-        "C:/Users/franc/.openclaw/workspace/dev/",
-        "F:/BUREAU/turbo/scripts/",
+        "/home/turbo/.openclaw/workspace/dev/",
+        "/home/turbo/scripts/",
     ],
     "workspace": [
-        "C:/Users/franc/.openclaw/workspace/TOOLS.md",
-        "C:/Users/franc/.openclaw/workspace/COWORK_TASKS.md",
+        "/home/turbo/.openclaw/workspace/TOOLS.md",
+        "/home/turbo/.openclaw/workspace/COWORK_TASKS.md",
     ],
 }
 

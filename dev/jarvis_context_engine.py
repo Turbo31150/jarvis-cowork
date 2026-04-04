@@ -26,8 +26,8 @@ DB_PATH = DEV / "data" / "context_engine.db"
 SOURCES = [
     {"type": "claude_md", "path": "C:/Users/franc/.claude/CLAUDE.md"},
     {"type": "memory", "path": "C:/Users/franc/.claude/projects/C--Users-franc/memory/MEMORY.md"},
-    {"type": "dev_scripts", "glob": "C:/Users/franc/.openclaw/workspace/dev/*.py"},
-    {"type": "src_modules", "glob": "F:/BUREAU/turbo/src/*.py"},
+    {"type": "dev_scripts", "glob": "/home/turbo/.openclaw/workspace/dev/*.py"},
+    {"type": "src_modules", "glob": "/home/turbo/src/*.py"},
 ]
 
 

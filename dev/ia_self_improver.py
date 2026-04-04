@@ -26,7 +26,7 @@ import sys
 import time
 import urllib.request
 
-TURBO_ROOT = "F:/BUREAU/turbo"
+TURBO_ROOT = "/home/turbo"
 PROXY_URL = "http://127.0.0.1:18800"
 DB_PATH = os.path.join(TURBO_ROOT, "data", "etoile.db")
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"

@@ -4,8 +4,8 @@ import json, sys, os, imaplib, email, sqlite3
 from email.header import decode_header
 from datetime import datetime
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/emails.db"
-CONFIG_PATH = "C:/Users/franc/.openclaw/workspace/dev/email_config.json"
+DB_PATH = "/home/turbo/.openclaw/workspace/dev/emails.db"
+CONFIG_PATH = "/home/turbo/.openclaw/workspace/dev/email_config.json"
 
 DEFAULT_CONFIG = {
     "imap_host": "imap.gmail.com",

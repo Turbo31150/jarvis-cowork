@@ -7,7 +7,7 @@ import sqlite3
 from datetime import datetime
 import argparse
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/context.db"
+DB_PATH = "/home/turbo/.openclaw/workspace/dev/context.db"
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
 

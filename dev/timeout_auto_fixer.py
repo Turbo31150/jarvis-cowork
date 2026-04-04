@@ -16,10 +16,10 @@ import sqlite3
 import sys
 import time
 
-sys.path.insert(0, "F:/BUREAU/turbo")
-os.chdir("F:/BUREAU/turbo")
+sys.path.insert(0, "/home/turbo")
+os.chdir("/home/turbo")
 
-DB_PATH = "F:/BUREAU/turbo/etoile.db"
+DB_PATH = "/home/turbo/etoile.db"
 
 
 def analyze_timeouts():

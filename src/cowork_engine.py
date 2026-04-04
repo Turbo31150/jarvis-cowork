@@ -21,6 +21,7 @@ import json
 import ast
 import re
 import time
+import shutil
 from datetime import datetime
 from collections import defaultdict, Counter
 from pathlib import Path
@@ -677,22 +678,27 @@ def full_cycle():
 
     # Phase 1: Test all
     print(f"\n{'='*60}\nPHASE 1: MULTI-TEST\n{'='*60}")
+    set_last_task("Full cycle — Phase 1: Multi-test")
     test_summary, test_results = test_all()
 
     # Phase 2: Gap analysis
     print(f"\n{'='*60}\nPHASE 2: GAP ANALYSIS\n{'='*60}")
+    set_last_task("Full cycle — Phase 2: Gap analysis")
     gaps = analyze_gaps()
 
     # Phase 3: Anticipation
     print(f"\n{'='*60}\nPHASE 3: ANTICIPATION\n{'='*60}")
+    set_last_task("Full cycle — Phase 3: Anticipation")
     predictions = anticipate_needs()
 
     # Phase 3.5: Auto-improve
     print(f"\n{'='*60}\nPHASE 3.5: AUTO-IMPROVE\n{'='*60}")
+    set_last_task("Full cycle — Phase 3.5: Auto-improve")
     improvements = auto_improve()
 
     # Phase 4: Sync
     print(f"\n{'='*60}\nPHASE 4: OPENCLAW SYNC\n{'='*60}")
+    set_last_task("Full cycle — Phase 4: OpenClaw sync")
     sync = openclaw_sync()
 
     # Phase 5: Summary
@@ -720,6 +726,9 @@ def full_cycle():
     with open(report_path, 'w') as f:
         json.dump(report, f, indent=2, ensure_ascii=False, default=str)
     print(f"\nFull report: {report_path}")
+
+    set_last_task(f"Cycle complete — {test_summary['ok']}/{test_summary['total']} OK, {len(gaps['potential_gaps'])} gaps")
+    write_heartbeat()
 
     # Telegram alerts on failures/gaps
     fail_count = test_summary.get("fail", 0)
@@ -778,6 +787,167 @@ def log_cycle_metrics(report):
     print("[metrics] Cycle logged to etoile.db:cowork_cycle_log")
 
 
+# ── HEARTBEAT ───────────────────────────────────────────────────────
+
+HEARTBEAT_PATH = Path("/home/turbo/jarvis-cowork/HEARTBEAT.md")
+CLUSTER_NODES = {
+    "M1": "localhost",
+    "M2": "192.168.1.42",
+    "M3": "192.168.1.43",
+    "OL1": "192.168.1.44",
+}
+_last_task_description = "Engine started"
+_heartbeat_last_write = 0.0
+HEARTBEAT_INTERVAL = 180  # 3 minutes
+
+
+def _ping_node(host, timeout=2):
+    """Ping a node and return (alive, latency_ms)."""
+    try:
+        r = subprocess.run(
+            ["ping", "-c", "1", "-W", str(timeout), host],
+            capture_output=True, text=True, timeout=timeout + 1
+        )
+        if r.returncode == 0:
+            # Extract latency from "time=X.XX ms"
+            m = re.search(r"time[=<]([\d.]+)\s*ms", r.stdout)
+            latency = float(m.group(1)) if m else 0.0
+            return True, round(latency, 1)
+    except Exception:
+        pass
+    return False, 0.0
+
+
+def _get_jarvis_services():
+    """Return list of active JARVIS-related systemd services."""
+    try:
+        r = subprocess.run(
+            ["systemctl", "list-units", "--type=service", "--state=running", "--no-pager", "--plain"],
+            capture_output=True, text=True, timeout=5
+        )
+        services = []
+        for line in r.stdout.splitlines():
+            lower = line.lower()
+            if any(kw in lower for kw in ("jarvis", "cowork", "lumen", "openclaw", "ollama", "comfyui")):
+                parts = line.split()
+                if parts:
+                    services.append(parts[0])
+        return services
+    except Exception:
+        return []
+
+
+def _get_docker_containers():
+    """Return list of running Docker container names."""
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "--format", "{{.Names}}"],
+            capture_output=True, text=True, timeout=5
+        )
+        if r.returncode == 0:
+            return [name.strip() for name in r.stdout.strip().splitlines() if name.strip()]
+    except Exception:
+        pass
+    return []
+
+
+def _get_system_stats():
+    """Return (cpu_percent, ram_used_gb, ram_total_gb)."""
+    cpu_pct = 0.0
+    ram_used = 0.0
+    ram_total = 0.0
+    try:
+        # CPU — average from /proc/stat over 0.5s
+        with open("/proc/stat") as f:
+            line1 = f.readline()
+        time.sleep(0.3)
+        with open("/proc/stat") as f:
+            line2 = f.readline()
+        vals1 = list(map(int, line1.split()[1:]))
+        vals2 = list(map(int, line2.split()[1:]))
+        delta = [b - a for a, b in zip(vals1, vals2)]
+        total = sum(delta)
+        idle = delta[3] if len(delta) > 3 else 0
+        cpu_pct = round((1 - idle / max(total, 1)) * 100, 1) if total > 0 else 0.0
+    except Exception:
+        pass
+    try:
+        mem = shutil.disk_usage  # fallback marker
+        with open("/proc/meminfo") as f:
+            meminfo = f.read()
+        total_kb = int(re.search(r"MemTotal:\s+(\d+)", meminfo).group(1))
+        avail_kb = int(re.search(r"MemAvailable:\s+(\d+)", meminfo).group(1))
+        ram_total = round(total_kb / 1048576, 1)
+        ram_used = round((total_kb - avail_kb) / 1048576, 1)
+    except Exception:
+        pass
+    return cpu_pct, ram_used, ram_total
+
+
+def set_last_task(description):
+    """Update the last task description shown in heartbeat."""
+    global _last_task_description
+    _last_task_description = description
+
+
+def write_heartbeat(force=False):
+    """Write /home/turbo/jarvis-cowork/HEARTBEAT.md with cluster & system status.
+
+    Respects a 3-minute cooldown unless force=True.
+    """
+    global _heartbeat_last_write
+    now = time.time()
+    if not force and (now - _heartbeat_last_write) < HEARTBEAT_INTERVAL:
+        return  # cooldown
+    _heartbeat_last_write = now
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S CEST")
+
+    # --- Cluster ping ---
+    cluster_rows = []
+    for node, host in CLUSTER_NODES.items():
+        alive, latency = _ping_node(host)
+        status = "UP" if alive else "DOWN"
+        lat_str = f"{latency} ms" if alive else "---"
+        cluster_rows.append(f"| {node} | {status} | {lat_str} |")
+
+    # --- System stats ---
+    cpu_pct, ram_used, ram_total = _get_system_stats()
+
+    # --- Services ---
+    services = _get_jarvis_services()
+    services_str = ", ".join(services) if services else "none detected"
+
+    # --- Docker ---
+    containers = _get_docker_containers()
+    containers_str = ", ".join(containers) if containers else "none"
+
+    # --- Build markdown ---
+    md = f"""# JARVIS HEARTBEAT
+Last update: {timestamp}
+
+## Cluster
+| Node | Status | Latency |
+|------|--------|---------|
+{chr(10).join(cluster_rows)}
+
+## System
+- **CPU**: {cpu_pct}%
+- **RAM**: {ram_used}/{ram_total} GB
+- **JARVIS services**: {services_str}
+- **Docker**: {len(containers)} containers ({containers_str})
+
+## Last Task
+- {_last_task_description}
+"""
+
+    try:
+        HEARTBEAT_PATH.write_text(md, encoding="utf-8")
+        print(f"[heartbeat] Written to {HEARTBEAT_PATH}")
+    except Exception as e:
+        print(f"[heartbeat] Write failed: {e}", file=sys.stderr)
+
+
 # ── CONTINUOUS LOOP ──────────────────────────────────────────────────
 
 def continuous_loop(interval=300):
@@ -808,6 +978,7 @@ def continuous_loop(interval=300):
         try:
             report = full_cycle()
             log_cycle_metrics(report)
+            write_heartbeat(force=True)
         except Exception as e:
             print(f"[loop] Cycle #{cycle_num} FAILED: {e}", file=sys.stderr)
             import traceback
@@ -839,9 +1010,12 @@ if __name__ == "__main__":
     parser.add_argument("--once", action="store_true", help="Alias for --cycle")
     parser.add_argument("--loop", action="store_true", help="Continuous loop (default 5min)")
     parser.add_argument("--interval", type=int, default=300, help="Loop interval in seconds")
+    parser.add_argument("--heartbeat", action="store_true", help="Write HEARTBEAT.md (once)")
     args = parser.parse_args()
 
-    if args.test_all:
+    if args.heartbeat:
+        write_heartbeat(force=True)
+    elif args.test_all:
         test_all()
     elif args.gaps:
         analyze_gaps()

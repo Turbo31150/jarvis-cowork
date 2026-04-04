@@ -5,7 +5,7 @@ from datetime import datetime
 
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
-REPORT_DIR = "C:/Users/franc/.openclaw/workspace/dev/reports"
+REPORT_DIR = "/home/turbo/.openclaw/workspace/dev/reports"
 
 NODES = {
     "M1": {"url": "http://127.0.0.1:1234/api/v1/models", "type": "lmstudio"},

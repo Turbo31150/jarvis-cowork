@@ -20,7 +20,7 @@ from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "routing_optimizer.db"
-ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
+ETOILE_DB = Path("/home/turbo/data/etoile.db")
 CATEGORIES = ["code", "math", "trading", "system", "web", "general"]
 
 

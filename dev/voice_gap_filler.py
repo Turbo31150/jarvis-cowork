@@ -21,8 +21,8 @@ from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
-JARVIS_DB = Path("F:/BUREAU/turbo/data/jarvis.db")
-ETOILE_DB = Path("F:/BUREAU/turbo/data/etoile.db")
+JARVIS_DB = Path("/home/turbo/data/jarvis.db")
+ETOILE_DB = Path("/home/turbo/data/etoile.db")
 DB_PATH = DEV / "data" / "voice_gaps.db"
 M1_URL = "http://127.0.0.1:1234/api/v1/chat"
 OL1_URL = "http://127.0.0.1:11434/api/chat"

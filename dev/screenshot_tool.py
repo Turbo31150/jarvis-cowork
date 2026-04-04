@@ -7,7 +7,7 @@ import subprocess
 from datetime import datetime
 import argparse
 
-SCREENSHOT_DIR = "C:/Users/franc/.openclaw/workspace/dev/screenshots"
+SCREENSHOT_DIR = "/home/turbo/.openclaw/workspace/dev/screenshots"
 
 
 def ensure_dir():

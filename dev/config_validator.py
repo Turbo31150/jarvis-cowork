@@ -56,7 +56,7 @@ def check_databases() -> Dict[str, Any]:
     """Vérifie les bases SQLite JARVIS."""
     dbs = {
         "etoile.db": Path("F:/BUREAU/etoile.db"),
-        "jarvis.db": Path("F:/BUREAU/turbo/data/jarvis.db"),
+        "jarvis.db": Path("/home/turbo/data/jarvis.db"),
         "trading_latest.db": Path("F:/BUREAU/carV1/database/trading_latest.db"),
     }
     issues = []

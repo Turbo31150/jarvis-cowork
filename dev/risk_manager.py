@@ -8,7 +8,7 @@ import urllib.request
 from datetime import datetime
 import argparse
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/risk.db"
+DB_PATH = "/home/turbo/.openclaw/workspace/dev/risk.db"
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
 
@@ -95,7 +95,7 @@ def check_trade_approval(conn, symbol, size, direction="LONG"):
         reasons.append(f"Max drawdown: {round(drawdown_pct, 1)}%")
     if size > MAX_POSITION_SIZE:
         reasons.append(f"Position too large: ${size} > ${MAX_POSITION_SIZE}")
-    portfolio_db = "C:/Users/franc/.openclaw/workspace/dev/portfolio.db"
+    portfolio_db = "/home/turbo/.openclaw/workspace/dev/portfolio.db"
     if os.path.exists(portfolio_db):
         try:
             pconn = sqlite3.connect(portfolio_db)

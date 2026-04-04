@@ -8,9 +8,9 @@ TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
 TELEGRAM_CHAT = "2010747443"
 
 LOG_SOURCES = [
-    {"name": "OpenClaw", "path": os.path.expandvars(r"%USERPROFILE%\.openclaw\agents\main\logs"), "pattern": "*.log"},
-    {"name": "Monitor", "path": "C:/Users/franc/.openclaw/workspace/dev/monitor_log.json", "type": "jsonl"},
-    {"name": "Optimizer", "path": "C:/Users/franc/.openclaw/workspace/dev/optimizer_log.json", "type": "jsonl"},
+    {"name": "OpenClaw", "path": "/home/turbo/.openclaw/agents/main/logs", "pattern": "*.log"},
+    {"name": "Monitor", "path": "/home/turbo/.openclaw/workspace/dev/monitor_log.json", "type": "jsonl"},
+    {"name": "Optimizer", "path": "/home/turbo/.openclaw/workspace/dev/optimizer_log.json", "type": "jsonl"},
 ]
 
 ERROR_PATTERNS = [

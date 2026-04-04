@@ -15,8 +15,8 @@ Usage:
 import os
 import sys
 
-sys.path.insert(0, "F:/BUREAU/turbo")
-os.chdir("F:/BUREAU/turbo")
+sys.path.insert(0, "/home/turbo")
+os.chdir("/home/turbo")
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from src.pattern_agents import PatternAgent, PatternAgentRegistry, NODES
