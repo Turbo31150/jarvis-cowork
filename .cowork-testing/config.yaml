@@ -1,0 +1,68 @@
+# Cowork-Testing Configuration
+# Configure automatique des tests unitaires et d'intégration
+
+runtime:
+  name: cowork-testing
+  workspace: /home/turbo/jarvis-cowork
+  auto_generate: true
+  
+models:
+  local:
+    model: qwen/qwen3.5-9b
+    endpoint: http://localhost:1234/v1/chat/completions
+    temperature: 0.7
+  
+  remote:
+    models:
+      - gpt-4o-mini
+      - claude-3-5-sonnet
+    fallback: true
+
+tools:
+  enabled:
+    - bash-exec
+    - sqlite-tool
+    - telegram-tool
+  
+  security:
+    bash_whitelist_only: true
+    drop_tables_blocked: true
+    delete_all_blocked: true
+
+test_suites:
+  unit:
+    coverage_target: 80
+    timeout: 30
+    
+  integration:
+    parallel: true
+    cleanup: auto
+  
+  fuzzing:
+    hypothesis_enabled: true
+    max_examples: 100
+
+performance:
+  benchmark_suite: enabled
+  baseline_file: tests/performance/baseline.json
+  
+ci:
+  github_actions: true
+  badges: true
+  coverage_tool: pytest-cov
+
+generation_rules:
+  always_include:
+    - type_hints
+    - docstrings
+    - error_handling
+    - logging
+  
+  skip_for_existing_tests:
+    - "tests/unit/core"
+    - "tests/integration/dispatcher"
+
+quality_gates:
+  coverage_minimum: 80%
+  regression_check: true
+  security_scan: true

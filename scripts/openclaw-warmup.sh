@@ -23,10 +23,14 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Gateway ready (waited ${WAITED}s)" >> "$LOG
 # Liste des agents à warm-up
 AGENTS=(
     main master sys-ops linux-admin ai-engine cluster-mgr
-    trading-engine automation monitoring ops-sre voice-engine comms
+    automation monitoring ops-sre voice-engine comms
     browser-ops linkedin-agent codeur-agent mail-agent
     cowork-codegen cowork-testing cowork-deploy cowork-docs
     cowork-monitor cowork-git cowork-refactor
+    omega-analysis-agent omega-dev-agent omega-docs-agent
+    omega-security-agent omega-system-agent omega-voice-agent
+    jarvis-cron-agent jarvis-memory-agent jarvis-network-agent
+    coordinator memory-manager code-guardian services-ops
 )
 
 OK=0
