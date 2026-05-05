@@ -5,8 +5,8 @@ from email.header import decode_header
 from datetime import datetime
 from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-DB_PATH = "C:/Users/franc/.openclaw/workspace/dev/emails.db"
-CONFIG_PATH = "C:/Users/franc/.openclaw/workspace/dev/email_config.json"
+DB_PATH = "/home/turbo/jarvis/data/emails.db"
+CONFIG_PATH = "/home/turbo/jarvis/data/email_config.json"
 
 DEFAULT_CONFIG = {
     "imap_host": "imap.gmail.com",
