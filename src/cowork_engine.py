@@ -69,6 +69,7 @@ PYTHON = sys.executable
 def _auto_migrate_db():
     """Auto-migrate cowork tables: add missing columns and tables for v12.6 compat."""
     db = sqlite3.connect(str(DB_PATH))
+    tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
     # -- cowork_script_mapping: ensure pattern_id, script_name, status columns exist
     cols = {r[1] for r in db.execute("PRAGMA table_info(cowork_script_mapping)").fetchall()}
     if "pattern_id" not in cols and "pattern" in cols:
@@ -91,8 +92,20 @@ def _auto_migrate_db():
     if "total_calls" not in cols:
         db.execute("ALTER TABLE cowork_script_mapping ADD COLUMN total_calls INTEGER DEFAULT 0")
         db.commit()
+    # -- agent_dispatch_log: ensure classified_type and latency_ms exist
+    if "agent_dispatch_log" in tables:
+        adl_cols = {r[1] for r in db.execute("PRAGMA table_info(agent_dispatch_log)").fetchall()}
+        if "classified_type" not in adl_cols:
+            db.execute("ALTER TABLE agent_dispatch_log ADD COLUMN classified_type TEXT DEFAULT ''")
+            db.commit()
+        if "latency_ms" not in adl_cols:
+            if "duration_ms" in adl_cols:
+                db.execute("ALTER TABLE agent_dispatch_log ADD COLUMN latency_ms INTEGER DEFAULT 0")
+                db.execute("UPDATE agent_dispatch_log SET latency_ms = duration_ms")
+            else:
+                db.execute("ALTER TABLE agent_dispatch_log ADD COLUMN latency_ms INTEGER DEFAULT 0")
+            db.commit()
     # -- agent_patterns table: create if missing
-    tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
     if "agent_patterns" not in tables:
         db.execute("""
             CREATE TABLE agent_patterns (
