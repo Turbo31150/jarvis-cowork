@@ -20,11 +20,11 @@ from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "feedback_loop.db"
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import ETOILE_DB
 
 # Current MAO weights
 CURRENT_WEIGHTS = {
-    "gpt-oss:120b": 1.9, "M1": 1.8, "devstral-2:123b": 1.5,
+    "M1": 1.8, "M2": 1.5,
     "M2": 1.4, "OL1": 1.3, "glm-4.7": 1.2,
     "GEMINI": 1.2, "CLAUDE": 1.2, "M3": 1.0,
 }
@@ -55,10 +55,8 @@ def collect_agent_stats():
 
     try:
         db = sqlite3.connect(str(ETOILE_DB))
-        tables = [t[0] for t in db.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
 
-        # Source 1: tool_metrics (legacy)
         if "tool_metrics" in tables:
             rows = db.execute(
                 "SELECT node, status, latency_ms FROM tool_metrics WHERE ts > ?",
@@ -71,33 +69,6 @@ def collect_agent_stats():
                 else:
                     stats[node]["fail"] += 1
                 stats[node]["total_latency"] += (r[2] or 0)
-
-        # Source 2: agent_dispatch_log
-        if "agent_dispatch_log" in tables:
-            rows = db.execute(
-                "SELECT node, success, latency_ms FROM agent_dispatch_log"
-            ).fetchall()
-            for r in rows:
-                node = r[0] or "unknown"
-                if r[1]:
-                    stats[node]["ok"] += 1
-                else:
-                    stats[node]["fail"] += 1
-                stats[node]["total_latency"] += (r[2] or 0)
-
-        # Source 3: cluster_night_work
-        if "cluster_night_work" in tables:
-            rows = db.execute(
-                "SELECT node, elapsed_s, error FROM cluster_night_work"
-            ).fetchall()
-            for r in rows:
-                node = r[0] or "unknown"
-                latency_ms = (r[1] or 0) * 1000
-                if not r[2]:  # no error = success
-                    stats[node]["ok"] += 1
-                else:
-                    stats[node]["fail"] += 1
-                stats[node]["total_latency"] += latency_ms
 
         db.close()
     except Exception:
@@ -129,8 +100,7 @@ def calculate_adjustments(stats):
         avg_latency = agent_stats["total_latency"] / total
 
         # Scoring: success_rate * 0.7 + speed_score * 0.3
-        # Normalize to 0-1 (10s = 0)
-        speed_score = max(0, 1 - (avg_latency / 10000))
+        speed_score = max(0, 1 - (avg_latency / 10000))  # Normalize to 0-1 (10s = 0)
         performance = success_rate * 0.7 + speed_score * 0.3
 
         # Calculate suggested weight (bounded regression toward performance)
@@ -169,21 +139,14 @@ def do_feedback():
     for adj in adjustments:
         db.execute(
             "INSERT INTO feedback (ts, agent, success_rate, avg_latency, total_calls, current_weight, suggested_weight) VALUES (?,?,?,?,?,?,?)",
-            (time.time(),
-             adj["agent"],
-                adj["success_rate"],
-                adj["avg_latency_ms"],
-                adj["total_calls"],
-                adj["current_weight"],
-                adj["suggested_weight"]))
+            (time.time(), adj["agent"], adj["success_rate"], adj["avg_latency_ms"],
+             adj["total_calls"], adj["current_weight"], adj["suggested_weight"])
+        )
         if abs(adj["delta"]) > 0.1:
             db.execute(
                 "INSERT INTO adjustments (ts, agent, old_weight, new_weight, reason) VALUES (?,?,?,?,?)",
-                (time.time(),
-                 adj["agent"],
-                    adj["current_weight"],
-                    adj["suggested_weight"],
-                    adj["reason"]))
+                (time.time(), adj["agent"], adj["current_weight"], adj["suggested_weight"], adj["reason"])
+            )
 
     db.commit()
     db.close()
@@ -200,19 +163,9 @@ def do_feedback():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Feedback Loop")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run full feedback loop")
-    parser.add_argument(
-        "--collect",
-        action="store_true",
-        help="Collect stats")
+    parser.add_argument("--once", "--collect", action="store_true", help="Collect and analyze")
     parser.add_argument("--analyze", action="store_true", help="Analyze stats")
-    parser.add_argument(
-        "--adjust",
-        action="store_true",
-        help="Show adjustments")
+    parser.add_argument("--adjust", action="store_true", help="Show adjustments")
     parser.add_argument("--report", action="store_true", help="Report")
     args = parser.parse_args()
 

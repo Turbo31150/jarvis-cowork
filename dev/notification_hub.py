@@ -12,7 +12,7 @@ Fonctionnalités :
 * **Priorisation** : les niveaux sont simplement conservés, mais les alertes
   critiques sont marquées comme telles dans les envois.
 * **Envoi** : chaque alerte (nouvelle) est transmise :
-  - via Telegram (bot token `TELEGRAM_TOKEN_REDACTED`, chat `2010747443`).
+  - via Telegram (bot token `{TELEGRAM_TOKEN}`, chat `2010747443`).
   - via un toast Windows en appelant le script existant ``win_notify.py`` (si présent).
 * **Mode client** (`--send level source "message"`) : ouvre une connexion TCP au
   hub (localhost :9999) et transmet le JSON.
@@ -33,14 +33,15 @@ import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
+from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 HOST = "127.0.0.1"
 PORT = 9999
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 MAX_DEDUP = 200  # keep last N hashes for deduplication
 
 # ---------------------------------------------------------------------------
@@ -49,24 +50,17 @@ MAX_DEDUP = 200  # keep last N hashes for deduplication
 recent_hashes = collections.deque(maxlen=MAX_DEDUP)
 lock = threading.Lock()
 
-
 def _hash_alert(alert: dict) -> str:
     # Combine source+message+level
-    s = f"{alert.get('source',
-                     '')}-{alert.get('level',
-                                     '')}-{alert.get('message',
-                                                     '')}"
+    s = f"{alert.get('source','')}-{alert.get('level','')}-{alert.get('message','')}"
     return hashlib.sha256(s.encode()).hexdigest()
 
 # ---------------------------------------------------------------------------
 # Envoi Telegram (reuse from other scripts)
 # ---------------------------------------------------------------------------
-
-
 def telegram_send(text: str):
     try:
-        data = urllib.parse.urlencode(
-            {"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
+        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         req = urllib.request.Request(url, data=data)
         with urllib.request.urlopen(req, timeout=10):
@@ -77,8 +71,6 @@ def telegram_send(text: str):
 # ---------------------------------------------------------------------------
 # Toast Windows via win_notify.py (if present)
 # ---------------------------------------------------------------------------
-
-
 def windows_toast(message: str):
     script = Path(__file__).with_name("win_notify.py")
     if not script.is_file():
@@ -92,8 +84,6 @@ def windows_toast(message: str):
 # ---------------------------------------------------------------------------
 # Traitement d'une alerte reçue
 # ---------------------------------------------------------------------------
-
-
 def handle_alert(alert: dict):
     # Basic validation
     level = alert.get("level", "info").lower()
@@ -121,8 +111,6 @@ def handle_alert(alert: dict):
 # ---------------------------------------------------------------------------
 # Server (thread per connection)
 # ---------------------------------------------------------------------------
-
-
 def client_thread(conn: socket.socket, addr):
     try:
         data = conn.recv(4096)
@@ -136,7 +124,6 @@ def client_thread(conn: socket.socket, addr):
     finally:
         conn.close()
 
-
 def run_server():
     print(f"[notification_hub] Démarrage du serveur sur {HOST}:{PORT}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -146,9 +133,7 @@ def run_server():
         while True:
             try:
                 conn, addr = s.accept()
-                threading.Thread(
-                    target=client_thread, args=(
-                        conn, addr), daemon=True).start()
+                threading.Thread(target=client_thread, args=(conn, addr), daemon=True).start()
             except KeyboardInterrupt:
                 print("[notification_hub] Arrêt du serveur demandé.")
                 break
@@ -159,20 +144,15 @@ def run_server():
 # ---------------------------------------------------------------------------
 # Client helper – envoie d'une alerte au hub
 # ---------------------------------------------------------------------------
-
-
 def send_alert(level: str, source: str, message: str):
-    payload = json.dumps(
-        {"level": level.lower(), "source": source, "message": message})
+    payload = json.dumps({"level": level.lower(), "source": source, "message": message})
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
             s.connect((HOST, PORT))
             s.sendall(payload.encode())
             # No response expected
         except ConnectionRefusedError:
-            print(
-                "[notification_hub] Impossible de joindre le serveur (connexion refusée).",
-                file=sys.stderr)
+            print("[notification_hub] Impossible de joindre le serveur (connexion refusée).", file=sys.stderr)
             sys.exit(1)
         except Exception as e:
             print(f"[notification_hub] Erreur d'envoi : {e}", file=sys.stderr)
@@ -181,24 +161,12 @@ def send_alert(level: str, source: str, message: str):
 # ---------------------------------------------------------------------------
 # CLI handling
 # ---------------------------------------------------------------------------
-
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Hub centralisé de notifications.")
+    parser = argparse.ArgumentParser(description="Hub centralisé de notifications.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--server",
-        action="store_true",
-        help="Lancer le serveur de réception d'alertes")
-    group.add_argument(
-        "--send",
-        nargs=3,
-        metavar=(
-            "LEVEL",
-            "SOURCE",
-            "MESSAGE"),
-        help="Envoyer une alerte au hub (client). Exemple : --send warning myscript \"Quelque chose\"")
+    group.add_argument("--server", action="store_true", help="Lancer le serveur de réception d'alertes")
+    group.add_argument("--send", nargs=3, metavar=("LEVEL", "SOURCE", "MESSAGE"),
+                       help="Envoyer une alerte au hub (client). Exemple : --send warning myscript \"Quelque chose\"")
     args = parser.parse_args()
 
     if args.server:
@@ -206,7 +174,6 @@ def main():
     else:
         level, source, message = args.send
         send_alert(level, source, message)
-
 
 if __name__ == "__main__":
     main()

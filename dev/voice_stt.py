@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """JARVIS Voice STT — speech-to-text via whisper or Windows API."""
-import argparse
-import json
-import subprocess
-import sys
-import os
-
+import argparse, json, subprocess, sys, os
 
 def stt_whisper(audio_path: str) -> str:
     try:
@@ -15,7 +10,6 @@ def stt_whisper(audio_path: str) -> str:
         return result.get("text", "")
     except ImportError:
         return ""
-
 
 def stt_windows(duration: int = 5) -> str:
     ps_script = f'''
@@ -28,22 +22,16 @@ def stt_windows(duration: int = 5) -> str:
     if ($result) {{ $result.Text }}
     '''
     try:
-        r = subprocess.run(["powershell", "-c", ps_script],
-                           capture_output=True, text=True, timeout=duration + 5)
+        r = subprocess.run(["powershell", "-c", ps_script], capture_output=True, text=True, timeout=duration+5)
         return r.stdout.strip()
     except Exception:
         return ""
 
-
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Speech-to-Text")
     parser.add_argument("--file", help="Audio file path (uses whisper)")
-    parser.add_argument(
-        "--mic",
-        action="store_true",
-        help="Use microphone (Windows Speech API)")
-    parser.add_argument("--duration", type=int, default=5,
-                        help="Mic recording duration (seconds)")
+    parser.add_argument("--mic", action="store_true", help="Use microphone (Windows Speech API)")
+    parser.add_argument("--duration", type=int, default=5, help="Mic recording duration (seconds)")
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
 
@@ -59,7 +47,6 @@ def main():
         print(f"Transcription: {text}")
     else:
         print("No speech detected or STT unavailable")
-
 
 if __name__ == "__main__":
     main()

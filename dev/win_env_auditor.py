@@ -64,8 +64,7 @@ def analyze_path():
         if not exists:
             broken.append(entry[:120])
         if normalized in seen:
-            duplicates.append(
-                {"path": entry[:120], "first_at": seen[normalized]})
+            duplicates.append({"path": entry[:120], "first_at": seen[normalized]})
         seen[normalized] = i
 
     return {
@@ -118,8 +117,7 @@ def do_audit():
     path_analysis = analyze_path()
     env_analysis = analyze_env_vars()
 
-    all_issues = path_analysis.get("broken", [])[
-        :5] + env_analysis.get("issues", [])
+    all_issues = path_analysis.get("broken", [])[:5] + env_analysis.get("issues", [])
 
     report = {
         "ts": datetime.now().isoformat(),
@@ -148,16 +146,9 @@ def do_audit():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Environment Auditor")
-    parser.add_argument(
-        "--once",
-        "--scan",
-        action="store_true",
-        help="Full audit")
+    parser.add_argument("--once", "--scan", action="store_true", help="Full audit")
     parser.add_argument("--path", action="store_true", help="PATH analysis")
-    parser.add_argument(
-        "--duplicates",
-        action="store_true",
-        help="Find duplicates")
+    parser.add_argument("--duplicates", action="store_true", help="Find duplicates")
     parser.add_argument("--fix", action="store_true", help="Fix issues")
     args = parser.parse_args()
 

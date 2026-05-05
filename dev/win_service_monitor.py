@@ -245,9 +245,7 @@ def do_auto_start():
 def do_status():
     db = init_db()
     result = {
-        "ts": datetime.now().isoformat(),
-        "script": "win_service_monitor.py",
-        "script_id": 254,
+        "ts": datetime.now().isoformat(), "script": "win_service_monitor.py", "script_id": 254,
         "db": str(DB_PATH),
         "total_scans": db.execute("SELECT COUNT(*) FROM service_scans").fetchone()[0],
         "total_actions": db.execute("SELECT COUNT(*) FROM actions").fetchone()[0],
@@ -258,28 +256,12 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="win_service_monitor.py — Service monitoring (#254)")
-    parser.add_argument(
-        "--scan",
-        action="store_true",
-        help="Full service scan")
-    parser.add_argument(
-        "--critical",
-        action="store_true",
-        help="Show critical services")
-    parser.add_argument(
-        "--stopped",
-        action="store_true",
-        help="Show stopped services")
-    parser.add_argument(
-        "--auto-start",
-        action="store_true",
-        help="Check auto-start services")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
+    parser = argparse.ArgumentParser(description="win_service_monitor.py — Service monitoring (#254)")
+    parser.add_argument("--scan", action="store_true", help="Full service scan")
+    parser.add_argument("--critical", action="store_true", help="Show critical services")
+    parser.add_argument("--stopped", action="store_true", help="Show stopped services")
+    parser.add_argument("--auto-start", action="store_true", help="Check auto-start services")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
     args = parser.parse_args()
 
     if args.scan:

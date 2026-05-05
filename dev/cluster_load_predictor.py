@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import ETOILE_DB
 DB_PATH = DEV / "data" / "load_predictor.db"
 
 
@@ -60,8 +60,7 @@ def get_historical_load():
             GROUP BY hour ORDER BY hour
         """, (time.time() - 7 * 86400,)).fetchall()
         conn.close()
-        return [{"hour": r[0], "count": r[1], "avg_latency": r[2]}
-                for r in rows]
+        return [{"hour": r[0], "count": r[1], "avg_latency": r[2]} for r in rows]
     except Exception:
         return []
 
@@ -99,7 +98,7 @@ def generate_recommendations(predictions):
         if pred["load_level"] == "high":
             recs.append({
                 "hour": pred["hour"],
-                "action": "pre-load gpt-oss:120b + qwen3-8b",
+                "action": "pre-load qwen3-8b + deepseek-r1-0528-qwen3-8b",
                 "reason": f"High load expected ({pred['predicted_requests']} requests)",
             })
         elif pred["load_level"] == "low" and pred["hour"] in range(1, 6):
@@ -115,8 +114,7 @@ def do_predict():
     """Full prediction cycle."""
     db = init_db()
     predictions = predict_load()
-    recs = generate_recommendations(
-        predictions) if isinstance(predictions, list) else []
+    recs = generate_recommendations(predictions) if isinstance(predictions, list) else []
 
     report = {
         "ts": datetime.now().isoformat(),
@@ -136,19 +134,9 @@ def do_predict():
 
 def main():
     parser = argparse.ArgumentParser(description="Cluster Load Predictor")
-    parser.add_argument(
-        "--once",
-        "--predict",
-        action="store_true",
-        help="Predict load")
-    parser.add_argument(
-        "--history",
-        action="store_true",
-        help="Historical data")
-    parser.add_argument(
-        "--alerts",
-        action="store_true",
-        help="High load alerts")
+    parser.add_argument("--once", "--predict", action="store_true", help="Predict load")
+    parser.add_argument("--history", action="store_true", help="Historical data")
+    parser.add_argument("--alerts", action="store_true", help="High load alerts")
     args = parser.parse_args()
 
     result = do_predict()

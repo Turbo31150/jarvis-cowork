@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """ia_code_generator_v2.py — Autonomous code generation from specs (#249).
 
@@ -125,13 +124,9 @@ def validate_python(code):
     warnings = []
     try:
         tree = ast.parse(code)
-        functions = [
-            n for n in ast.walk(tree) if isinstance(
-                n, ast.FunctionDef)]
+        functions = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
         classes = [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
-        imports = [
-            n for n in ast.walk(tree) if isinstance(
-                n, (ast.Import, ast.ImportFrom))]
+        imports = [n for n in ast.walk(tree) if isinstance(n, (ast.Import, ast.ImportFrom))]
 
         if not functions and not classes:
             warnings.append("No functions or classes defined")
@@ -139,14 +134,9 @@ def validate_python(code):
         code_lines = code.split("\n")
         for i, line in enumerate(code_lines):
             if "exec(" in line or "eval(" in line:
-                warnings.append(
-                    f"Line {
-                        i + 1}: Uses exec/eval (security risk)")
+                warnings.append(f"Line {i+1}: Uses exec/eval (security risk)")
             if "os.system(" in line:
-                warnings.append(
-                    f"Line {
-                        i +
-                        1}: Uses os.system (prefer subprocess)")
+                warnings.append(f"Line {i+1}: Uses os.system (prefer subprocess)")
 
         return True, errors, warnings, {
             "functions": len(functions),
@@ -182,12 +172,7 @@ def do_generate(spec):
     if not code:
         db.execute(
             "INSERT INTO generations (ts, spec, error, latency_ms) VALUES (?,?,?,?)",
-            (now.isoformat(),
-             spec,
-             "no_code_extracted",
-             round(
-                latency,
-                1)),
+            (now.isoformat(), spec, "no_code_extracted", round(latency, 1)),
         )
         db.commit()
         db.close()
@@ -204,25 +189,13 @@ def do_generate(spec):
 
     gen_id = db.execute(
         "INSERT INTO generations (ts, spec, code, valid, filename, model, latency_ms, error) VALUES (?,?,?,?,?,?,?,?)",
-        (now.isoformat(),
-         spec,
-         code,
-         int(valid),
-         filename,
-         "qwen3-8b",
-         round(
-            latency,
-            1),
-            "; ".join(errors) if errors else None),
+        (now.isoformat(), spec, code, int(valid), filename, "qwen3-8b",
+         round(latency, 1), "; ".join(errors) if errors else None),
     ).lastrowid
 
     db.execute(
         "INSERT INTO validations (ts, generation_id, valid, errors, warnings) VALUES (?,?,?,?,?)",
-        (now.isoformat(),
-         gen_id,
-         int(valid),
-         json.dumps(errors),
-         json.dumps(warnings)),
+        (now.isoformat(), gen_id, int(valid), json.dumps(errors), json.dumps(warnings)),
     )
     db.commit()
 
@@ -247,21 +220,15 @@ def do_validate():
 
     if not row:
         db.close()
-        return {"ts": datetime.now().isoformat(), "action": "validate",
-                "message": "No unvalidated generations"}
+        return {"ts": datetime.now().isoformat(), "action": "validate", "message": "No unvalidated generations"}
 
     gen_id, code, filename = row
     valid, errors, warnings, stats = validate_python(code)
 
-    db.execute("UPDATE generations SET valid=? WHERE id=?",
-               (int(valid), gen_id))
+    db.execute("UPDATE generations SET valid=? WHERE id=?", (int(valid), gen_id))
     db.execute(
         "INSERT INTO validations (ts, generation_id, valid, errors, warnings) VALUES (?,?,?,?,?)",
-        (datetime.now().isoformat(),
-         gen_id,
-         int(valid),
-         json.dumps(errors),
-         json.dumps(warnings)),
+        (datetime.now().isoformat(), gen_id, int(valid), json.dumps(errors), json.dumps(warnings)),
     )
     db.commit()
 
@@ -283,10 +250,7 @@ def do_deploy():
 
     if not row:
         db.close()
-        return {
-            "ts": datetime.now().isoformat(),
-            "action": "deploy",
-            "message": "No valid undeployed generations"}
+        return {"ts": datetime.now().isoformat(), "action": "deploy", "message": "No valid undeployed generations"}
 
     gen_id, code, filename = row
     filepath = OUTPUT_DIR / filename
@@ -318,10 +282,8 @@ def do_history():
     ).fetchall()
 
     total = db.execute("SELECT COUNT(*) FROM generations").fetchone()[0]
-    valid_count = db.execute(
-        "SELECT COUNT(*) FROM generations WHERE valid=1").fetchone()[0]
-    deployed_count = db.execute(
-        "SELECT COUNT(*) FROM generations WHERE deployed=1").fetchone()[0]
+    valid_count = db.execute("SELECT COUNT(*) FROM generations WHERE valid=1").fetchone()[0]
+    deployed_count = db.execute("SELECT COUNT(*) FROM generations WHERE deployed=1").fetchone()[0]
 
     result = {
         "ts": datetime.now().isoformat(), "action": "history",
@@ -355,29 +317,12 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="ia_code_generator_v2.py — Autonomous code generation (#249)")
-    parser.add_argument(
-        "--generate",
-        type=str,
-        metavar="SPEC",
-        help="Generate code from specification")
-    parser.add_argument(
-        "--validate",
-        action="store_true",
-        help="Validate latest generation")
-    parser.add_argument(
-        "--deploy",
-        action="store_true",
-        help="Deploy latest valid generation")
-    parser.add_argument(
-        "--history",
-        action="store_true",
-        help="Show generation history")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
+    parser = argparse.ArgumentParser(description="ia_code_generator_v2.py — Autonomous code generation (#249)")
+    parser.add_argument("--generate", type=str, metavar="SPEC", help="Generate code from specification")
+    parser.add_argument("--validate", action="store_true", help="Validate latest generation")
+    parser.add_argument("--deploy", action="store_true", help="Deploy latest valid generation")
+    parser.add_argument("--history", action="store_true", help="Show generation history")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
     args = parser.parse_args()
 
     if args.generate:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Auto-test: run pytest on JARVIS tests and parse results."""
+from _paths import TURBO_DIR
 import argparse
 import json
 import re
@@ -7,7 +8,7 @@ import subprocess
 import time
 import sys
 
-TESTS_DIR = "/home/turbo/jarvis-linux/tests"
+TESTS_DIR = str(TURBO_DIR / "tests")
 
 
 def run_pytest(tests_dir: str, extra_args: list = None) -> dict:
@@ -17,7 +18,7 @@ def run_pytest(tests_dir: str, extra_args: list = None) -> dict:
     try:
         result = subprocess.run(
             cmd, capture_output=True, text=True, timeout=300,
-            cwd="/home/turbo/jarvis-linux"
+            cwd=str(TURBO_DIR)
         )
         return {
             "returncode": result.returncode,
@@ -25,22 +26,13 @@ def run_pytest(tests_dir: str, extra_args: list = None) -> dict:
             "stderr": result.stderr,
         }
     except subprocess.TimeoutExpired:
-        return {
-            "returncode": -1,
-            "stdout": "",
-            "stderr": "pytest timeout (300s)"}
+        return {"returncode": -1, "stdout": "", "stderr": "pytest timeout (300s)"}
     except FileNotFoundError:
-        return {"returncode": -1, "stdout": "",
-                "stderr": "python/pytest not found"}
+        return {"returncode": -1, "stdout": "", "stderr": "python/pytest not found"}
 
 
 def parse_summary(stdout: str) -> dict:
-    counts = {
-        "passed": 0,
-        "failed": 0,
-        "skipped": 0,
-        "errors": 0,
-        "warnings": 0}
+    counts = {"passed": 0, "failed": 0, "skipped": 0, "errors": 0, "warnings": 0}
     m = re.search(r"(\d+) passed", stdout)
     if m:
         counts["passed"] = int(m.group(1))
@@ -79,20 +71,9 @@ def test_cycle(extra_args: list = None) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Auto-test JARVIS")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=600,
-        help="Loop interval (sec)")
-    parser.add_argument(
-        "--marker",
-        type=str,
-        default=None,
-        help="Pytest marker (-m)")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
+    parser.add_argument("--interval", type=int, default=600, help="Loop interval (sec)")
+    parser.add_argument("--marker", type=str, default=None, help="Pytest marker (-m)")
     args = parser.parse_args()
     extra = ["-m", args.marker] if args.marker else None
 

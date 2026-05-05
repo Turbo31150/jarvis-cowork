@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 Cluster Strategy Worker — Dispatche du travail aux modeles locaux en continu.
@@ -7,7 +6,7 @@ Taches:
 1. M1 (qwen3-8b): Genere de nouvelles strategies a injecter dans l'evolution
 2. M2 (qwen3-8b): Analyse les resultats et detecte l'overfitting
 3. M3 (qwen3-8b): Propose des nouveaux indicateurs et features
-4. OL1 (qwen2.5:1.5b): Analyse rapide des coins
+4. OL1 (qwen3:1.7b): Analyse rapide des coins
 
 Boucle toutes les 10 minutes. Injecte les resultats dans evolution_db.
 
@@ -16,13 +15,7 @@ Usage:
     python cowork/dev/cluster_strategy_worker.py --once    # Une seule passe
 """
 
-import json
-import os
-import sqlite3
-import sys
-import time
-import urllib.request
-import urllib.parse
+import json, os, sqlite3, sys, time, urllib.request, urllib.parse
 from datetime import datetime
 from pathlib import Path
 
@@ -31,30 +24,14 @@ DATA_DIR = TURBO_ROOT / "data"
 EVOLUTION_DB = DATA_DIR / "strategy_evolution.db"
 
 NODES = {
-    "M1": {
-        "url": "http://127.0.0.1:1234/api/v1/chat",
-        "model": "qwen3-8b",
-        "prefix": "/nothink\n",
-        "timeout": 30,
-        "extract": "lmstudio"},
-    "M2": {
-        "url": "http://192.168.1.26:1234/api/v1/chat",
-        "model": "deepseek/qwen/qwen3-8b",
-        "prefix": "",
-        "timeout": 120,
-        "extract": "lmstudio"},
-    "M3": {
-        "url": "http://192.168.1.113:1234/api/v1/chat",
-        "model": "deepseek/qwen/qwen3-8b",
-        "prefix": "",
-        "timeout": 120,
-        "extract": "lmstudio"},
-    "OL1": {
-        "url": "http://127.0.0.1:11434/api/chat",
-        "model": "qwen2.5:1.5b",
-        "prefix": "/nothink\n",
-        "timeout": 30,
-        "extract": "ollama"},
+    "M1": {"url": "http://127.0.0.1:1234/api/v1/chat", "model": "qwen3-8b",
+            "prefix": "/nothink\n", "timeout": 30, "extract": "lmstudio"},
+    "M2": {"url": "http://192.168.1.26:1234/api/v1/chat", "model": "deepseek/qwen/qwen3-8b",
+            "prefix": "", "timeout": 120, "extract": "lmstudio"},
+    "M3": {"url": "http://192.168.1.113:1234/api/v1/chat", "model": "deepseek/qwen/qwen3-8b",
+            "prefix": "", "timeout": 120, "extract": "lmstudio"},
+    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b",
+             "prefix": "/nothink\n", "timeout": 30, "extract": "ollama"},
 }
 
 
@@ -69,9 +46,7 @@ def query_lmstudio(node, prompt):
         "store": False
     }).encode()
     try:
-        req = urllib.request.Request(
-            cfg["url"], body, {
-                "Content-Type": "application/json"})
+        req = urllib.request.Request(cfg["url"], body, {"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=cfg["timeout"]) as resp:
             d = json.loads(resp.read())
         for o in d.get("output", []):
@@ -90,9 +65,7 @@ def query_ollama(node, prompt):
         "stream": False
     }).encode()
     try:
-        req = urllib.request.Request(
-            cfg["url"], body, {
-                "Content-Type": "application/json"})
+        req = urllib.request.Request(cfg["url"], body, {"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=cfg["timeout"]) as resp:
             d = json.loads(resp.read())
         return d.get("message", {}).get("content")
@@ -112,46 +85,30 @@ def get_evolution_summary():
         return "Pas de donnees evolution"
     db = sqlite3.connect(str(EVOLUTION_DB), timeout=10)
     db.row_factory = sqlite3.Row
-    last = db.execute(
-        "SELECT * FROM generations ORDER BY id DESC LIMIT 1").fetchone()
-    top5 = db.execute(
-        "SELECT * FROM strategies ORDER BY fitness DESC LIMIT 5").fetchall()
+    last = db.execute("SELECT * FROM generations ORDER BY id DESC LIMIT 1").fetchone()
+    top5 = db.execute("SELECT * FROM strategies ORDER BY fitness DESC LIMIT 5").fetchall()
     db.close()
     if not last:
         return "Aucune generation"
-    lines = [
-        f"Gen {
-            last['generation']}: pop={
-            last['pop_size']} coins={
-                last['coins_tested']} " f"avg_fit={
-                    last['avg_fitness']:.4f} best_fit={
-                        last['best_fitness']:.4f}"]
+    lines = [f"Gen {last['generation']}: pop={last['pop_size']} coins={last['coins_tested']} "
+             f"avg_fit={last['avg_fitness']:.4f} best_fit={last['best_fitness']:.4f}"]
     for s in top5:
         dna = json.loads(s["dna"])
-        lines.append(
-            f"  {
-                s['name']}: Fit={
-                s['fitness']:.4f} WR={
-                s['avg_wr']:.1f}% " f"PnL={
-                    s['avg_pnl']:+.3f}% EMA {
-                        dna.get('ema_s')}/{
-                            dna.get('ema_l')} " f"TP={
-                                dna.get('tp')} SL={
-                                    dna.get('sl')}")
+        lines.append(f"  {s['name']}: Fit={s['fitness']:.4f} WR={s['avg_wr']:.1f}% "
+                     f"PnL={s['avg_pnl']:+.3f}% EMA {dna.get('ema_s')}/{dna.get('ema_l')} "
+                     f"TP={dna.get('tp')} SL={dna.get('sl')}")
     return "\n".join(lines)
 
 
 def inject_strategies(strategies_json):
     """Parse JSON strategies from M1 and inject into evolution DB."""
     try:
-        data = json.loads(strategies_json) if isinstance(
-            strategies_json, str) else strategies_json
+        data = json.loads(strategies_json) if isinstance(strategies_json, str) else strategies_json
         strats = data if isinstance(data, list) else data.get("strategies", [])
         if not strats:
             return 0
         db = sqlite3.connect(str(EVOLUTION_DB), timeout=10)
-        last_gen = db.execute(
-            "SELECT MAX(generation) FROM generations").fetchone()[0] or 0
+        last_gen = db.execute("SELECT MAX(generation) FROM generations").fetchone()[0] or 0
         count = 0
         for s in strats[:20]:  # Max 20 injections
             dna = {
@@ -171,25 +128,12 @@ def inject_strategies(strategies_json):
                 "short_only": "short" in str(s.get("features", [])).lower(),
                 "trailing": False,
             }
-            db.execute(
-                """INSERT INTO strategies
+            db.execute("""INSERT INTO strategies
                 (gen_born, gen_last_seen, name, dna, fitness, total_evals,
                  avg_wr, avg_pnl, best_coin, best_pnl_coin, alive, lineage)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (last_gen,
-                 last_gen,
-                 s.get(
-                     "name",
-                     f"INJECTED_{count}"),
-                    json.dumps(dna),
-                    0,
-                    0,
-                    0,
-                    0,
-                    "",
-                    0,
-                    1,
-                    "CLUSTER_INJECT"))
+                (last_gen, last_gen, s.get("name", f"INJECTED_{count}"),
+                 json.dumps(dna), 0, 0, 0, 0, "", 0, 1, "CLUSTER_INJECT"))
             count += 1
         db.commit()
         db.close()
@@ -272,11 +216,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Cluster Strategy Worker")
     parser.add_argument("--once", action="store_true", help="Single cycle")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=10,
-        help="Minutes between cycles")
+    parser.add_argument("--interval", type=int, default=10, help="Minutes between cycles")
     args = parser.parse_args()
 
     print("=" * 60)

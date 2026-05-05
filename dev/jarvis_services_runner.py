@@ -86,35 +86,11 @@ def classify_service(filename: str) -> str:
         return _STEM_TO_CATEGORY[stem]
     # Heuristic fallback based on keywords
     name_lower = stem.lower()
-    if any(
-        kw in name_lower for kw in (
-            "state",
-            "dialog",
-            "intent",
-            "router",
-            "event",
-            "message")):
+    if any(kw in name_lower for kw in ("state", "dialog", "intent", "router", "event", "message")):
         return "core"
-    if any(
-        kw in name_lower for kw in (
-            "profiler",
-            "log",
-            "health",
-            "dashboard",
-            "map",
-            "analytics",
-            "monitor",
-            "tracker")):
+    if any(kw in name_lower for kw in ("profiler", "log", "health", "dashboard", "map", "analytics", "monitor", "tracker")):
         return "analytics"
-    if any(
-        kw in name_lower for kw in (
-            "audit",
-            "config",
-            "cron",
-            "test",
-            "validator",
-            "scanner",
-            "checker")):
+    if any(kw in name_lower for kw in ("audit", "config", "cron", "test", "validator", "scanner", "checker")):
         return "tools"
     return "creative"
 
@@ -173,8 +149,7 @@ def run_service(script: Path, timeout: int = 120) -> dict:
         result["duration_ms"] = elapsed
         result["output"] = (proc.stdout or "")[-500:].strip()
         result["error"] = (proc.stderr or "")[-500:].strip()
-        result["status"] = "ok" if proc.returncode == 0 else f"exit({
-            proc.returncode})"
+        result["status"] = "ok" if proc.returncode == 0 else f"exit({proc.returncode})"
     except subprocess.TimeoutExpired:
         result["duration_ms"] = timeout * 1000
         result["status"] = "TIMEOUT"
@@ -223,8 +198,7 @@ def run_all(
     completed = 0
     wall_start = time.time()
 
-    print(
-        f"\n  JARVIS Services Runner: {total} scripts, {parallel} parallel, {timeout}s timeout\n")
+    print(f"\n  JARVIS Services Runner: {total} scripts, {parallel} parallel, {timeout}s timeout\n")
 
     with ThreadPoolExecutor(max_workers=parallel) as pool:
         futures = {
@@ -266,8 +240,7 @@ def print_list(registry: list[dict]) -> None:
         by_cat[entry["category"]].append(entry)
 
     print(f"\n  JARVIS Services — {len(registry)} scripts discovered")
-    print(
-        f"  Excluded (orchestrator-managed): {', '.join(sorted(ORCHESTRATOR_MANAGED))}\n")
+    print(f"  Excluded (orchestrator-managed): {', '.join(sorted(ORCHESTRATOR_MANAGED))}\n")
     print(f"  {'Category':<18} {'Count':>5}   Scripts")
     print(f"  {'-' * 18} {'-' * 5}   {'-' * 55}")
 
@@ -287,8 +260,7 @@ def print_summary(results: list[dict], as_json: bool = False) -> None:
     ok = sum(1 for r in results if r["success"])
     failed = sum(1 for r in results if not r["success"])
     timeouts = sum(1 for r in results if r["status"] == "TIMEOUT")
-    avg_ms = int(sum(r["duration_ms"]
-                 for r in results) / total) if total else 0
+    avg_ms = int(sum(r["duration_ms"] for r in results) / total) if total else 0
 
     if as_json:
         summary = {
@@ -302,8 +274,7 @@ def print_summary(results: list[dict], as_json: bool = False) -> None:
             "categories": {},
             "results": results,
         }
-        by_cat: dict[str, dict] = defaultdict(
-            lambda: {"ok": 0, "fail": 0, "total": 0, "ms": 0})
+        by_cat: dict[str, dict] = defaultdict(lambda: {"ok": 0, "fail": 0, "total": 0, "ms": 0})
         for r in results:
             c = r.get("category", "uncategorized")
             by_cat[c]["total"] += 1
@@ -314,8 +285,7 @@ def print_summary(results: list[dict], as_json: bool = False) -> None:
         return
 
     max_ms = max((r["duration_ms"] for r in results), default=0)
-    min_ms = min((r["duration_ms"]
-                 for r in results if r["duration_ms"] > 0), default=0)
+    min_ms = min((r["duration_ms"] for r in results if r["duration_ms"] > 0), default=0)
 
     print("\n" + "=" * 76)
     print("  JARVIS SERVICES — EXECUTION SUMMARY")
@@ -329,42 +299,28 @@ def print_summary(results: list[dict], as_json: bool = False) -> None:
     print(f"  Min/Max   : {min_ms}ms / {max_ms}ms")
 
     # Per-category breakdown
-    by_cat2: dict[str, dict] = defaultdict(
-        lambda: {"ok": 0, "fail": 0, "total": 0, "ms": 0})
+    by_cat2: dict[str, dict] = defaultdict(lambda: {"ok": 0, "fail": 0, "total": 0, "ms": 0})
     for r in results:
         c = r.get("category", "uncategorized")
         by_cat2[c]["total"] += 1
         by_cat2[c]["ms"] += r["duration_ms"]
         by_cat2[c]["ok" if r["success"] else "fail"] += 1
 
-    print(
-        f"\n  {
-            'Category':<18} {
-            'OK':>4} {
-                'Fail':>5} {
-                    'Total':>6} {
-                        'Avg ms':>8}")
+    print(f"\n  {'Category':<18} {'OK':>4} {'Fail':>5} {'Total':>6} {'Avg ms':>8}")
     print(f"  {'-' * 18} {'-' * 4} {'-' * 5} {'-' * 6} {'-' * 8}")
     for cat in ("core", "analytics", "tools", "creative", "uncategorized"):
         if cat not in by_cat2:
             continue
         s = by_cat2[cat]
         avg = s["ms"] // s["total"] if s["total"] else 0
-        print(
-            f"  {
-                cat:<18} {
-                s['ok']:>4} {
-                s['fail']:>5} {
-                    s['total']:>6} {
-                        avg:>8}")
+        print(f"  {cat:<18} {s['ok']:>4} {s['fail']:>5} {s['total']:>6} {avg:>8}")
 
     # List failures
     failures = [r for r in results if not r["success"]]
     if failures:
         print(f"\n  FAILURES ({len(failures)}):")
         for r in failures:
-            err_line = (r["error"] or r["output"]
-                        or "no output").split("\n")[-1][:80]
+            err_line = (r["error"] or r["output"] or "no output").split("\n")[-1][:80]
             print(f"    - {r['script']:<45} [{r['status']}] {err_line}")
 
     print("=" * 76 + "\n")

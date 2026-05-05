@@ -54,12 +54,7 @@ def scan_directory(root, max_depth=4):
             continue
 
         # Skip system directories
-        skip = [
-            "$Recycle.Bin",
-            "System Volume Information",
-            "Windows",
-            "node_modules",
-            ".git"]
+        skip = ["$Recycle.Bin", "System Volume Information", "Windows", "node_modules", ".git"]
         dirnames[:] = [d for d in dirnames if d not in skip]
 
         for f in filenames:
@@ -67,8 +62,7 @@ def scan_directory(root, max_depth=4):
                 fp = os.path.join(dirpath, f)
                 size = os.path.getsize(fp)
                 total_size += size
-                files.append({"path": fp, "size": size,
-                             "ext": os.path.splitext(f)[1].lower()})
+                files.append({"path": fp, "size": size, "ext": os.path.splitext(f)[1].lower()})
             except (OSError, PermissionError):
                 pass
 
@@ -129,13 +123,8 @@ def treemap(files, top_n=20):
             top_dir = os.sep.join(parts[:3])
             dir_sizes[top_dir] += f["size"]
 
-    sorted_dirs = sorted(
-        dir_sizes.items(),
-        key=lambda x: x[1],
-        reverse=True)[
-        :top_n]
-    return [{"dir": d, "size_gb": round(
-        s / 1024 / 1024 / 1024, 2)} for d, s in sorted_dirs]
+    sorted_dirs = sorted(dir_sizes.items(), key=lambda x: x[1], reverse=True)[:top_n]
+    return [{"dir": d, "size_gb": round(s / 1024 / 1024 / 1024, 2)} for d, s in sorted_dirs]
 
 
 def do_scan(drive="C:"):
@@ -181,12 +170,8 @@ def do_scan(drive="C:"):
 
     db.execute(
         "INSERT INTO scans (ts, drive, total_files, total_size_gb, large_files, duplicates) VALUES (?,?,?,?,?,?)",
-        (time.time(),
-         drive,
-         len(files),
-         report["total_size_gb"],
-         len(large),
-         len(dupes)))
+        (time.time(), drive, len(files), report["total_size_gb"], len(large), len(dupes))
+    )
     db.commit()
     db.close()
     return report
@@ -196,34 +181,22 @@ def main():
     parser = argparse.ArgumentParser(description="Windows Disk Analyzer")
     parser.add_argument("--once", action="store_true", help="Quick scan")
     parser.add_argument("--scan", metavar="DRIVE", help="Scan drive")
-    parser.add_argument(
-        "--large",
-        action="store_true",
-        help="Show large files")
-    parser.add_argument(
-        "--duplicates",
-        action="store_true",
-        help="Find duplicates")
-    parser.add_argument(
-        "--treemap",
-        action="store_true",
-        help="Directory treemap")
+    parser.add_argument("--large", action="store_true", help="Show large files")
+    parser.add_argument("--duplicates", action="store_true", help="Find duplicates")
+    parser.add_argument("--treemap", action="store_true", help="Directory treemap")
     args = parser.parse_args()
 
     drive = args.scan or "C:"
     if args.large:
         db = init_db()
-        rows = db.execute(
-            "SELECT filepath, size_mb FROM large_files ORDER BY size_mb DESC LIMIT 20").fetchall()
+        rows = db.execute("SELECT filepath, size_mb FROM large_files ORDER BY size_mb DESC LIMIT 20").fetchall()
         db.close()
         print(json.dumps([{"path": r[0], "mb": r[1]} for r in rows], indent=2))
     elif args.duplicates:
         db = init_db()
-        rows = db.execute(
-            "SELECT hash, filepath1, filepath2, size_mb FROM duplicates ORDER BY size_mb DESC LIMIT 20").fetchall()
+        rows = db.execute("SELECT hash, filepath1, filepath2, size_mb FROM duplicates ORDER BY size_mb DESC LIMIT 20").fetchall()
         db.close()
-        print(json.dumps(
-            [{"hash": r[0], "f1": r[1], "f2": r[2], "mb": r[3]} for r in rows], indent=2))
+        print(json.dumps([{"hash": r[0], "f1": r[1], "f2": r[2], "mb": r[3]} for r in rows], indent=2))
     else:
         result = do_scan(drive)
         print(json.dumps(result, ensure_ascii=False, indent=2))

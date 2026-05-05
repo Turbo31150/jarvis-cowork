@@ -13,9 +13,7 @@ THRESHOLDS = {"high_load": 0.8, "low_load": 0.2, "queue_warn": 10}
 
 def fetch_nodes(timeout: float = 10.0) -> dict:
     try:
-        req = urllib.request.Request(
-            NODES_URL, headers={
-                "Accept": "application/json"})
+        req = urllib.request.Request(NODES_URL, headers={"Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode())
     except (urllib.error.URLError, OSError, json.JSONDecodeError) as e:
@@ -41,16 +39,11 @@ def analyze_nodes(data: dict) -> dict:
 
         if isinstance(load, (int, float)):
             if load > THRESHOLDS["high_load"]:
-                suggestions.append(
-                    f"{name}: HIGH load ({
-                        load:.0%}) - consider offloading")
+                suggestions.append(f"{name}: HIGH load ({load:.0%}) - consider offloading")
             elif load < THRESHOLDS["low_load"] and status == "online":
-                suggestions.append(
-                    f"{name}: LOW load ({
-                        load:.0%}) - candidate for unload")
+                suggestions.append(f"{name}: LOW load ({load:.0%}) - candidate for unload")
         if isinstance(queue, int) and queue > THRESHOLDS["queue_warn"]:
-            suggestions.append(
-                f"{name}: queue={queue} - needs more parallel slots")
+            suggestions.append(f"{name}: queue={queue} - needs more parallel slots")
 
     return {
         "node_count": len(nodes_status),
@@ -70,15 +63,8 @@ def scale_cycle() -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Auto-scale JARVIS nodes")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=120,
-        help="Loop interval (sec)")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
+    parser.add_argument("--interval", type=int, default=120, help="Loop interval (sec)")
     args = parser.parse_args()
 
     while True:

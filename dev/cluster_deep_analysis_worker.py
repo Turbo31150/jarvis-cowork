@@ -12,12 +12,7 @@ Taches distribuees:
 Boucle toutes les 3 minutes. Resultats dans cluster_analysis.db.
 """
 
-import json
-import os
-import sqlite3
-import sys
-import time
-import urllib.request
+import json, os, sqlite3, sys, time, urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -27,30 +22,14 @@ EVOLUTION_DB = DATA_DIR / "strategy_evolution.db"
 ANALYSIS_DB = DATA_DIR / "cluster_analysis.db"
 
 NODES = {
-    "M1": {
-        "url": "http://127.0.0.1:1234/api/v1/chat",
-        "model": "qwen3-8b",
-        "prefix": "/nothink\n",
-        "timeout": 60,
-        "extract": "lmstudio"},
-    "M2": {
-        "url": "http://192.168.1.26:1234/api/v1/chat",
-        "model": "deepseek/qwen/qwen3-8b",
-        "prefix": "",
-        "timeout": 180,
-        "extract": "lmstudio"},
-    "M3": {
-        "url": "http://192.168.1.113:1234/api/v1/chat",
-        "model": "deepseek/qwen/qwen3-8b",
-        "prefix": "",
-        "timeout": 180,
-        "extract": "lmstudio"},
-    "OL1": {
-        "url": "http://127.0.0.1:11434/api/chat",
-        "model": "qwen2.5:1.5b",
-        "prefix": "/nothink\n",
-        "timeout": 60,
-        "extract": "ollama"},
+    "M1": {"url": "http://127.0.0.1:1234/api/v1/chat", "model": "qwen3-8b",
+            "prefix": "/nothink\n", "timeout": 60, "extract": "lmstudio"},
+    "M2": {"url": "http://192.168.1.26:1234/api/v1/chat", "model": "deepseek/qwen/qwen3-8b",
+            "prefix": "", "timeout": 180, "extract": "lmstudio"},
+    "M3": {"url": "http://192.168.1.113:1234/api/v1/chat", "model": "deepseek/qwen/qwen3-8b",
+            "prefix": "", "timeout": 180, "extract": "lmstudio"},
+    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b",
+             "prefix": "/nothink\n", "timeout": 60, "extract": "ollama"},
 }
 
 
@@ -91,9 +70,7 @@ def query_node(node, prompt):
 
     t0 = time.time()
     try:
-        req = urllib.request.Request(
-            cfg["url"], body, {
-                "Content-Type": "application/json"})
+        req = urllib.request.Request(cfg["url"], body, {"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=cfg["timeout"]) as resp:
             d = json.loads(resp.read())
         elapsed = time.time() - t0
@@ -120,17 +97,11 @@ def get_evo_data():
     db = sqlite3.connect(str(EVOLUTION_DB), timeout=10)
 
     # Last gen info
-    last = db.execute(
-        "SELECT generation, pop_size, avg_fitness, best_fitness FROM generations ORDER BY id DESC LIMIT 1").fetchone()
-    gen_info = {
-        "gen": last[0],
-        "pop": last[1],
-        "avg_fit": last[2],
-        "best_fit": last[3]} if last else {}
+    last = db.execute("SELECT generation, pop_size, avg_fitness, best_fitness FROM generations ORDER BY id DESC LIMIT 1").fetchone()
+    gen_info = {"gen": last[0], "pop": last[1], "avg_fit": last[2], "best_fit": last[3]} if last else {}
 
     # Top 20 strategies
-    top = db.execute(
-        "SELECT name, fitness, avg_wr, avg_pnl, dna, total_evals FROM strategies ORDER BY fitness DESC LIMIT 20").fetchall()
+    top = db.execute("SELECT name, fitness, avg_wr, avg_pnl, dna, total_evals FROM strategies ORDER BY fitness DESC LIMIT 20").fetchall()
     strategies = []
     for s in top:
         dna = json.loads(s[4]) if isinstance(s[4], str) else {}
@@ -143,10 +114,8 @@ def get_evo_data():
         })
 
     # Fitness progression
-    gens = db.execute(
-        "SELECT generation, avg_fitness, best_fitness FROM generations ORDER BY id DESC LIMIT 10").fetchall()
-    gen_info["progression"] = [
-        {"gen": g[0], "avg": g[1], "best": g[2]} for g in reversed(gens)]
+    gens = db.execute("SELECT generation, avg_fitness, best_fitness FROM generations ORDER BY id DESC LIMIT 10").fetchall()
+    gen_info["progression"] = [{"gen": g[0], "avg": g[1], "best": g[2]} for g in reversed(gens)]
 
     db.close()
     return gen_info, strategies
@@ -219,17 +188,9 @@ def task_parameter_optimization(cycle, db):
 
     top5 = strategies[:5]
     strat_str = "\n".join(
-        f"  {
-            s['name']}: Fit={
-            s['fitness']:.4f} WR={
-                s['wr']:.1f}% PnL={
-                    s['pnl']:+.3f}% " f"EMA={
-                        s['ema_s']}/{
-                            s['ema_l']} RSI={
-                                s['rsi_len']} TP={
-                                    s['tp']} SL={
-                                        s['sl']} feats={
-                                            s['features']}" for s in top5)
+        f"  {s['name']}: Fit={s['fitness']:.4f} WR={s['wr']:.1f}% PnL={s['pnl']:+.3f}% "
+        f"EMA={s['ema_s']}/{s['ema_l']} RSI={s['rsi_len']} TP={s['tp']} SL={s['sl']} feats={s['features']}"
+        for s in top5)
 
     prompt = (f"Voici les 5 meilleures strategies de trading (Gen {gen_info.get('gen', '?')}):\n{strat_str}\n\n"
               f"Analyse les parametres communs et divergents. "
@@ -261,11 +222,7 @@ def task_anomaly_detection(cycle, db):
         return
 
     prog = gen_info["progression"]
-    prog_str = "\n".join(
-        f"  Gen {
-            p['gen']}: avg_fit={
-            p['avg']:.4f} best_fit={
-                p['best']:.4f}" for p in prog)
+    prog_str = "\n".join(f"  Gen {p['gen']}: avg_fit={p['avg']:.4f} best_fit={p['best']:.4f}" for p in prog)
 
     prompt = (f"Voici la progression de l'evolution de strategies trading:\n{prog_str}\n\n"
               f"Population: {gen_info.get('pop', '?')} strategies.\n"
@@ -292,8 +249,7 @@ def task_correlation_scan(cycle, db):
     if not market:
         return
 
-    coins_str = ", ".join(
-        f"{m['symbol'].replace('_USDT', '')}({m['change']:+.2f}%)" for m in market[:10])
+    coins_str = ", ".join(f"{m['symbol'].replace('_USDT','')}({m['change']:+.2f}%)" for m in market[:10])
 
     prompt = (f"Crypto maintenant: {coins_str}\n"
               f"Quels coins bougent ensemble (correles)? Quels coins divergent?\n"
@@ -324,11 +280,7 @@ def task_consensus_params(cycle, db):
             if s.get(k) is not None:
                 params[k].append(s[k])
 
-    param_str = "\n".join(
-        f"  {k}: {
-            sorted(
-                set(v))}" for k,
-        v in params.items() if v)
+    param_str = "\n".join(f"  {k}: {sorted(set(v))}" for k, v in params.items() if v)
 
     prompt = (f"Voici les parametres des 10 meilleures strategies trading:\n{param_str}\n\n"
               f"Donne les parametres OPTIMAUX en 1 ligne JSON:\n"
@@ -349,7 +301,8 @@ def task_consensus_params(cycle, db):
         print(f"OK ({len(results)} responses)")
         combined = "\n".join(f"[{n}]: {r[:150]}" for n, r in results)
         db.execute("INSERT INTO analyses (timestamp, cycle, task_type, node, prompt_summary, response, quality_score, duration_s) VALUES (?,?,?,?,?,?,?,?)",
-                   (datetime.now().isoformat(), cycle, "consensus_params", "M1+OL1", "optimal param consensus", combined[:500], 0.9, max(d1, d2)))
+                   (datetime.now().isoformat(), cycle, "consensus_params", "M1+OL1", "optimal param consensus",
+                    combined[:500], 0.9, max(d1, d2)))
         for node, r in results:
             print(f"    [{node}]: {r.strip()[:100]}")
     else:
@@ -374,8 +327,7 @@ def run_cycle(cycle):
     # Stats
     total = db.execute("SELECT COUNT(*) FROM analyses").fetchone()[0]
     regimes = db.execute("SELECT COUNT(*) FROM market_regimes").fetchone()[0]
-    insights = db.execute(
-        "SELECT COUNT(*) FROM parameter_insights").fetchone()[0]
+    insights = db.execute("SELECT COUNT(*) FROM parameter_insights").fetchone()[0]
     print(f"  DB: {total} analyses, {regimes} regimes, {insights} insights")
 
     db.close()
@@ -384,14 +336,9 @@ def run_cycle(cycle):
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(
-        description="Cluster Deep Analysis Worker")
+    parser = argparse.ArgumentParser(description="Cluster Deep Analysis Worker")
     parser.add_argument("--once", action="store_true")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=3,
-        help="Minutes between cycles")
+    parser.add_argument("--interval", type=int, default=3, help="Minutes between cycles")
     args = parser.parse_args()
 
     print("=" * 60)

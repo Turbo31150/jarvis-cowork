@@ -41,7 +41,7 @@ if hasattr(sys.stderr, "reconfigure"):
 # ---------------------------------------------------------------------------
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
+from _paths import ETOILE_DB
 GAPS_DB = DATA_DIR / "cowork_gaps.db"
 
 
@@ -481,8 +481,7 @@ def action_stats(conn: sqlite3.Connection) -> None:
     rows = cur.fetchall()
 
     total = conn.execute("SELECT COUNT(*) FROM config_drifts").fetchone()[0]
-    snapshots = conn.execute(
-        "SELECT COUNT(*) FROM config_snapshots").fetchone()[0]
+    snapshots = conn.execute("SELECT COUNT(*) FROM config_snapshots").fetchone()[0]
 
     by_type: dict[str, int] = {}
     by_severity: dict[str, int] = {}

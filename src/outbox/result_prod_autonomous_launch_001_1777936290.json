@@ -1,0 +1,16 @@
+{
+  "query": "system activer mode production autonome total distribuer 928 agents cowork sur M1 M2 OL1 legions L1 a L10",
+  "matches": [],
+  "timestamp": "2026-05-05T01:11:30.095320",
+  "mission_source": {
+    "mission_id": "prod_autonomous_launch_001",
+    "classification": "system",
+    "priority": "P0",
+    "contexte": {
+      "analysis_goal": "activer mode production autonome total distribuer 928 agents cowork sur M1 M2 OL1 legions L1 a L10",
+      "target": "all_nodes",
+      "autonomous": true
+    }
+  },
+  "ui_color": "white"
+}

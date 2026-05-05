@@ -32,7 +32,7 @@ except ImportError:
 
 # Configuration des endpoints du cluster
 ENDPOINTS = {
-    "M1": "http://10.5.0.2:1234/v1/chat/completions",
+    "M1": "http://127.0.0.1:1234/v1/chat/completions",
     "M2": "http://192.168.1.26:1234/v1/chat/completions",
     "M3": "http://192.168.1.113:1234/v1/chat/completions",
     "OL1": "http://127.0.0.1:11434/api/chat",
@@ -109,43 +109,20 @@ def monitor_once(args):
 
 def monitor_loop(args, interval: int = 60):
     while True:
-        print(
-            "\n=== Vérification du cluster (" +
-            time.strftime('%Y-%m-%d %H:%M:%S') +
-            ") ===")
+        print("\n=== Vérification du cluster (" + time.strftime('%Y-%m-%d %H:%M:%S') + ") ===")
         monitor_once(args)
         print(f"\nAttente {interval}s avant la prochaine vérification...\n")
         time.sleep(interval)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Moniteur d'APIs et SQLite du cluster JARVIS.")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Effectuer une vérification unique et quitter.")
-    parser.add_argument(
-        "--loop",
-        action="store_true",
-        help="Boucler indéfiniment (intervalle 60s).")
-    parser.add_argument(
-        "--endpoints",
-        action="store_true",
-        help="Lister les endpoints configurés.")
-    parser.add_argument(
-        "--latency",
-        action="store_true",
-        help="Mesurer la latence HTTP des endpoints.")
-    parser.add_argument(
-        "--sqlite",
-        action="store_true",
-        help="Vérifier l'accès aux bases SQLite.")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=60,
-        help="Intervalle (s) entre les vérifications en mode --loop.")
+    parser = argparse.ArgumentParser(description="Moniteur d'APIs et SQLite du cluster JARVIS.")
+    parser.add_argument("--once", action="store_true", help="Effectuer une vérification unique et quitter.")
+    parser.add_argument("--loop", action="store_true", help="Boucler indéfiniment (intervalle 60s).")
+    parser.add_argument("--endpoints", action="store_true", help="Lister les endpoints configurés.")
+    parser.add_argument("--latency", action="store_true", help="Mesurer la latence HTTP des endpoints.")
+    parser.add_argument("--sqlite", action="store_true", help="Vérifier l'accès aux bases SQLite.")
+    parser.add_argument("--interval", type=int, default=60, help="Intervalle (s) entre les vérifications en mode --loop.")
     return parser.parse_args()
 
 

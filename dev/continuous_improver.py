@@ -27,10 +27,10 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 GAPS_DB = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 
 IMPROVEMENT_STEPS = [
     {"name": "benchmark", "script": "dispatch_quality_tracker.py", "args": ["--benchmark"], "timeout": 300},
@@ -64,14 +64,7 @@ def run_step(step):
             "error": result.stderr[-200:] if result.stderr else "",
         }
     except subprocess.TimeoutExpired:
-        return {
-            "success": False,
-            "error": "timeout",
-            "duration_ms": int(
-                step.get(
-                    "timeout",
-                    120) *
-                1000)}
+        return {"success": False, "error": "timeout", "duration_ms": int(step.get("timeout", 120) * 1000)}
     except Exception as e:
         return {"success": False, "error": str(e)[:200]}
 
@@ -144,11 +137,7 @@ def main():
     parser = argparse.ArgumentParser(description="Continuous Improver")
     parser.add_argument("--once", action="store_true", help="Single cycle")
     parser.add_argument("--watch", action="store_true", help="Continuous")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=30,
-        help="Interval (min)")
+    parser.add_argument("--interval", type=int, default=30, help="Interval (min)")
     parser.add_argument("--fast", action="store_true", help="Quick cycle")
     args = parser.parse_args()
 

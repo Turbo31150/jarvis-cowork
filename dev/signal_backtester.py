@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """JARVIS Signal Backtester — Backtest des signaux trading sur historique MEXC."""
 import json, sys, os, sqlite3, urllib.request
+from _paths import SNIPER_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 from datetime import datetime
 
-SNIPER_DB = "/home/turbo/data/sniper.db"
-RESULTS_DB = "/home/turbo/.openclaw/workspace/dev/backtest.db"
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT = "2010747443"
+SNIPER_DB = str(SNIPER_DB)
+RESULTS_DB = "C:/Users/franc/.openclaw/workspace/dev/backtest.db"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+# TELEGRAM_CHAT loaded from _paths (.env)
 
 # Trading params
 LEVERAGE = 10
@@ -115,6 +116,7 @@ def run_backtest():
     # Sharpe ratio (simplified)
     if len(pnl_series) > 1:
         import statistics
+import argparse
         returns = [results[i]["pnl"] for i in range(len(results))]
         avg_ret = statistics.mean(returns)
         std_ret = statistics.stdev(returns) if len(returns) > 1 else 1

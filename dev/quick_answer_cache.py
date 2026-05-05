@@ -26,7 +26,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 DB_PATH = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
+from _paths import ETOILE_DB
 
 CACHE_TTL_SECONDS = 300  # 5 minutes
 MIN_FREQUENCY = 2  # Must appear 2+ times to be cacheable
@@ -185,14 +185,8 @@ def action_hit_rate():
 
 def main():
     parser = argparse.ArgumentParser(description="Quick Answer Cache")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Analyze cacheable queries")
-    parser.add_argument(
-        "--hit-rate",
-        action="store_true",
-        help="Show hit rate")
+    parser.add_argument("--once", action="store_true", help="Analyze cacheable queries")
+    parser.add_argument("--hit-rate", action="store_true", help="Show hit rate")
     parser.add_argument("--stats", action="store_true", help="Show stats")
     args = parser.parse_args()
 

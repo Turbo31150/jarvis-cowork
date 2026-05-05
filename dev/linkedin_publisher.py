@@ -18,7 +18,6 @@ CLI:
 Stdlib-only for core, optional playwright for method 3.
 """
 
-from _paths import TURBO_DIR, TELEGRAM_TOKEN, TELEGRAM_CHAT
 import argparse
 import json
 import os
@@ -31,6 +30,7 @@ from datetime import datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+from _paths import TURBO_DIR, TELEGRAM_TOKEN, TELEGRAM_CHAT
 
 RESULTS = []
 
@@ -95,8 +95,7 @@ def method_cdp(post_text, dry_run=False):
     try:
         # Check if Chrome CDP is running
         try:
-            urllib.request.urlopen(
-                "http://127.0.0.1:9222/json/version", timeout=3)
+            urllib.request.urlopen("http://127.0.0.1:9222/json/version", timeout=3)
         except Exception:
             log("cdp", "skip", "Chrome CDP not running (port 9222). Launch with --remote-debugging-port=9222")
             return
@@ -176,11 +175,10 @@ def method_playwright(post_text, dry_run=False):
 
             # Click "Start a post"
             try:
-                trigger = page.locator(
-                    ".share-box-feed-entry__trigger, "
-                    "[data-control-name='identity_welcome_message'],"
-                    "button:has-text('Start a post'),"
-                    "button:has-text('Commencer un post')")
+                trigger = page.locator(".share-box-feed-entry__trigger, "
+                                       "[data-control-name='identity_welcome_message'],"
+                                       "button:has-text('Start a post'),"
+                                       "button:has-text('Commencer un post')")
                 trigger.first.click(timeout=5000)
                 time.sleep(2)
             except Exception:
@@ -320,16 +318,10 @@ def main():
     parser = argparse.ArgumentParser(description="LinkedIn Multi-Publisher")
     parser.add_argument("--post", type=str, help="Post text to publish")
     parser.add_argument("--post-file", type=str, help="Read post from file")
-    parser.add_argument(
-        "--method",
-        type=str,
-        default="all",
-        help="Methods: all|clipboard|cdp|playwright|telegram|file")
+    parser.add_argument("--method", type=str, default="all",
+                        help="Methods: all|clipboard|cdp|playwright|telegram|file")
     parser.add_argument("--once", action="store_true", help="Single attempt")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show without executing")
+    parser.add_argument("--dry-run", action="store_true", help="Show without executing")
     args = parser.parse_args()
 
     if args.post:

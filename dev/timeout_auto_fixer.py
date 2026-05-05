@@ -11,15 +11,16 @@ Usage:
 """
 
 import json
+from _paths import TURBO_DIR
 import os
 import sqlite3
 import sys
 import time
 
-sys.path.insert(0, "/home/turbo")
-os.chdir("/home/turbo")
+sys.path.insert(0, str(TURBO_DIR))
+os.chdir(str(TURBO_DIR))
 
-DB_PATH = "/home/turbo/etoile.db"
+DB_PATH = str(ETOILE_DB)
 
 
 def analyze_timeouts():
@@ -122,6 +123,7 @@ def suggest_adjustments(pattern_stats, node_stats):
 def apply_adjustments(suggestions, dry_run=False):
     """Apply suggested adjustments to PatternAgent config."""
     from src.pattern_agents import PatternAgent
+import argparse
 
     applied = []
     for s in suggestions:

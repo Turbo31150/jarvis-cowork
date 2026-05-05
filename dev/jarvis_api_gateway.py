@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """jarvis_api_gateway.py — Test gateway API JARVIS.
 
@@ -86,17 +85,13 @@ def do_test_all():
         results.append(result)
         db.execute(
             "INSERT INTO checks (ts, endpoint, status, latency_ms, http_code, size_bytes) VALUES (?,?,?,?,?,?)",
-            (time.time(),
-             result["name"],
-                result["status"],
-                result["latency_ms"],
-                result["http_code"],
-                result["size_bytes"]))
+            (time.time(), result["name"], result["status"],
+             result["latency_ms"], result["http_code"], result["size_bytes"])
+        )
 
     up = sum(1 for r in results if r["status"] == "up")
     down = sum(1 for r in results if r["status"] == "down")
-    critical_down = [r["name"]
-                     for r in results if r["status"] == "down" and r.get("critical")]
+    critical_down = [r["name"] for r in results if r["status"] == "down" and r.get("critical")]
     latencies = [r["latency_ms"] for r in results if r["status"] == "up"]
     avg_latency = round(sum(latencies) / max(len(latencies), 1), 1)
 
@@ -105,9 +100,8 @@ def do_test_all():
         "SELECT COUNT(*) FROM checks WHERE ts > ?", (time.time() - 86400,)
     ).fetchone()[0]
     up_24h = db.execute(
-        "SELECT COUNT(*) FROM checks WHERE ts > ? AND status='up'",
-        (time.time() - 86400,
-         )).fetchone()[0]
+        "SELECT COUNT(*) FROM checks WHERE ts > ? AND status='up'", (time.time() - 86400,)
+    ).fetchone()[0]
     uptime = round(up_24h / max(total_24h, 1) * 100, 1)
 
     report = {
@@ -130,26 +124,14 @@ def do_test_all():
 
 def show_endpoints():
     """Show endpoint list."""
-    return [{"name": ep["name"], "url": ep["url"],
-             "critical": ep.get("critical", False)} for ep in ENDPOINTS]
+    return [{"name": ep["name"], "url": ep["url"], "critical": ep.get("critical", False)} for ep in ENDPOINTS]
 
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS API Gateway")
-    parser.add_argument(
-        "--once",
-        "--status",
-        "--test-all",
-        action="store_true",
-        help="Test all endpoints")
-    parser.add_argument(
-        "--endpoints",
-        action="store_true",
-        help="List endpoints")
-    parser.add_argument(
-        "--latency",
-        action="store_true",
-        help="Latency report")
+    parser.add_argument("--once", "--status", "--test-all", action="store_true", help="Test all endpoints")
+    parser.add_argument("--endpoints", action="store_true", help="List endpoints")
+    parser.add_argument("--latency", action="store_true", help="Latency report")
     args = parser.parse_args()
 
     if args.endpoints:

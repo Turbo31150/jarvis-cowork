@@ -149,21 +149,13 @@ def main():
     parser.add_argument("--once", action="store_true", help="Capture current")
     parser.add_argument("--history", action="store_true", help="Show history")
     parser.add_argument("--search", metavar="TERM", help="Search history")
-    parser.add_argument(
-        "--watch",
-        action="store_true",
-        help="Watch for changes")
+    parser.add_argument("--watch", action="store_true", help="Watch for changes")
     args = parser.parse_args()
 
     if args.history:
         print(json.dumps(get_history(), ensure_ascii=False, indent=2))
     elif args.search:
-        print(
-            json.dumps(
-                search_clipboard(
-                    args.search),
-                ensure_ascii=False,
-                indent=2))
+        print(json.dumps(search_clipboard(args.search), ensure_ascii=False, indent=2))
     elif args.watch:
         do_watch()
     else:

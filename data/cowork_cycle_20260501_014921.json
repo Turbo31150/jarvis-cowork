@@ -1,0 +1,97 @@
+{
+  "cycle": "full",
+  "tests": {
+    "total": 0,
+    "ok": 0,
+    "fail": 0,
+    "missing": 0,
+    "warnings_total": 0,
+    "avg_lines": 0,
+    "avg_functions": 0,
+    "with_docstring": 0,
+    "with_argparse": 0,
+    "with_main": 0,
+    "non_stdlib": [],
+    "elapsed_s": 0.0,
+    "timestamp": "2026-05-01T01:49:21.770567"
+  },
+  "gaps": {
+    "patterns_by_script_count": {},
+    "unused_patterns": [],
+    "unmapped_scripts": [],
+    "category_distribution": {},
+    "potential_gaps": [
+      {
+        "name": "log_compressor",
+        "description": "Compress and archive old logs automatically"
+      },
+      {
+        "name": "api_rate_limiter",
+        "description": "Rate limiting for cluster API calls"
+      },
+      {
+        "name": "model_health_checker",
+        "description": "Deep health check of loaded models (not just ping)"
+      },
+      {
+        "name": "voice_command_fuzzer",
+        "description": "Fuzz test voice commands for edge cases"
+      },
+      {
+        "name": "config_drift_detector",
+        "description": "Detect config differences between nodes"
+      },
+      {
+        "name": "dependency_vulnerability_scanner",
+        "description": "Check Python stdlib usage for known issues"
+      },
+      {
+        "name": "performance_regression_detector",
+        "description": "Compare benchmarks over time"
+      },
+      {
+        "name": "auto_documentation_updater",
+        "description": "Keep COWORK_TASKS.md in sync with scripts"
+      },
+      {
+        "name": "script_deduplication",
+        "description": "Find and merge duplicate/overlapping scripts"
+      },
+      {
+        "name": "cross_script_integration_tester",
+        "description": "Test that scripts work together"
+      },
+      {
+        "name": "predictive_failure_detector",
+        "description": "Predict script failures from patterns"
+      },
+      {
+        "name": "resource_contention_monitor",
+        "description": "Detect GPU/CPU contention between scripts"
+      }
+    ],
+    "total_capabilities": 0,
+    "timestamp": "2026-05-01T01:49:21.771192"
+  },
+  "predictions": {
+    "predictions": [],
+    "hot_patterns": [],
+    "failing_patterns": [],
+    "slow_patterns": [],
+    "complex_scripts": [],
+    "timestamp": "2026-05-01T01:49:21.771586"
+  },
+  "improvements": {
+    "fixed": 0,
+    "skipped": 0,
+    "details": []
+  },
+  "sync": {
+    "new": 0,
+    "updated": 0,
+    "unchanged": 0,
+    "total": 0,
+    "timestamp": "2026-05-01T01:49:21.771731"
+  },
+  "timestamp": "2026-05-01T01:49:21.771741"
+}

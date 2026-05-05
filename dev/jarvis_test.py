@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 """JARVIS Test Runner — run test suite and report."""
-import argparse
-import subprocess
-import sys
-import os
-import json
-import re
+import argparse, subprocess, sys, os, json, re
 
 TURBO_DIR = os.path.join(os.path.dirname(__file__), "..", "..")
-
 
 def run_tests(pattern: str = None, quick: bool = False) -> dict:
     cmd = ["python", "-m", "pytest", "-x", "--tb=short", "-q"]
@@ -18,12 +12,7 @@ def run_tests(pattern: str = None, quick: bool = False) -> dict:
         cmd.append("--timeout=10")
 
     try:
-        r = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=300,
-            cwd=TURBO_DIR)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=300, cwd=TURBO_DIR)
         output = r.stdout + r.stderr
 
         passed = failed = skipped = 0
@@ -47,14 +36,10 @@ def run_tests(pattern: str = None, quick: bool = False) -> dict:
     except subprocess.TimeoutExpired:
         return {"error": "Test timeout (300s)", "passed": 0, "failed": 0}
 
-
 def main():
     parser = argparse.ArgumentParser(description="JARVIS test runner")
     parser.add_argument("--pattern", "-k", help="Test pattern filter")
-    parser.add_argument(
-        "--quick",
-        action="store_true",
-        help="Quick mode (10s timeout)")
+    parser.add_argument("--quick", action="store_true", help="Quick mode (10s timeout)")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
@@ -64,22 +49,10 @@ def main():
     if args.json:
         print(json.dumps(results, indent=2))
     else:
-        total = results.get("passed", 0) + \
-            results.get("failed", 0) + results.get("skipped", 0)
-        print(
-            f"Tests: {
-                results.get(
-                    'passed',
-                    0)} passed, {
-                results.get(
-                    'failed',
-                    0)} failed, {
-                        results.get(
-                            'skipped',
-                            0)} skipped ({total} total)")
+        total = results.get("passed", 0) + results.get("failed", 0) + results.get("skipped", 0)
+        print(f"Tests: {results.get('passed', 0)} passed, {results.get('failed', 0)} failed, {results.get('skipped', 0)} skipped ({total} total)")
         if results.get("failed", 0) > 0:
             print(f"\nFailed output:\n{results.get('output_tail', '')}")
-
 
 if __name__ == "__main__":
     main()

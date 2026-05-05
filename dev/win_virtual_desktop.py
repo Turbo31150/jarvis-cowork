@@ -94,19 +94,10 @@ def do_once():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Windows Virtual Desktop Manager")
-    parser.add_argument(
-        "--once",
-        "--list",
-        action="store_true",
-        help="List profiles")
+    parser = argparse.ArgumentParser(description="Windows Virtual Desktop Manager")
+    parser.add_argument("--once", "--list", action="store_true", help="List profiles")
     parser.add_argument("--create", metavar="NAME", help="Create new desktop")
-    parser.add_argument(
-        "--switch",
-        metavar="N",
-        type=int,
-        help="Switch desktop by index")
+    parser.add_argument("--switch", metavar="N", type=int, help="Switch desktop by index")
     args = parser.parse_args()
 
     if args.create:

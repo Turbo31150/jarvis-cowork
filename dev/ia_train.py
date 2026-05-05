@@ -1,25 +1,15 @@
 #!/usr/bin/env python3
 """IA Training — record feedback examples for intent classifier."""
-import argparse
-import json
-import os
-import sys
+import argparse, json, os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-TRAINING_FILE = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
-    "data",
-    "intent_training.jsonl")
-
+TRAINING_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "data", "intent_training.jsonl")
 
 def record_example(text: str, intent: str, correct: bool = True):
     entry = {"text": text, "intent": intent, "correct": correct}
     with open(TRAINING_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return entry
-
 
 def show_stats():
     if not os.path.exists(TRAINING_FILE):
@@ -38,21 +28,10 @@ def show_stats():
     for intent, count in intents.most_common():
         print(f"  {intent}: {count}")
 
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Intent classifier training data")
-    parser.add_argument(
-        "--add",
-        nargs=2,
-        metavar=(
-            "TEXT",
-            "INTENT"),
-        help="Add training example")
-    parser.add_argument(
-        "--stats",
-        action="store_true",
-        help="Show training stats")
+    parser = argparse.ArgumentParser(description="Intent classifier training data")
+    parser.add_argument("--add", nargs=2, metavar=("TEXT", "INTENT"), help="Add training example")
+    parser.add_argument("--stats", action="store_true", help="Show training stats")
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
 
@@ -63,7 +42,6 @@ def main():
         show_stats()
     else:
         parser.print_help()
-
 
 if __name__ == "__main__":
     main()

@@ -18,11 +18,11 @@ import sqlite3
 import subprocess
 import sys
 from pathlib import Path
-import argparse
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 GAPS_DB = SCRIPT_DIR / "data" / "cowork_gaps.db"
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import ETOILE_DB
+import argparse
 
 passed = 0
 failed = 0
@@ -44,12 +44,7 @@ def run_script(script, args, timeout=60):
     """Run a cowork script and return (success, stdout, stderr)."""
     cmd = [sys.executable, str(SCRIPT_DIR / script)] + args
     try:
-        r = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            cwd=str(SCRIPT_DIR))
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=str(SCRIPT_DIR))
         return r.returncode == 0, r.stdout, r.stderr
     except Exception as e:
         return False, "", str(e)
@@ -63,20 +58,12 @@ ok, out, err = run_script("resilient_dispatcher.py", ["--status"])
 test("CB status runs", ok)
 test("CB output has nodes", "M1" in out and "OL1" in out)
 
-ok, out, err = run_script(
-    "resilient_dispatcher.py", [
-        "--dispatch", "simple", "/nothink OK", "--json"], timeout=30)
+ok, out, err = run_script("resilient_dispatcher.py", ["--dispatch", "simple", "/nothink OK", "--json"], timeout=30)
 if ok:
     try:
         data = json.loads(out)
         test("Dispatch succeeds", data.get("success"))
-        test(
-            "Dispatch has node",
-            data.get("node") in [
-                "M1",
-                "OL1",
-                "M2",
-                "M3"])
+        test("Dispatch has node", data.get("node") in ["M1", "OL1", "M2", "M3"])
         test("Dispatch has latency", data.get("latency_ms", 0) > 0)
     except json.JSONDecodeError:
         test("Dispatch JSON parse", False, out[:100])
@@ -100,8 +87,7 @@ db = sqlite3.connect(str(GAPS_DB), timeout=30)
 db.execute("PRAGMA journal_mode=WAL")
 db.row_factory = sqlite3.Row
 try:
-    rows = db.execute(
-        "SELECT * FROM node_reliability ORDER BY rank").fetchall()
+    rows = db.execute("SELECT * FROM node_reliability ORDER BY rank").fetchall()
     test("Reliability table populated", len(rows) >= 4)
     test("Scores in range", all(0 <= r["composite"] <= 100 for r in rows))
 except Exception as e:
@@ -127,18 +113,8 @@ if ok:
         json_start = out.index("{")
         data = json.loads(out[json_start:])
         test("Grade computed", data.get("overall", 0) > 0)
-        test(
-            "All components present", all(
-                k in data for k in [
-                    "cluster", "dispatch", "orchestrator", "risk"]))
-        test(
-            "Grade is A or better",
-            data.get(
-                "grade",
-                "F") in [
-                "A+",
-                "A",
-                "A-"])
+        test("All components present", all(k in data for k in ["cluster", "dispatch", "orchestrator", "risk"]))
+        test("Grade is A or better", data.get("grade", "F") in ["A+", "A", "A-"])
     except (ValueError, json.JSONDecodeError) as e:
         test("Grade JSON parse", False, str(e)[:80])
 
@@ -149,13 +125,7 @@ try:
     test("CB table exists", True)
     test("CB has nodes", len(rows) >= 1)
     for r in rows:
-        test(
-            f"CB {
-                r['node']} state valid",
-            r["state"] in [
-                "CLOSED",
-                "OPEN",
-                "HALF_OPEN"])
+        test(f"CB {r['node']} state valid", r["state"] in ["CLOSED", "OPEN", "HALF_OPEN"])
 except Exception as e:
     test("CB table accessible", False, str(e))
 
@@ -199,19 +169,14 @@ except Exception as e:
 db.close()
 
 # Summary
-print(f"\n{'=' * 40}")
+print(f"\n{'='*40}")
 print(f"  Results: {passed}/{total} passed ({failed} failed)")
-print(f"  Rate: {passed / total * 100:.0f}%")
+print(f"  Rate: {passed/total*100:.0f}%")
 if failed == 0:
     print("  ALL TESTS PASSED")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description=f"{
-            Path(__file__).stem} — COWORK script")
-    parser.add_argument(
-        "--help-ext",
-        action="store_true",
-        help="Show extended help")
+    parser = argparse.ArgumentParser(description=f"{Path(__file__).stem} — COWORK script")
+    parser.add_argument("--help-ext", action="store_true", help="Show extended help")
     args = parser.parse_args()

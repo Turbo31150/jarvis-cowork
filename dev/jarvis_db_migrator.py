@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """jarvis_db_migrator.py — Migration base de donnees JARVIS.
 
@@ -11,6 +10,7 @@ Usage:
     python dev/jarvis_db_migrator.py --rollback
 """
 import argparse
+from _paths import ETOILE_DB, JARVIS_DB, SNIPER_DB
 import json
 import os
 import shutil
@@ -22,21 +22,14 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "db_migrator.db"
 DATABASES = [
-    {"name": "etoile", "path": "/home/turbo/data/etoile.db"},
-    {"name": "jarvis", "path": "/home/turbo/data/jarvis.db"},
-    {"name": "sniper", "path": "/home/turbo/data/sniper.db"},
+    {"name": "etoile", "path": str(ETOILE_DB)},
+    {"name": "jarvis", "path": str(JARVIS_DB)},
+    {"name": "sniper", "path": str(SNIPER_DB)},
 ]
 
 EXPECTED_TABLES = {
-    "etoile": [
-        "skills",
-        "tool_metrics",
-        "voice_commands",
-        "user_patterns",
-        "benchmark_runs"],
-    "jarvis": [
-        "queries",
-        "voice_corrections"],
+    "etoile": ["skills", "tool_metrics", "voice_commands", "user_patterns", "benchmark_runs"],
+    "jarvis": ["queries", "voice_corrections"],
 }
 
 
@@ -54,8 +47,7 @@ def init_db():
 def get_schema(db_path):
     try:
         db = sqlite3.connect(db_path)
-        tables = [t[0] for t in db.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
         schema = {}
         for t in tables:
             cols = db.execute(f"PRAGMA table_info([{t}])").fetchall()
@@ -97,23 +89,10 @@ def do_backup(db_info):
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS DB Migrator")
-    parser.add_argument(
-        "--once",
-        "--check",
-        action="store_true",
-        help="Check schemas")
-    parser.add_argument(
-        "--migrate",
-        action="store_true",
-        help="Run migrations")
-    parser.add_argument(
-        "--backup",
-        action="store_true",
-        help="Backup databases")
-    parser.add_argument(
-        "--rollback",
-        action="store_true",
-        help="Rollback last migration")
+    parser.add_argument("--once", "--check", action="store_true", help="Check schemas")
+    parser.add_argument("--migrate", action="store_true", help="Run migrations")
+    parser.add_argument("--backup", action="store_true", help="Backup databases")
+    parser.add_argument("--rollback", action="store_true", help="Rollback last migration")
     args = parser.parse_args()
 
     if args.backup:

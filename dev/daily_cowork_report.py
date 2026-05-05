@@ -26,10 +26,10 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 DB_PATH = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
+from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 
 
 def init_db(conn):
@@ -53,7 +53,7 @@ def get_db():
 
 def send_telegram(text):
     """Send message to Telegram."""
-    parts = [text[i:i + 4000] for i in range(0, len(text), 4000)]
+    parts = [text[i:i+4000] for i in range(0, len(text), 4000)]
     ids = []
     for part in parts:
         data = urllib.parse.urlencode({
@@ -61,7 +61,8 @@ def send_telegram(text):
         }).encode()
         try:
             req = urllib.request.Request(
-                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data)
+                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data
+            )
             resp = urllib.request.urlopen(req, timeout=10)
             r = json.loads(resp.read())
             if r.get("ok"):
@@ -69,10 +70,10 @@ def send_telegram(text):
         except Exception:
             # Retry without markdown
             try:
-                data2 = urllib.parse.urlencode(
-                    {"chat_id": TELEGRAM_CHAT_ID, "text": part}).encode()
+                data2 = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": part}).encode()
                 req2 = urllib.request.Request(
-                    f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data2)
+                    f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data2
+                )
                 urllib.request.urlopen(req2, timeout=10)
             except Exception:
                 pass
@@ -166,8 +167,7 @@ def generate_report():
     # Mapped scripts
     try:
         edb2 = sqlite3.connect(str(ETOILE_DB))
-        mapped = edb2.execute(
-            "SELECT COUNT(*) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
+        mapped = edb2.execute("SELECT COUNT(*) FROM cowork_script_mapping WHERE status='active'").fetchone()[0]
         edb2.close()
         report["mapped_scripts"] = mapped
     except Exception:
@@ -212,15 +212,13 @@ def format_telegram_report(report):
         for p in patterns[:6]
     )
     nodes_text = "\n".join(
-        f"  {
-            n['node']:5s} n={
-            n['dispatches']:3d} ok={
-                n['success_pct']:.0f}% lat={
-                    n['avg_ms']}ms" for n in nodes)
+        f"  {n['node']:5s} n={n['dispatches']:3d} ok={n['success_pct']:.0f}% lat={n['avg_ms']}ms"
+        for n in nodes
+    )
 
     return f"""*Rapport COWORK Quotidien*
 {report.get('date', '?')}
-{'=' * 30}
+{'='*30}
 
 *Dispatches (24h)*
   Total: {d.get('total', 0)}
@@ -244,14 +242,8 @@ _Genere {datetime.now().strftime('%H:%M')}_"""
 
 def main():
     parser = argparse.ArgumentParser(description="Daily COWORK Report")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Generate and send")
-    parser.add_argument(
-        "--generate",
-        action="store_true",
-        help="Generate only")
+    parser.add_argument("--once", action="store_true", help="Generate and send")
+    parser.add_argument("--generate", action="store_true", help="Generate only")
     parser.add_argument("--history", action="store_true", help="Past reports")
     parser.add_argument("--stats", action="store_true", help="Stats")
     args = parser.parse_args()
@@ -262,8 +254,7 @@ def main():
 
     if args.history or args.stats:
         conn = get_db()
-        rows = conn.execute(
-            "SELECT timestamp, sent_telegram FROM daily_reports ORDER BY timestamp DESC LIMIT 10").fetchall()
+        rows = conn.execute("SELECT timestamp, sent_telegram FROM daily_reports ORDER BY timestamp DESC LIMIT 10").fetchall()
         conn.close()
         result = {"reports": [dict(r) for r in rows]}
     else:

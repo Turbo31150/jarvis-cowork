@@ -22,21 +22,11 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "registry_guard.db"
 
 MONITORED_KEYS = [
-    (winreg.HKEY_CURRENT_USER,
-     r"Software\Microsoft\Windows\CurrentVersion\Run",
-     "HKCU_Run"),
-    (winreg.HKEY_CURRENT_USER,
-     r"Software\Microsoft\Windows\CurrentVersion\RunOnce",
-     "HKCU_RunOnce"),
-    (winreg.HKEY_LOCAL_MACHINE,
-     r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
-     "HKLM_Run"),
-    (winreg.HKEY_LOCAL_MACHINE,
-     r"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce",
-     "HKLM_RunOnce"),
-    (winreg.HKEY_CURRENT_USER,
-     r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders",
-     "HKCU_ShellFolders"),
+    (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", "HKCU_Run"),
+    (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\RunOnce", "HKCU_RunOnce"),
+    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", "HKLM_Run"),
+    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce", "HKLM_RunOnce"),
+    (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders", "HKCU_ShellFolders"),
 ]
 
 
@@ -95,15 +85,13 @@ def do_scan():
         # Detect changes
         for name, value in current.items():
             if name not in previous:
-                changes_found.append(
-                    {"key": label, "type": "added", "name": name, "value": value[:100]})
+                changes_found.append({"key": label, "type": "added", "name": name, "value": value[:100]})
                 db.execute(
                     "INSERT INTO changes (ts, key_path, change_type, name, old_value, new_value) VALUES (?,?,?,?,?,?)",
                     (time.time(), label, "added", name, "", value[:200])
                 )
             elif previous[name] != value:
-                changes_found.append(
-                    {"key": label, "type": "modified", "name": name})
+                changes_found.append({"key": label, "type": "modified", "name": name})
                 db.execute(
                     "INSERT INTO changes (ts, key_path, change_type, name, old_value, new_value) VALUES (?,?,?,?,?,?)",
                     (time.time(), label, "modified", name, previous[name][:200], value[:200])
@@ -111,8 +99,7 @@ def do_scan():
 
         for name in previous:
             if name not in current:
-                changes_found.append(
-                    {"key": label, "type": "removed", "name": name})
+                changes_found.append({"key": label, "type": "removed", "name": name})
                 db.execute(
                     "INSERT INTO changes (ts, key_path, change_type, name, old_value, new_value) VALUES (?,?,?,?,?,?)",
                     (time.time(), label, "removed", name, previous[name][:200], "")
@@ -146,30 +133,20 @@ def show_whitelist():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Registry Guard")
-    parser.add_argument(
-        "--once",
-        "--scan",
-        action="store_true",
-        help="Scan registry")
-    parser.add_argument(
-        "--whitelist",
-        action="store_true",
-        help="Show whitelist")
-    parser.add_argument(
-        "--restore",
-        action="store_true",
-        help="Show change history")
+    parser.add_argument("--once", "--scan", action="store_true", help="Scan registry")
+    parser.add_argument("--whitelist", action="store_true", help="Show whitelist")
+    parser.add_argument("--restore", action="store_true", help="Show change history")
     args = parser.parse_args()
 
     if args.whitelist:
         print(json.dumps(show_whitelist(), ensure_ascii=False, indent=2))
     elif args.restore:
         db = init_db()
-        rows = db.execute(
-            "SELECT ts, key_path, change_type, name FROM changes ORDER BY ts DESC LIMIT 20").fetchall()
+        rows = db.execute("SELECT ts, key_path, change_type, name FROM changes ORDER BY ts DESC LIMIT 20").fetchall()
         db.close()
-        print(json.dumps([{"ts": datetime.fromtimestamp(r[0]).isoformat(
-        ), "key": r[1], "type": r[2], "name": r[3]} for r in rows], indent=2))
+        print(json.dumps([{
+            "ts": datetime.fromtimestamp(r[0]).isoformat(), "key": r[1], "type": r[2], "name": r[3]
+        } for r in rows], indent=2))
     else:
         result = do_scan()
         print(json.dumps(result, ensure_ascii=False, indent=2))

@@ -158,23 +158,13 @@ def main():
     parser = argparse.ArgumentParser(
         description="Mine voice corrections for frequent misrecognitions"
     )
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Mine without applying changes")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Mine without applying changes")
     parser.add_argument(
         "--min-freq", type=int, default=2,
         help="Minimum frequency for a suggestion (default: 2)"
     )
-    parser.add_argument(
-        "--db",
-        type=str,
-        default=None,
-        help="Path to jarvis.db")
+    parser.add_argument("--db", type=str, default=None, help="Path to jarvis.db")
     parser.add_argument("--json", action="store_true", help="Output raw JSON")
     args = parser.parse_args()
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """jarvis_mega_runner.py — Unified runner for all jarvis_* scripts not individually wired.
 
-Scans /home/turbo/jarvis-linux/cowork/dev/ for jarvis_*.py scripts, excludes those
+Scans F:\\\\\\\\\\\\\\\BUREAU\\turbo\\\\\\\\\\\\\\\cowork\\\\\\\\\\\\\\\dev\\\\\\\\\\\\\\\ for jarvis_*.py scripts, excludes those
 already wired in the autonomous_orchestrator (jarvis_brain, jarvis_night_ops,
 jarvis_self_evolve) and itself, then executes them in priority order.
 
@@ -237,21 +237,11 @@ def main():
     parser = argparse.ArgumentParser(
         description="JARVIS Mega Runner — batch-execute all jarvis_* scripts"
     )
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run all scripts once")
-    parser.add_argument(
-        "--list",
-        action="store_true",
-        help="List discovered scripts")
+    parser.add_argument("--once", action="store_true", help="Run all scripts once")
+    parser.add_argument("--list", action="store_true", help="List discovered scripts")
     parser.add_argument("--category", type=str, default=None,
                         help="Run only scripts in this category")
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Verbose output")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     args = parser.parse_args()
 
     if not any([args.once, args.list]):
@@ -270,10 +260,7 @@ def main():
         for s in scripts:
             if s["category"] != current_cat:
                 current_cat = s["category"]
-                print(
-                    f"\n  [{
-                        current_cat.upper()}] (priority {
-                        s['priority']})")
+                print(f"\n  [{current_cat.upper()}] (priority {s['priority']})")
             flag = " ".join(s["args"])
             print(f"    {s['name']:45s} {flag}")
         print(f"\nTotal: {len(scripts)} scripts")
@@ -291,8 +278,7 @@ def main():
     conn = get_db()
 
     print(f"[{run_id}] JARVIS Mega Runner — {len(scripts)} scripts to execute")
-    print(
-        f"         Timeout per script: {SCRIPT_TIMEOUT}s | Workers: {MAX_WORKERS}")
+    print(f"         Timeout per script: {SCRIPT_TIMEOUT}s | Workers: {MAX_WORKERS}")
     print()
 
     ok_count = 0
@@ -324,12 +310,8 @@ def main():
                 try:
                     result = future.result()
                 except Exception as e:
-                    result = {
-                        "success": False,
-                        "duration_ms": 0,
-                        "return_code": -1,
-                        "error": str(e)[
-                            :300]}
+                    result = {"success": False, "duration_ms": 0, "return_code": -1,
+                              "error": str(e)[:300]}
 
                 log_result(conn, run_id, script, result)
                 dur = result.get("duration_ms", 0)
@@ -364,13 +346,13 @@ def main():
 
     # Summary
     print()
-    print(f"{'=' * 60}")
+    print(f"{'='*60}")
     print(f"  JARVIS Mega Runner — Run {run_id}")
     print(f"  Total:   {len(scripts)} scripts")
     print(f"  OK:      {ok_count}")
     print(f"  FAIL:    {fail_count}")
-    print(f"  Duration: {total_ms}ms ({total_ms / 1000:.1f}s)")
-    print(f"{'=' * 60}")
+    print(f"  Duration: {total_ms}ms ({total_ms/1000:.1f}s)")
+    print(f"{'='*60}")
 
     # Print failures if any
     failures = [r for r in results_summary if r["status"] == "FAIL"]

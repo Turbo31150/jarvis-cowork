@@ -10,6 +10,7 @@ Usage:
     python dev/jarvis_backup_manager.py --list
 """
 import argparse
+from _paths import TURBO_DIR, ETOILE_DB, JARVIS_DB, SNIPER_DB
 import hashlib
 import json
 import os
@@ -25,19 +26,12 @@ BACKUP_DIR = DEV / "data" / "backups"
 RETENTION_DAYS = 30
 
 CRITICAL_FILES = {
-    "etoile.db": Path("/home/turbo/data/etoile.db"),
-    "jarvis.db": Path("/home/turbo/data/jarvis.db"),
-    "sniper.db": Path("/home/turbo/data/sniper.db"),
-    "finetuning.db": Path("/home/turbo/finetuning/data/finetuning.db"),
-    "CLAUDE.md": Path.home() /
-    ".claude" /
-    "CLAUDE.md",
-    "MEMORY.md": Path.home() /
-    ".claude" /
-    "projects" /
-    "C--Users-franc" /
-    "memory" /
-    "MEMORY.md",
+    "etoile.db": Path(str(ETOILE_DB)),
+    "jarvis.db": Path(str(JARVIS_DB)),
+    "sniper.db": Path(str(SNIPER_DB)),
+    "finetuning.db": TURBO_DIR / "finetuning" / "data" / "finetuning.db",
+    "CLAUDE.md": Path.home() / ".claude" / "CLAUDE.md",
+    "MEMORY.md": Path.home() / ".claude" / "projects" / "C--Users-franc" / "memory" / "MEMORY.md",
 }
 
 
@@ -74,8 +68,7 @@ def do_backup():
 
     for name, src in CRITICAL_FILES.items():
         if not src.exists():
-            results.append(
-                {"file": name, "status": "NOT_FOUND", "path": str(src)})
+            results.append({"file": name, "status": "NOT_FOUND", "path": str(src)})
             continue
 
         dst = BACKUP_DIR / f"{ts}_{name}"
@@ -84,14 +77,8 @@ def do_backup():
             size = dst.stat().st_size
             sha = file_sha256(dst)
 
-            db.execute(
-                "INSERT INTO backups (ts, file_name, original_path, backup_path, size_bytes, sha256) VALUES (?,?,?,?,?,?)",
-                (time.time(),
-                 name,
-                 str(src),
-                    str(dst),
-                    size,
-                    sha))
+            db.execute("INSERT INTO backups (ts, file_name, original_path, backup_path, size_bytes, sha256) VALUES (?,?,?,?,?,?)",
+                       (time.time(), name, str(src), str(dst), size, sha))
 
             results.append({
                 "file": name,
@@ -100,8 +87,7 @@ def do_backup():
                 "sha256": sha[:16] + "...",
             })
         except Exception as e:
-            results.append(
-                {"file": name, "status": "ERROR", "error": str(e)[:100]})
+            results.append({"file": name, "status": "ERROR", "error": str(e)[:100]})
 
     # Prune old backups
     pruned = 0
@@ -148,17 +134,10 @@ def do_list():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Backup Manager")
-    parser.add_argument(
-        "--once",
-        "--backup",
-        action="store_true",
-        help="Run backup")
+    parser.add_argument("--once", "--backup", action="store_true", help="Run backup")
     parser.add_argument("--restore", metavar="DATE", help="Restore from date")
     parser.add_argument("--list", action="store_true", help="List backups")
-    parser.add_argument(
-        "--verify",
-        action="store_true",
-        help="Verify integrity")
+    parser.add_argument("--verify", action="store_true", help="Verify integrity")
     args = parser.parse_args()
 
     if args.list:

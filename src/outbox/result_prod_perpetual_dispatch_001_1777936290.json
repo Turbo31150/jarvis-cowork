@@ -1,0 +1,16 @@
+{
+  "query": "automation traiter les 10 taches autonomes perpetuelles pending production digest codex refactors github linkedin memory browseros voice prompting system telegram",
+  "matches": [],
+  "timestamp": "2026-05-05T01:11:30.094650",
+  "mission_source": {
+    "mission_id": "prod_perpetual_dispatch_001",
+    "classification": "automation",
+    "priority": "P0",
+    "contexte": {
+      "analysis_goal": "traiter les 10 taches autonomes perpetuelles pending production digest codex refactors github linkedin memory browseros voice prompting system telegram",
+      "target": "cowork_dispatcher",
+      "autonomous": true
+    }
+  },
+  "ui_color": "white"
+}

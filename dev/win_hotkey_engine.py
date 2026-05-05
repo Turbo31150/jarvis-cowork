@@ -79,8 +79,7 @@ def parse_combo(combo_str):
 def list_hotkeys():
     """List all registered hotkeys."""
     db = init_db()
-    rows = db.execute(
-        "SELECT combo, action, target, description, profile, active FROM hotkeys").fetchall()
+    rows = db.execute("SELECT combo, action, target, description, profile, active FROM hotkeys").fetchall()
     db.close()
     return [{
         "combo": r[0], "action": r[1], "target": r[2],
@@ -97,23 +96,16 @@ def install_profile(profile_name):
     db = init_db()
     installed = 0
     for combo, cfg in profile.items():
-        existing = db.execute(
-            "SELECT COUNT(*) FROM hotkeys WHERE combo=?", (combo,)).fetchone()[0]
+        existing = db.execute("SELECT COUNT(*) FROM hotkeys WHERE combo=?", (combo,)).fetchone()[0]
         if existing == 0:
             db.execute(
                 "INSERT INTO hotkeys (combo, action, target, description, profile) VALUES (?,?,?,?,?)",
-                (combo,
-                 cfg["action"],
-                    cfg["target"],
-                    cfg["desc"],
-                    profile_name))
+                (combo, cfg["action"], cfg["target"], cfg["desc"], profile_name)
+            )
             installed += 1
     db.commit()
     db.close()
-    return {
-        "profile": profile_name,
-        "installed": installed,
-        "total": len(profile)}
+    return {"profile": profile_name, "installed": installed, "total": len(profile)}
 
 
 def do_once():
@@ -131,22 +123,10 @@ def do_once():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Hotkey Engine")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Install profiles + status")
+    parser.add_argument("--once", action="store_true", help="Install profiles + status")
     parser.add_argument("--list", action="store_true", help="List hotkeys")
-    parser.add_argument(
-        "--register",
-        nargs=2,
-        metavar=(
-            "COMBO",
-            "ACTION"),
-        help="Register hotkey")
-    parser.add_argument(
-        "--profiles",
-        action="store_true",
-        help="Show profiles")
+    parser.add_argument("--register", nargs=2, metavar=("COMBO", "ACTION"), help="Register hotkey")
+    parser.add_argument("--profiles", action="store_true", help="Show profiles")
     args = parser.parse_args()
 
     if args.list:

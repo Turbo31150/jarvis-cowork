@@ -17,38 +17,25 @@ Usage :
 """
 
 import argparse
+from _paths import TURBO_DIR, TELEGRAM_TOKEN, TELEGRAM_CHAT
 import json
-import os
 import subprocess
 import sys
 import time
 import urllib.request
-from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-try:
-    from core.unified.services import get_service_registry
-    _services = get_service_registry()
-except Exception:
-    _services = None
-
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT = "2010747443"
-PROXY_URL = _services.base_url("canvas_proxy") if _services else "http://127.0.0.1:18800"
-WS_URL = _services.base_url("jarvis_ws") if _services else "http://127.0.0.1:9742"
-BOT_SCRIPT = str(PROJECT_ROOT / "canvas" / "telegram-bot.js")
+# TELEGRAM_TOKEN loaded from _paths (.env)
+# TELEGRAM_CHAT loaded from _paths (.env)
+PROXY_URL = "http://127.0.0.1:18800"
+WS_URL = "http://127.0.0.1:9742"
+BOT_SCRIPT = str(TURBO_DIR / "canvas" / "telegram-bot.js")
 
 
 def tg_api(method, params=None, timeout=10):
     """Call Telegram Bot API."""
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/{method}"
     body = json.dumps(params or {}).encode()
-    req = urllib.request.Request(
-        url, data=body, headers={
-            "Content-Type": "application/json"})
+    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
     resp = urllib.request.urlopen(req, timeout=timeout)
     return json.loads(resp.read().decode())
 
@@ -101,8 +88,7 @@ def check_service_registry():
 def send_alert(msg):
     """Envoie une alerte Telegram."""
     try:
-        body = json.dumps(
-            {"chat_id": TELEGRAM_CHAT, "text": f"🔴 {msg}"}).encode()
+        body = json.dumps({"chat_id": TELEGRAM_CHAT, "text": f"🔴 {msg}"}).encode()
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
             data=body, headers={"Content-Type": "application/json"},
@@ -118,7 +104,7 @@ def restart_bot():
     try:
         subprocess.Popen(
             ["node", BOT_SCRIPT],
-            cwd=str(PROJECT_ROOT),
+            cwd=str(TURBO_DIR),
             creationflags=subprocess.CREATE_NEW_CONSOLE,
         )
         time.sleep(3)
@@ -150,10 +136,7 @@ def run_check():
 def main():
     parser = argparse.ArgumentParser(description="Telegram Bot Monitor")
     parser.add_argument("--once", action="store_true", help="Check une fois")
-    parser.add_argument(
-        "--loop",
-        action="store_true",
-        help="Boucle toutes les 2 min")
+    parser.add_argument("--loop", action="store_true", help="Boucle toutes les 2 min")
     args = parser.parse_args()
 
     if args.loop:

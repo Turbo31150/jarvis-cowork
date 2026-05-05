@@ -118,14 +118,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Validate all cowork scripts (ast.parse + checks)"
     )
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Validate without side effects")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Validate without side effects")
     parser.add_argument(
         "--strict", action="store_true",
         help="Also warn about missing docstrings, __main__, --once"
@@ -136,8 +130,7 @@ def main():
     report = scan_and_validate(strict=args.strict)
 
     if args.json:
-        # Don't dump all_results in json mode for brevity, just summary +
-        # broken
+        # Don't dump all_results in json mode for brevity, just summary + broken
         output = {
             "total": report["total"],
             "parseable": report["parseable"],

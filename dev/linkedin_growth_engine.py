@@ -15,7 +15,6 @@ Designed to be run as:
 
 Stdlib-only. Uses existing linkedin_content_generator.py for content generation.
 """
-from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT, TURBO_DIR
 import argparse
 import json
 import sqlite3
@@ -28,6 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT, TURBO_DIR
 
 # ═══════════════════════════════════════════════════════════════════════════
 # PROMPTS BANK — Ready-to-use for external AI (Perplexity, ChatGPT, Claude)
@@ -237,8 +237,7 @@ def parse_json_safe(text):
         return None
     text = text.strip()
     if text.startswith("```"):
-        lines = [l for l in text.split(
-            "\n") if not l.strip().startswith("```")]
+        lines = [l for l in text.split("\n") if not l.strip().startswith("```")]
         text = "\n".join(lines)
     try:
         return json.loads(text)
@@ -277,8 +276,7 @@ def phase_research(sector, output_dir):
     print(f"  Hooks: {len(hooks)} chars")
 
     # Save research
-    research_file = output_dir / \
-        f"research_{datetime.now().strftime('%Y%m%d')}.json"
+    research_file = output_dir / f"research_{datetime.now().strftime('%Y%m%d')}.json"
     with open(research_file, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print(f"  Saved: {research_file}")
@@ -328,14 +326,7 @@ def phase_scheduling(content_result):
     }
 
     content_result["schedule"] = schedule
-    print(
-        f"  Best time: {
-            schedule.get(
-                'best_day',
-                '?')} {
-            schedule.get(
-                'best_time',
-                '08:30')}")
+    print(f"  Best time: {schedule.get('best_day', '?')} {schedule.get('best_time', '08:30')}")
     print(f"  Reason: {schedule.get('reason', '?')}")
 
     return content_result
@@ -350,8 +341,7 @@ def phase_analytics(sector):
 
     try:
         # Count generated content
-        total = db.execute(
-            "SELECT COUNT(*) FROM linkedin_content").fetchone()[0]
+        total = db.execute("SELECT COUNT(*) FROM linkedin_content").fetchone()[0]
         recent = db.execute(
             "SELECT COUNT(*) FROM linkedin_content WHERE timestamp > datetime('now', '-7 days')"
         ).fetchone()[0]
@@ -412,8 +402,7 @@ def full_cycle(idea, sector="tech/IA", tone="expert"):
     print(sep)
 
     # Export prompts for external AI
-    prompts_file = output_dir / \
-        f"prompts_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+    prompts_file = output_dir / f"prompts_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
     with open(prompts_file, "w", encoding="utf-8") as f:
         json.dump({
             "perplexity": {
@@ -448,11 +437,7 @@ def full_cycle(idea, sector="tech/IA", tone="expert"):
     return content
 
 
-def export_prompts_only(
-        sector="tech/IA",
-        topic="",
-        audience="pros tech",
-        tone="expert"):
+def export_prompts_only(sector="tech/IA", topic="", audience="pros tech", tone="expert"):
     """Export only the prompt bank (no AI calls) for manual use."""
     output_dir = TURBO_DIR / "data" / "linkedin"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -484,8 +469,7 @@ def export_prompts_only(
         },
     }
 
-    out_file = output_dir / \
-        f"prompt_bank_{datetime.now().strftime('%Y%m%d')}.json"
+    out_file = output_dir / f"prompt_bank_{datetime.now().strftime('%Y%m%d')}.json"
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump(bank, f, ensure_ascii=False, indent=2)
 
@@ -511,10 +495,8 @@ def main():
                         help="Research phase only (web search)")
     parser.add_argument("--analytics", action="store_true",
                         help="Analytics phase only")
-    parser.add_argument(
-        "--idea",
-        type=str,
-        default="Les systemes IA distribues multi-GPU changent la donne")
+    parser.add_argument("--idea", type=str,
+                        default="Les systemes IA distribues multi-GPU changent la donne")
     parser.add_argument("--sector", type=str, default="tech/IA")
     parser.add_argument("--tone", type=str, default="expert",
                         choices=["expert", "inspiring", "provocateur"])
@@ -522,8 +504,7 @@ def main():
     args = parser.parse_args()
 
     if args.prompts_only:
-        bank, path = export_prompts_only(
-            args.sector, args.idea, tone=args.tone)
+        bank, path = export_prompts_only(args.sector, args.idea, tone=args.tone)
         if args.json:
             print(json.dumps(bank, indent=2, ensure_ascii=False))
         return
@@ -546,8 +527,8 @@ def main():
         result = full_cycle(args.idea, args.sector, args.tone)
         if args.json:
             # Remove non-serializable
-            safe = {k: v for k, v in result.items() if isinstance(
-                v, (str, int, float, list, dict, bool, type(None)))}
+            safe = {k: v for k, v in result.items()
+                    if isinstance(v, (str, int, float, list, dict, bool, type(None)))}
             print(json.dumps(safe, indent=2, ensure_ascii=False))
         return
 

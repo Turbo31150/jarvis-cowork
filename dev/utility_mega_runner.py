@@ -39,7 +39,6 @@ DB_PATH = DATA_DIR / "cowork_gaps.db"
 # 1) Build the set of ALREADY-WIRED scripts from autonomous_orchestrator.py
 # ---------------------------------------------------------------------------
 
-
 def _extract_wired_scripts():
     """Parse autonomous_orchestrator.py to find all script filenames in TASKS."""
     orch_path = SCRIPT_DIR / "autonomous_orchestrator.py"
@@ -107,37 +106,37 @@ def _is_excluded(filename, wired_scripts):
 
 CATEGORY_RULES = [
     # (category, priority, prefixes/keywords)
-    ("health_monitoring", 1, ["health_", "monitor_", "alert_", "anomaly_", "watchdog",
-                              "predictive_failure", "service_watcher"]),
-    ("intelligence", 2, ["knowledge_", "memory_", "pattern_", "decision_", "context_",
-                         "intent_", "interaction_", "prediction_", "ai_", "proactive_",
-                         "prompt_", "response_", "quick_answer", "conversation_",
-                         "multi_agent"]),
-    ("maintenance", 3, ["file_", "log_", "config_", "db_", "backup_", "cleanup_",
-                        "script_dedup", "timeout_", "startup_", "scheduled_task",
-                        "deployment_", "system_restore", "tts_cache"]),
-    ("development", 4, ["code_", "test_", "generate_", "lint_", "continuous_coder",
-                        "continuous_learner", "pipeline_integration",
-                        "dependency_vulnerability"]),
-    ("trading", 5, ["sniper_", "trading_", "portfolio_", "signal_", "strategy_",
+    ("health_monitoring",  1, ["health_", "monitor_", "alert_", "anomaly_", "watchdog",
+                               "predictive_failure", "service_watcher"]),
+    ("intelligence",       2, ["knowledge_", "memory_", "pattern_", "decision_", "context_",
+                               "intent_", "interaction_", "prediction_", "ai_", "proactive_",
+                               "prompt_", "response_", "quick_answer", "conversation_",
+                               "multi_agent"]),
+    ("maintenance",        3, ["file_", "log_", "config_", "db_", "backup_", "cleanup_",
+                               "script_dedup", "timeout_", "startup_", "scheduled_task",
+                               "deployment_", "system_restore", "tts_cache"]),
+    ("development",        4, ["code_", "test_", "generate_", "lint_", "continuous_coder",
+                               "continuous_learner", "pipeline_integration",
+                               "dependency_vulnerability"]),
+    ("trading",            5, ["sniper_", "trading_", "portfolio_", "signal_", "strategy_",
                                "risk_"]),
-    ("system", 6, ["desktop_", "display_", "bluetooth_", "driver_", "electron_",
+    ("system",             6, ["desktop_", "display_", "bluetooth_", "driver_", "electron_",
                                "power_", "process_", "window_", "windows_", "usb_", "wifi_",
                                "screenshot_", "registry_", "audio_", "clipboard_",
                                "browser_automation"]),
-    ("communication", 7, ["email_", "mcp_", "notification_", "report_mailer",
-                          "cross_channel", "cross_script"]),
-    ("performance", 8, ["performance_", "resource_", "gpu_", "pipeline_", "load_",
-                        "node_", "adaptive_", "dynamic_", "smart_", "network_optim"]),
-    ("evolution", 9, ["self_improv", "continuous_improv", "self_feeding",
-                      "cowork_", "workspace_", "night_", "openclaw_"]),
-    ("infrastructure", 10, ["api_rate_", "autonomous_cluster", "dashboard_generator",
-                            "data_exporter", "domino_executor", "event_bus", "event_logger",
-                            "metrics_collector", "model_benchmark", "model_manager",
-                            "model_rotator", "system_benchmark", "task_automator",
-                            "task_learner", "task_queue", "usage_analytics",
-                            "daily_audit"]),
-    ("misc", 99, []),  # Catch-all
+    ("communication",      7, ["email_", "mcp_", "notification_", "report_mailer",
+                               "cross_channel", "cross_script"]),
+    ("performance",        8, ["performance_", "resource_", "gpu_", "pipeline_", "load_",
+                               "node_", "adaptive_", "dynamic_", "smart_", "network_optim"]),
+    ("evolution",          9, ["self_improv", "continuous_improv", "self_feeding",
+                               "cowork_", "workspace_", "night_", "openclaw_"]),
+    ("infrastructure",    10, ["api_rate_", "autonomous_cluster", "dashboard_generator",
+                               "data_exporter", "domino_executor", "event_bus", "event_logger",
+                               "metrics_collector", "model_benchmark", "model_manager",
+                               "model_rotator", "system_benchmark", "task_automator",
+                               "task_learner", "task_queue", "usage_analytics",
+                               "daily_audit"]),
+    ("misc",              99, []),  # Catch-all
 ]
 
 
@@ -161,9 +160,7 @@ def discover_scripts():
     Returns dict: {category: [(filename, priority), ...]}
     """
     wired = _extract_wired_scripts()
-    all_py = sorted(
-        f for f in os.listdir(
-            str(SCRIPT_DIR)) if f.endswith(".py"))
+    all_py = sorted(f for f in os.listdir(str(SCRIPT_DIR)) if f.endswith(".py"))
 
     categorized = {}
     for filename in all_py:
@@ -299,11 +296,7 @@ def run_script(script_name, timeout_s=60):
 # 7) Main run logic
 # ---------------------------------------------------------------------------
 
-def run_all(
-        categories_filter=None,
-        timeout_s=60,
-        dry_run=False,
-        verbose=False):
+def run_all(categories_filter=None, timeout_s=60, dry_run=False, verbose=False):
     """Discover and run all uncovered scripts by priority (parallel within groups).
 
     Returns: (total, succeeded, failed, results_list)
@@ -351,8 +344,7 @@ def run_all(
     for prio, group_items in priority_groups:
         if verbose:
             cats = set(cat for _, cat, _ in group_items)
-            print(
-                f"  --- Priority {prio} ({len(group_items)} scripts: {', '.join(cats)}) ---")
+            print(f"  --- Priority {prio} ({len(group_items)} scripts: {', '.join(cats)}) ---")
 
         with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, len(group_items))) as pool:
             future_map = {}
@@ -365,12 +357,8 @@ def run_all(
                 try:
                     result = future.result()
                 except Exception as e:
-                    result = {
-                        "success": False,
-                        "duration_ms": 0,
-                        "returncode": -1,
-                        "error": str(e)[
-                            :300]}
+                    result = {"success": False, "duration_ms": 0, "returncode": -1,
+                              "error": str(e)[:300]}
 
                 record_run(conn, script_name, cat, result)
 
@@ -384,12 +372,9 @@ def run_all(
                 dur = result.get("duration_ms", 0)
                 if verbose:
                     ts = datetime.now().strftime("%H:%M:%S")
-                    print(
-                        f"  [{ts}] [{
-                            cat:20}] {script_name} {status} ({dur}ms)")
+                    print(f"  [{ts}] [{cat:20}] {script_name} {status} ({dur}ms)")
                     if not result["success"] and result.get("error"):
-                        err_line = result["error"].strip().split(
-                            "\n")[-1][:120]
+                        err_line = result["error"].strip().split("\n")[-1][:120]
                         print(f"           -> {err_line}")
 
                 results.append({

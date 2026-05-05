@@ -71,8 +71,7 @@ def scan_cowork_dirs() -> dict:
     results = {}
     for subdir in sorted(cowork_root.iterdir()):
         if subdir.is_dir() and not subdir.name.startswith((".", "__")):
-            scripts = sorted(
-                p.name for p in subdir.glob("*.py") if p.is_file())
+            scripts = sorted(p.name for p in subdir.glob("*.py") if p.is_file())
             if scripts:
                 results[subdir.name] = scripts
     return results
@@ -138,14 +137,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Analyze gaps in cowork script coverage"
     )
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Analyze without saving")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Analyze without saving")
     parser.add_argument(
         "--min-scripts", type=int, default=2,
         help="Minimum scripts per category (default: 2)"
@@ -168,15 +161,11 @@ def main():
 
     # Human-readable output
     print(f"=== Cowork Gap Analysis ===")
-    print(
-        f"Scanned {
-            len(dirs_scripts)} directories, {
-            analysis['total_scripts']} scripts total")
+    print(f"Scanned {len(dirs_scripts)} directories, {analysis['total_scripts']} scripts total")
     print()
 
     print("Category distribution:")
-    for cat, count in sorted(
-            analysis["categories"].items(), key=lambda x: -x[1]):
+    for cat, count in sorted(analysis["categories"].items(), key=lambda x: -x[1]):
         desc = CATEGORY_PREFIXES.get(cat, "Other")
         print(f"  {cat:15s} : {count:3d} scripts  ({desc})")
     print()
@@ -198,12 +187,9 @@ def main():
         "status": "ok",
         "timestamp": datetime.now().isoformat(),
         "total_scripts": analysis["total_scripts"],
-        "total_categories": len(
-            analysis["categories"]),
-        "gaps_found": len(
-            analysis["gaps"]),
-        "critical_gaps": sum(
-            1 for g in analysis["gaps"] if g["severity"] == "critical"),
+        "total_categories": len(analysis["categories"]),
+        "gaps_found": len(analysis["gaps"]),
+        "critical_gaps": sum(1 for g in analysis["gaps"] if g["severity"] == "critical"),
     }
     print(json.dumps(result))
     sys.exit(0)

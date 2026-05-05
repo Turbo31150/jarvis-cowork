@@ -21,8 +21,7 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "font_manager.db"
 FONTS_DIR = Path("C:/Windows/Fonts")
-USER_FONTS_DIR = Path.home() / "AppData" / "Local" / \
-    "Microsoft" / "Windows" / "Fonts"
+USER_FONTS_DIR = Path.home() / "AppData" / "Local" / "Microsoft" / "Windows" / "Fonts"
 
 
 def init_db():
@@ -45,8 +44,7 @@ def scan_fonts():
     fonts = []
     font_exts = {".ttf", ".otf", ".ttc", ".woff", ".woff2", ".fon"}
 
-    for fonts_dir, location in [
-            (FONTS_DIR, "system"), (USER_FONTS_DIR, "user")]:
+    for fonts_dir, location in [(FONTS_DIR, "system"), (USER_FONTS_DIR, "user")]:
         if not fonts_dir.exists():
             continue
         try:
@@ -113,13 +111,8 @@ def do_scan():
 
     db.execute(
         "INSERT INTO scans (ts, system_fonts, user_fonts, total_size_mb, duplicates) VALUES (?,?,?,?,?)",
-        (time.time(),
-         system,
-         user,
-         round(
-            total_size,
-            1),
-            len(duplicates)))
+        (time.time(), system, user, round(total_size, 1), len(duplicates))
+    )
     db.commit()
     db.close()
 
@@ -137,15 +130,8 @@ def do_scan():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Font Manager")
-    parser.add_argument(
-        "--once",
-        "--list",
-        action="store_true",
-        help="Scan fonts")
-    parser.add_argument(
-        "--duplicates",
-        action="store_true",
-        help="Find duplicates")
+    parser.add_argument("--once", "--list", action="store_true", help="Scan fonts")
+    parser.add_argument("--duplicates", action="store_true", help="Find duplicates")
     parser.add_argument("--unused", action="store_true", help="Unused fonts")
     parser.add_argument("--install", metavar="PATH", help="Install font")
     args = parser.parse_args()

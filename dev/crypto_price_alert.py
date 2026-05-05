@@ -27,21 +27,25 @@ import urllib.parse
 import urllib.request
 from datetime import datetime
 from pathlib import Path
+from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+TURBO_ROOT = SCRIPT_DIR.parent.parent
 DATA_DIR = SCRIPT_DIR / "data"
 DB_PATH = DATA_DIR / "cowork_gaps.db"
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
+
+def _alerts_enabled():
+    return not (TURBO_ROOT / "data" / ".trading_alerts_off").exists()
 
 MEXC_TICKER_URL = "https://api.mexc.com/api/v3/ticker/24hr"
 
 # Thresholds
 DEFAULT_DROP_PCT = 3.0      # Alert if price drops > X% vs last check
 DROP_24H_ALERT = 5.0        # Alert if 24h change exceeds this
-# Send summary every N checks (e.g., every 30 min if interval=5)
-SUMMARY_EVERY = 6
+SUMMARY_EVERY = 6           # Send summary every N checks (e.g., every 30 min if interval=5)
 
 
 def init_db(conn):
@@ -89,7 +93,9 @@ def fetch_price(pair):
 
 
 def send_telegram(text):
-    """Send message to Telegram."""
+    """Send message to Telegram. Respects global alert flag."""
+    if not _alerts_enabled():
+        return 0
     data = urllib.parse.urlencode({
         "chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML"
     }).encode()
@@ -102,10 +108,10 @@ def send_telegram(text):
         return r.get("result", {}).get("message_id", 0)
     except Exception:
         try:
-            data2 = urllib.parse.urlencode(
-                {"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
+            data2 = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
             req2 = urllib.request.Request(
-                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data2)
+                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data2
+            )
             urllib.request.urlopen(req2, timeout=10)
         except Exception:
             pass
@@ -214,19 +220,13 @@ def format_drop_alert(alerts):
         pair = a["pair"]
         if a["type"] == "drop_vs_last":
             lines.append(f"<b>{pair}</b> CHUTE {a['change_pct']:.1f}%")
-            lines.append(
-                f"  ${fmt_price(a['last_price'])} -> ${fmt_price(a['price'])}")
+            lines.append(f"  ${fmt_price(a['last_price'])} -> ${fmt_price(a['price'])}")
         elif a["type"] == "drop_24h":
             lines.append(f"<b>{pair}</b> -24h: {a['change_24h']:.1f}%")
             lines.append(f"  Prix: ${fmt_price(a['price'])}")
         elif a["type"] == "near_low":
             lines.append(f"<b>{pair}</b> PROCHE DU BAS 24h")
-            lines.append(
-                f"  Prix: ${
-                    fmt_price(
-                        a['price'])} | Low: ${
-                    fmt_price(
-                        a['low_24h'])}")
+            lines.append(f"  Prix: ${fmt_price(a['price'])} | Low: ${fmt_price(a['low_24h'])}")
         lines.append("")
 
     return "\n".join(lines)
@@ -241,40 +241,19 @@ def format_summary(prices):
         if "error" in p:
             continue
         change = p["change_24h_pct"]
-        arrow = "++" if change > 3 else "+" if change > 0 else "--" if change < - \
-            3 else "-" if change < 0 else "="
-        lines.append(
-            f"  {
-                p['pair']} {arrow} ${
-                fmt_price(
-                    p['price'])} ({
-                    change:+.1f}%) vol ${
-                        fmt_vol(
-                            p['volume_24h'])}")
+        arrow = "++" if change > 3 else "+" if change > 0 else "--" if change < -3 else "-" if change < 0 else "="
+        lines.append(f"  {p['pair']} {arrow} ${fmt_price(p['price'])} ({change:+.1f}%) vol ${fmt_vol(p['volume_24h'])}")
 
     return "\n".join(lines)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Smart Crypto Price Alert")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Fetch and send once")
-    parser.add_argument(
-        "--watch",
-        action="store_true",
-        help="Smart continuous monitoring")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=5,
-        help="Check interval (minutes)")
-    parser.add_argument(
-        "--drop-pct",
-        type=float,
-        default=DEFAULT_DROP_PCT,
-        help=f"Drop threshold for alert (default {DEFAULT_DROP_PCT}%%)")
+    parser.add_argument("--once", action="store_true", help="Fetch and send once")
+    parser.add_argument("--watch", action="store_true", help="Smart continuous monitoring")
+    parser.add_argument("--interval", type=int, default=5, help="Check interval (minutes)")
+    parser.add_argument("--drop-pct", type=float, default=DEFAULT_DROP_PCT,
+                        help=f"Drop threshold for alert (default {DEFAULT_DROP_PCT}%%)")
     parser.add_argument("--pairs", type=str, default="IPUSDT,ASTERUSDT",
                         help="Comma-separated pairs")
     parser.add_argument("--stats", action="store_true", help="Price history")
@@ -298,11 +277,7 @@ def main():
         return
 
     if args.watch:
-        print(
-            f"Smart watch: {
-                ', '.join(pairs)} every {
-                args.interval}m | drop alert >{
-                args.drop_pct}%")
+        print(f"Smart watch: {', '.join(pairs)} every {args.interval}m | drop alert >{args.drop_pct}%")
         check_count = 0
         while True:
             prices, alerts = check_and_alert(pairs, args.drop_pct)
@@ -315,15 +290,7 @@ def main():
                 send_telegram(msg)
                 print(f"  [{ts}] ALERT: {len(alerts)} alertes envoyees")
                 for a in alerts:
-                    print(
-                        f"    {
-                            a['pair']} {
-                            a['type']}: {
-                            a.get(
-                                'change_pct',
-                                a.get(
-                                    'change_24h',
-                                    '')):.1f}%")
+                    print(f"    {a['pair']} {a['type']}: {a.get('change_pct', a.get('change_24h', '')):.1f}%")
 
             # Send summary every N checks
             if check_count % SUMMARY_EVERY == 0:
@@ -334,11 +301,7 @@ def main():
             # Log
             for p in prices:
                 if "error" not in p:
-                    print(
-                        f"  [{ts}] {
-                            p['pair']}: ${
-                            p['price']} ({
-                            p['change_24h_pct']:+.2f}%)")
+                    print(f"  [{ts}] {p['pair']}: ${p['price']} ({p['change_24h_pct']:+.2f}%)")
 
             time.sleep(args.interval * 60)
     else:

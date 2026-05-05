@@ -6,11 +6,7 @@ Usage:
     python dev/ia_transfer_learner.py --evaluate
     python dev/ia_transfer_learner.py --once
 """
-import argparse
-import json
-import sqlite3
-import time
-import os
+import argparse, json, sqlite3, time, os
 from datetime import datetime
 from pathlib import Path
 
@@ -129,8 +125,7 @@ def analyze_domains(db):
                     "SELECT topic, level FROM curriculum_items WHERE domain=? AND status='completed'",
                     (domain,)
                 ).fetchall()
-                domain_data[domain]["completed_topics"] = [t[0]
-                                                           for t in topics]
+                domain_data[domain]["completed_topics"] = [t[0] for t in topics]
             conn.close()
         except Exception:
             pass
@@ -175,8 +170,9 @@ def do_transfer(db, from_domain, to_domain):
     for skill in mapping["transferable"]:
         db.execute("""INSERT OR REPLACE INTO domain_skills
             (domain, skill, proficiency, source, last_updated)
-            VALUES (?,?,?,?,datetime('now','localtime'))""", (to_domain,
-                   skill, mapping["boost_pct"], f"transfer:{from_domain}"))
+            VALUES (?,?,?,?,datetime('now','localtime'))""",
+            (to_domain, skill, mapping["boost_pct"], f"transfer:{from_domain}")
+        )
 
     # Create enriched prompt template
     skills_str = ", ".join(mapping["transferable"])
@@ -189,12 +185,8 @@ def do_transfer(db, from_domain, to_domain):
 
     cur = db.execute(
         "INSERT INTO transfers (from_domain, to_domain, skills_transferred, boost_applied, enriched_prompt) VALUES (?,?,?,?,?)",
-        (from_domain,
-         to_domain,
-         json.dumps(
-             mapping["transferable"]),
-            mapping["boost_pct"],
-            enriched_prompt))
+        (from_domain, to_domain, json.dumps(mapping["transferable"]), mapping["boost_pct"], enriched_prompt)
+    )
     db.commit()
 
     return {
@@ -227,10 +219,7 @@ def evaluate_transfers(db):
             if row:
                 skill_scores.append(row[0])
 
-        avg_proficiency = round(
-            sum(skill_scores) /
-            len(skill_scores),
-            1) if skill_scores else 0
+        avg_proficiency = round(sum(skill_scores) / len(skill_scores), 1) if skill_scores else 0
         results.append({
             "id": t[0],
             "from": t[1],
@@ -246,12 +235,9 @@ def evaluate_transfers(db):
 
 
 def do_status(db):
-    total_skills = db.execute(
-        "SELECT COUNT(*) FROM domain_skills").fetchone()[0]
-    total_transfers = db.execute(
-        "SELECT COUNT(*) FROM transfers").fetchone()[0]
-    domains = db.execute(
-        "SELECT DISTINCT domain FROM domain_skills").fetchall()
+    total_skills = db.execute("SELECT COUNT(*) FROM domain_skills").fetchone()[0]
+    total_transfers = db.execute("SELECT COUNT(*) FROM transfers").fetchone()[0]
+    domains = db.execute("SELECT DISTINCT domain FROM domain_skills").fetchall()
     return {
         "script": "ia_transfer_learner.py",
         "id": 211,
@@ -265,23 +251,10 @@ def do_status(db):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="IA Transfer Learner — cross-domain skill transfer")
-    parser.add_argument(
-        "--analyze",
-        action="store_true",
-        help="Analyze domains and opportunities")
-    parser.add_argument(
-        "--transfer",
-        nargs=2,
-        metavar=(
-            "FROM",
-            "TO"),
-        help="Transfer skills between domains")
-    parser.add_argument(
-        "--evaluate",
-        action="store_true",
-        help="Evaluate past transfers")
+    parser = argparse.ArgumentParser(description="IA Transfer Learner — cross-domain skill transfer")
+    parser.add_argument("--analyze", action="store_true", help="Analyze domains and opportunities")
+    parser.add_argument("--transfer", nargs=2, metavar=("FROM", "TO"), help="Transfer skills between domains")
+    parser.add_argument("--evaluate", action="store_true", help="Evaluate past transfers")
     parser.add_argument("--once", action="store_true", help="Quick status")
     args = parser.parse_args()
 

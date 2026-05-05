@@ -86,7 +86,9 @@ def find_window(app_name):
 
 def launch_app(app_name):
     """Launch an application."""
-    cmd = APP_PATHS.get(app_name.lower(), app_name)
+    cmd = APP_PATHS.get(app_name.lower())
+    if cmd is None:
+        return {"ok": False, "app": app_name, "error": f"Unknown app: {app_name}. Known: {', '.join(APP_PATHS)}"}
     try:
         subprocess.Popen(cmd, shell=True)
         return {"ok": True, "app": app_name, "action": "launched"}
@@ -144,10 +146,7 @@ def main():
     parser.add_argument("--close", metavar="APP", help="Close app")
     parser.add_argument("--focus", metavar="APP", help="Focus app")
     parser.add_argument("--list", action="store_true", help="List windows")
-    parser.add_argument(
-        "--profiles",
-        action="store_true",
-        help="Show profiles")
+    parser.add_argument("--profiles", action="store_true", help="Show profiles")
     parser.add_argument("--profile", metavar="NAME", help="Apply profile")
     args = parser.parse_args()
 
@@ -155,12 +154,8 @@ def main():
 
     if args.launch:
         result = launch_app(args.launch)
-        db.execute(
-            "INSERT INTO actions (ts, action, app, result) VALUES (?,?,?,?)",
-            (time.time(),
-             "launch",
-             args.launch,
-             json.dumps(result)))
+        db.execute("INSERT INTO actions (ts, action, app, result) VALUES (?,?,?,?)",
+                   (time.time(), "launch", args.launch, json.dumps(result)))
         db.commit()
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.close:

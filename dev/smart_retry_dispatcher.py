@@ -24,7 +24,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 DB_PATH = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
+from _paths import ETOILE_DB
 
 # Retry configuration
 MAX_RETRIES = 3
@@ -137,9 +137,7 @@ def simulate_retries():
     for f in failures:
         pattern = f["classified_type"]
         failed_node = f["node"]
-        fallbacks = PATTERN_FALLBACKS.get(
-            pattern, FALLBACK_CHAINS.get(
-                failed_node, []))
+        fallbacks = PATTERN_FALLBACKS.get(pattern, FALLBACK_CHAINS.get(failed_node, []))
 
         recovered = False
         for retry_num, fallback_node in enumerate(fallbacks, 1):
@@ -192,8 +190,7 @@ def simulate_retries():
             pattern_recovery[p]["total_failures"] += 1
 
     for p, data in pattern_recovery.items():
-        data["recovery_pct"] = round(
-            data["recovered"] / max(data["total_failures"], 1) * 100, 1)
+        data["recovery_pct"] = round(data["recovered"] / max(data["total_failures"], 1) * 100, 1)
 
     return {
         "timestamp": ts,
@@ -226,14 +223,8 @@ def action_stats():
 
 def main():
     parser = argparse.ArgumentParser(description="Smart Retry Dispatcher")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Analyze retry opportunities")
-    parser.add_argument(
-        "--simulate",
-        action="store_true",
-        help="Simulate retries")
+    parser.add_argument("--once", action="store_true", help="Analyze retry opportunities")
+    parser.add_argument("--simulate", action="store_true", help="Simulate retries")
     parser.add_argument("--stats", action="store_true", help="Show stats")
     args = parser.parse_args()
 

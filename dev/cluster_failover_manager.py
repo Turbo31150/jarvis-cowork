@@ -23,18 +23,10 @@ DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "failover_manager.db"
 
 NODES = {
-    "M1": {
-        "url": "http://127.0.0.1:1234/api/v1/models",
-        "fallback": "M2"},
-    "M2": {
-        "url": "http://192.168.1.26:1234/api/v1/models",
-        "fallback": "OL1"},
-    "M3": {
-        "url": "http://192.168.1.113:1234/api/v1/models",
-        "fallback": "OL1"},
-    "OL1": {
-        "url": "http://127.0.0.1:11434/api/tags",
-        "fallback": "M1"},
+    "M1": {"url": "http://127.0.0.1:1234/api/v1/models", "fallback": "M2"},
+    "M2": {"url": "http://192.168.1.26:1234/api/v1/models", "fallback": "OL1"},
+    "M3": {"url": "http://192.168.1.113:1234/api/v1/models", "fallback": "OL1"},
+    "OL1": {"url": "http://127.0.0.1:11434/api/tags", "fallback": "M1"},
 }
 
 
@@ -72,12 +64,7 @@ def test_all_nodes():
         primary = check_node(cfg["url"])
         fallback_name = cfg["fallback"]
         fallback_cfg = NODES.get(fallback_name, {})
-        fallback = check_node(
-            fallback_cfg.get(
-                "url",
-                ""),
-            timeout=5) if fallback_cfg else {
-            "ok": False}
+        fallback = check_node(fallback_cfg.get("url", ""), timeout=5) if fallback_cfg else {"ok": False}
 
         result = {
             "node": name,
@@ -112,15 +99,8 @@ def test_all_nodes():
 
 def main():
     parser = argparse.ArgumentParser(description="Cluster Failover Manager")
-    parser.add_argument(
-        "--once",
-        "--test",
-        action="store_true",
-        help="Test all nodes")
-    parser.add_argument(
-        "--simulate",
-        metavar="NODE",
-        help="Simulate node failure")
+    parser.add_argument("--once", "--test", action="store_true", help="Test all nodes")
+    parser.add_argument("--simulate", metavar="NODE", help="Simulate node failure")
     parser.add_argument("--status", action="store_true", help="Quick status")
     parser.add_argument("--history", action="store_true", help="Test history")
     args = parser.parse_args()

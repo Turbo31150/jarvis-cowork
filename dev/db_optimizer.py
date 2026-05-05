@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """JARVIS DB Optimizer — Optimisation des bases de donnees."""
 import json, sys, os, sqlite3
+from _paths import TURBO_DIR, ETOILE_DB, JARVIS_DB, SNIPER_DB
 from datetime import datetime
 
 DATABASES = {
-    "etoile.db": "F:/BUREAU/etoile.db",
-    "jarvis.db": "/home/turbo/data/jarvis.db",
-    "sniper.db": "/home/turbo/data/sniper.db",
-    "finetuning.db": "/home/turbo/finetuning/finetuning.db",
+    "etoile.db": str(ETOILE_DB),
+    "jarvis.db": str(JARVIS_DB),
+    "sniper.db": str(SNIPER_DB),
+    "finetuning.db": str(TURBO_DIR / "finetuning" / "finetuning.db"),
 }
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT = "2010747443"
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 def send_telegram(msg):
     import urllib.request
+import argparse
     data = json.dumps({"chat_id": TELEGRAM_CHAT, "text": msg}).encode()
     req = urllib.request.Request(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
                                  data=data, headers={"Content-Type": "application/json"})

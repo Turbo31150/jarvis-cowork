@@ -59,11 +59,7 @@ def get_visible_windows():
                             })
             return True
 
-        WNDENUMPROC = ctypes.WINFUNCTYPE(
-            ctypes.c_bool,
-            ctypes.c_int,
-            ctypes.POINTER(
-                ctypes.c_int))
+        WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_int, ctypes.POINTER(ctypes.c_int))
         user32.EnumWindows(WNDENUMPROC(enum_cb), 0)
     except Exception:
         pass
@@ -96,11 +92,7 @@ def do_list():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows Window Manager")
-    parser.add_argument(
-        "--once",
-        "--list",
-        action="store_true",
-        help="List windows")
+    parser.add_argument("--once", "--list", action="store_true", help="List windows")
     parser.add_argument("--focus", metavar="TITLE", help="Focus window")
     parser.add_argument("--move", action="store_true", help="Move window")
     parser.add_argument("--tile", action="store_true", help="Tile windows")

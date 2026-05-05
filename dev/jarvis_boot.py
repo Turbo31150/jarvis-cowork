@@ -12,9 +12,7 @@ BOOT_URL = "http://127.0.0.1:9742/api/boot/status"
 
 def fetch_boot_status(timeout: float = 10.0) -> dict:
     try:
-        req = urllib.request.Request(
-            BOOT_URL, headers={
-                "Accept": "application/json"})
+        req = urllib.request.Request(BOOT_URL, headers={"Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode())
     except (urllib.error.URLError, OSError, json.JSONDecodeError) as e:
@@ -51,8 +49,7 @@ def format_report(data: dict) -> dict:
             else:
                 svc_summary[name] = info
 
-    failed = [p["name"]
-              for p in phase_summary if p.get("status") in ("failed", "error")]
+    failed = [p["name"] for p in phase_summary if p.get("status") in ("failed", "error")]
     return {
         "ok": status in ("ready", "running", "ok", "complete"),
         "status": status,
@@ -73,15 +70,8 @@ def boot_cycle() -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS boot status reporter")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=30,
-        help="Loop interval (sec)")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
+    parser.add_argument("--interval", type=int, default=30, help="Loop interval (sec)")
     parser.add_argument("--wait-ready", action="store_true",
                         help="Loop until boot is ready, then exit")
     args = parser.parse_args()

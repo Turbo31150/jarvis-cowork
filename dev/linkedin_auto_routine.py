@@ -21,7 +21,6 @@ Integrates with: linkedin_scheduler.py, linkedin_content_generator.py, linkedin_
 Stdlib-only for core.
 """
 
-from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 import argparse
 import json
 import sqlite3
@@ -35,6 +34,7 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
+from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 
 
 def get_db():
@@ -87,18 +87,17 @@ def call_m1(prompt, max_tokens=1024, timeout=60):
         for block in reversed(d.get("output", [])):
             if isinstance(block, dict) and block.get("type") == "message":
                 content = block.get("content", "")
-                return (content if isinstance(content, str)
-                        else str(content)), elapsed, "M1"
+                return (content if isinstance(content, str) else str(content)), elapsed, "M1"
     except Exception:
         pass
     return None, 0, None
 
 
 def call_ol1(prompt, timeout=30):
-    """Fallback OL1/qwen2.5:1.5b."""
+    """Fallback OL1/qwen3:1.7b."""
     try:
         data = json.dumps({
-            "model": "qwen2.5:1.5b",
+            "model": "qwen3:1.7b",
             "messages": [{"role": "user", "content": prompt}],
             "stream": False,
         }).encode()
@@ -244,8 +243,7 @@ def send_telegram(msg):
 
 def run_full_routine(db, dry_run=False, send_tg=True):
     """Execute the full LinkedIn daily routine."""
-    print(
-        f"\n  LinkedIn Auto-Routine {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"\n  LinkedIn Auto-Routine {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("  " + "=" * 50)
     report = []
     t0 = time.time()
@@ -282,8 +280,7 @@ def run_full_routine(db, dry_run=False, send_tg=True):
                 print(f"    [{agent}] Comment: {text[:60]}...")
         db.commit()
         # Mark as used
-        db.execute(
-            "UPDATE linkedin_feed_items SET used_for_inspiration=1 WHERE used_for_inspiration=0")
+        db.execute("UPDATE linkedin_feed_items SET used_for_inspiration=1 WHERE used_for_inspiration=0")
         db.commit()
         report.append(f"Comments: {comments_gen} drafted")
     else:
@@ -301,10 +298,8 @@ def run_full_routine(db, dry_run=False, send_tg=True):
     print("\n  [4/5] Checking post queue...")
     if not dry_run:
         refilled = auto_refill_check(db)
-        pending = db.execute(
-            "SELECT COUNT(*) FROM linkedin_schedule WHERE status='pending'").fetchone()[0]
-        report.append(f"Queue: {pending} pending" +
-                      (" (refilled)" if refilled else ""))
+        pending = db.execute("SELECT COUNT(*) FROM linkedin_schedule WHERE status='pending'").fetchone()[0]
+        report.append(f"Queue: {pending} pending" + (" (refilled)" if refilled else ""))
     else:
         report.append("Queue: DRY RUN")
 
@@ -317,8 +312,7 @@ def run_full_routine(db, dry_run=False, send_tg=True):
 
     # Telegram report
     if send_tg and not dry_run:
-        tg_msg = f"LinkedIn Routine {
-            datetime.now().strftime('%H:%M')}\n" + "\n".join(report)
+        tg_msg = f"LinkedIn Routine {datetime.now().strftime('%H:%M')}\n" + "\n".join(report)
         send_telegram(tg_msg)
         print("  Telegram: sent")
 
@@ -327,43 +321,19 @@ def run_full_routine(db, dry_run=False, send_tg=True):
 
 def main():
     parser = argparse.ArgumentParser(description="LinkedIn Auto-Routine")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run full routine once")
-    parser.add_argument(
-        "--routine",
-        action="store_true",
-        help="Full daily routine")
-    parser.add_argument(
-        "--scroll",
-        action="store_true",
-        help="Collect feed inspiration")
-    parser.add_argument(
-        "--notifs",
-        action="store_true",
-        help="Check notifications")
-    parser.add_argument(
-        "--respond",
-        type=str,
-        help="Generate response for text")
-    parser.add_argument(
-        "--telegram",
-        action="store_true",
-        help="Send to Telegram")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show without executing")
+    parser.add_argument("--once", action="store_true", help="Run full routine once")
+    parser.add_argument("--routine", action="store_true", help="Full daily routine")
+    parser.add_argument("--scroll", action="store_true", help="Collect feed inspiration")
+    parser.add_argument("--notifs", action="store_true", help="Check notifications")
+    parser.add_argument("--respond", type=str, help="Generate response for text")
+    parser.add_argument("--telegram", action="store_true", help="Send to Telegram")
+    parser.add_argument("--dry-run", action="store_true", help="Show without executing")
     args = parser.parse_args()
 
     db = get_db()
 
     if args.routine or args.once:
-        run_full_routine(
-            db,
-            dry_run=args.dry_run,
-            send_tg=args.telegram or args.once)
+        run_full_routine(db, dry_run=args.dry_run, send_tg=args.telegram or args.once)
 
     elif args.scroll:
         items = collect_feed_inspiration(db, count=5)

@@ -21,17 +21,8 @@ Usage:
     python cowork/dev/autonomous_orchestrator_v3.py --status       # Show state
 """
 
-import argparse
-import json
-import math
-import os
-import random
-import sqlite3
-import sys
-import time
-import traceback
-import urllib.request
-import urllib.parse
+import argparse, json, math, os, random, sqlite3, sys, time, traceback
+import urllib.request, urllib.parse
 from datetime import datetime, timedelta
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -73,7 +64,7 @@ NODES = {
     },
     "OL1": {
         "url": "http://127.0.0.1:11434/api/chat",
-        "model": "qwen2.5:1.5b", "prefix": "/nothink\n",
+        "model": "qwen3:1.7b", "prefix": "/nothink\n",
         "timeout": 20, "type": "ollama",
         "role": "quick", "weight": 1.0,
         "max_tokens": 512,
@@ -81,8 +72,7 @@ NODES = {
 }
 
 # Circuit breaker state per node
-_node_state = {n: {"failures": 0, "last_fail": 0, "status": "CLOSED"}
-               for n in NODES}
+_node_state = {n: {"failures": 0, "last_fail": 0, "status": "CLOSED"} for n in NODES}
 CB_THRESHOLD = 3     # failures before OPEN
 CB_RESET_SEC = 120   # seconds before HALF_OPEN
 
@@ -195,9 +185,7 @@ def query_node(node, prompt, retries=2):
                     "stream": False, "store": False
                 }).encode()
 
-            req = urllib.request.Request(
-                cfg["url"], body, {
-                    "Content-Type": "application/json"})
+            req = urllib.request.Request(cfg["url"], body, {"Content-Type": "application/json"})
             with urllib.request.urlopen(req, timeout=cfg["timeout"]) as resp:
                 d = json.loads(resp.read())
 
@@ -246,29 +234,17 @@ def health_check_all(db):
                     headers={"Content-Type": "application/json"}
                 )
             else:
-                req = urllib.request.Request(
-                    cfg["url"].replace("/chat", "/models"))
+                req = urllib.request.Request(cfg["url"].replace("/chat", "/models"))
             with urllib.request.urlopen(req, timeout=5) as resp:
                 resp.read()
             latency = (time.time() - t0) * 1000
             results[node] = {"status": "OK", "latency": latency}
-            db.execute(
-                "INSERT INTO node_health (timestamp, node, status, latency_ms, model) VALUES (?,?,?,?,?)",
-                (datetime.now().isoformat(),
-                 node,
-                 "OK",
-                 latency,
-                 cfg["model"]))
+            db.execute("INSERT INTO node_health (timestamp, node, status, latency_ms, model) VALUES (?,?,?,?,?)",
+                       (datetime.now().isoformat(), node, "OK", latency, cfg["model"]))
         except Exception as e:
             results[node] = {"status": "FAIL", "error": str(e)[:80]}
-            db.execute(
-                "INSERT INTO node_health (timestamp, node, status, latency_ms, error) VALUES (?,?,?,?,?)",
-                (datetime.now().isoformat(),
-                 node,
-                 "FAIL",
-                 0,
-                 str(e)[
-                    :200]))
+            db.execute("INSERT INTO node_health (timestamp, node, status, latency_ms, error) VALUES (?,?,?,?,?)",
+                       (datetime.now().isoformat(), node, "FAIL", 0, str(e)[:200]))
     db.commit()
     return results
 
@@ -280,8 +256,7 @@ def health_check_all(db):
 def fetch_market_data(db):
     """Fetch MEXC futures tickers."""
     try:
-        req = urllib.request.Request(
-            "https://contract.mexc.com/api/v1/contract/ticker")
+        req = urllib.request.Request("https://contract.mexc.com/api/v1/contract/ticker")
         with urllib.request.urlopen(req, timeout=15) as resp:
             tickers = json.loads(resp.read()).get("data", [])
     except Exception:
@@ -311,7 +286,7 @@ def fetch_market_data(db):
         db.execute("""INSERT INTO market_data
             (timestamp, symbol, price, change_24h, volume_24h, high_24h, low_24h, spread)
             VALUES (?,?,?,?,?,?,?,?)""",
-                   (ts, sym, price, change, vol, high, low, spread))
+            (ts, sym, price, change, vol, high, low, spread))
 
     db.commit()
     return market
@@ -324,16 +299,9 @@ def fetch_market_data(db):
 def build_market_summary(market):
     """Build concise market summary for LLM analysis."""
     lines = []
-    for sym, d in sorted(
-            market.items(), key=lambda x: abs(
-            x[1]["change_24h"]), reverse=True):
+    for sym, d in sorted(market.items(), key=lambda x: abs(x[1]["change_24h"]), reverse=True):
         arrow = "+" if d["change_24h"] > 0 else ""
-        lines.append(
-            f"{sym}: ${
-                d['price']} {arrow}{
-                d['change_24h']:.1f}% vol=${
-                d['volume_usd'] / 1e6:.1f}M spread={
-                    d['spread']:.3f}%")
+        lines.append(f"{sym}: ${d['price']} {arrow}{d['change_24h']:.1f}% vol=${d['volume_usd']/1e6:.1f}M spread={d['spread']:.3f}%")
     return "\n".join(lines)
 
 
@@ -344,21 +312,13 @@ def get_evolution_best():
     try:
         db = sqlite3.connect(str(EVOLUTION_DB), timeout=5)
         db.row_factory = sqlite3.Row
-        top = db.execute(
-            "SELECT * FROM strategies ORDER BY fitness DESC LIMIT 3").fetchall()
+        top = db.execute("SELECT * FROM strategies ORDER BY fitness DESC LIMIT 3").fetchall()
         db.close()
         lines = []
         for s in top:
             dna = json.loads(s["dna"])
-            lines.append(
-                f"Fit={
-                    s['fitness']:.3f} WR={
-                    s['avg_wr']:.0f}% PnL={
-                    s['avg_pnl']:+.2f}% " f"EMA {
-                    dna['ema_s']}/{
-                        dna['ema_l']} TP={
-                            dna['tp']} SL={
-                                dna['sl']}")
+            lines.append(f"Fit={s['fitness']:.3f} WR={s['avg_wr']:.0f}% PnL={s['avg_pnl']:+.2f}% "
+                         f"EMA {dna['ema_s']}/{dna['ema_l']} TP={dna['tp']} SL={dna['sl']}")
         return "\n".join(lines) if lines else "Aucune strategie"
     except Exception:
         return "DB error"
@@ -377,8 +337,8 @@ def detect_signals_distributed(market, available_nodes):
     tasks = {}
 
     # OL1 or M1 (fast): Quick pattern scan
-    fast_node = next((n for n in available_nodes if NODES[n]["role"] == "fast"), next(
-        (n for n in available_nodes if NODES[n]["role"] == "quick"), None))
+    fast_node = next((n for n in available_nodes if NODES[n]["role"] == "fast"),
+                     next((n for n in available_nodes if NODES[n]["role"] == "quick"), None))
     if fast_node:
         tasks[fast_node] = (
             f"Donnees marche MEXC futures temps reel:\n{summary}\n\n"
@@ -391,22 +351,11 @@ def detect_signals_distributed(market, available_nodes):
         )
 
     # M2 (reasoning): Deep analysis on top movers
-    reasoning_node = next(
-        (n for n in available_nodes if NODES[n]["role"] == "reasoning"), None)
+    reasoning_node = next((n for n in available_nodes if NODES[n]["role"] == "reasoning"), None)
     if reasoning_node:
-        top_movers = sorted(
-            market.items(),
-            key=lambda x: abs(
-                x[1]["change_24h"]),
-            reverse=True)[
-            :5]
-        movers_txt = "\n".join(
-            f"{s}: ${
-                d['price']} {
-                d['change_24h']:+.1f}% vol=${
-                d['volume_usd'] /
-                1e6:.1f}M" for s,
-            d in top_movers)
+        top_movers = sorted(market.items(), key=lambda x: abs(x[1]["change_24h"]), reverse=True)[:5]
+        movers_txt = "\n".join(f"{s}: ${d['price']} {d['change_24h']:+.1f}% vol=${d['volume_usd']/1e6:.1f}M"
+                               for s, d in top_movers)
         tasks[reasoning_node] = (
             f"Top 5 movers MEXC futures:\n{movers_txt}\n\n"
             f"Analyse en profondeur: pour chaque, dis si c'est un signal de continuation ou reversal. "
@@ -448,10 +397,7 @@ def detect_signals_distributed(market, available_nodes):
                             if len(parts) >= 3:
                                 sym = parts[0].strip()
                                 direction = parts[1].strip().upper()
-                                if direction in (
-                                    "LONG", "SHORT") and any(
-                                    sym.endswith(p) for p in [
-                                        "_USDT", "USDT"]):
+                                if direction in ("LONG", "SHORT") and any(sym.endswith(p) for p in ["_USDT", "USDT"]):
                                     try:
                                         conf = float(parts[2].strip())
                                     except ValueError:
@@ -476,7 +422,6 @@ def detect_signals_distributed(market, available_nodes):
 
 def _alerts_enabled():
     return not (TURBO_ROOT / "data" / ".trading_alerts_off").exists()
-
 
 def send_telegram(text):
     if not _alerts_enabled() or not TELEGRAM_TOKEN:
@@ -503,11 +448,9 @@ def run_cycle(db, cycle_num, dry_run=False):
     ts = datetime.now().isoformat()
     cycle_id = f"C{cycle_num}_{datetime.now().strftime('%H%M%S')}"
 
-    print(f"\n{'=' * 70}")
-    print(
-        f"  CYCLE #{cycle_num} — {
-            datetime.now().strftime('%H:%M:%S')} — {cycle_id}")
-    print(f"{'=' * 70}")
+    print(f"\n{'='*70}")
+    print(f"  CYCLE #{cycle_num} — {datetime.now().strftime('%H:%M:%S')} — {cycle_id}")
+    print(f"{'='*70}")
 
     # Phase 1: Health check
     print(f"  [1/5] Health check...", end=" ", flush=True)
@@ -516,11 +459,7 @@ def run_cycle(db, cycle_num, dry_run=False):
     print(f"{len(available)}/4 nodes OK: {', '.join(available)}")
     for n, h in health.items():
         status_icon = "OK" if h["status"] == "OK" else "XX"
-        lat = f"{
-            h.get(
-                'latency', 0):.0f}ms" if h["status"] == "OK" else h.get(
-            "error", "")[
-                :40]
+        lat = f"{h.get('latency', 0):.0f}ms" if h["status"] == "OK" else h.get("error", "")[:40]
         cb = _node_state[n]["status"]
         print(f"    [{status_icon}] {n:<4} {lat:<20} CB:{cb}")
 
@@ -533,30 +472,17 @@ def run_cycle(db, cycle_num, dry_run=False):
     print(f"  [2/5] Fetching market data...", end=" ", flush=True)
     market = fetch_market_data(db)
     print(f"{len(market)} pairs")
-    for sym, d in sorted(
-        market.items(), key=lambda x: abs(
-            x[1]["change_24h"]), reverse=True)[
-            :5]:
+    for sym, d in sorted(market.items(), key=lambda x: abs(x[1]["change_24h"]), reverse=True)[:5]:
         arrow = "+" if d["change_24h"] > 0 else ""
-        print(
-            f"    {
-                sym:<16} ${
-                d['price']:<12} {arrow}{
-                d['change_24h']:.1f}%  vol=${
-                    d['volume_usd'] /
-                1e6:.1f}M")
+        print(f"    {sym:<16} ${d['price']:<12} {arrow}{d['change_24h']:.1f}%  vol=${d['volume_usd']/1e6:.1f}M")
 
     # Phase 3: Signal detection (distributed)
-    print(
-        f"  [3/5] Detecting signals ({len(available)} nodes)...", end=" ", flush=True)
+    print(f"  [3/5] Detecting signals ({len(available)} nodes)...", end=" ", flush=True)
     signals = detect_signals_distributed(market, available)
     # Filter by confidence
     strong_signals = [s for s in signals if s["confidence"] >= 0.6]
     print(f"{len(signals)} raw, {len(strong_signals)} strong (conf>=0.6)")
-    for s in sorted(
-            strong_signals,
-            key=lambda x: x["confidence"],
-            reverse=True):
+    for s in sorted(strong_signals, key=lambda x: x["confidence"], reverse=True):
         print(f"    [{s['source']:<3}] {s['symbol']:<16} {s['direction']:<5} "
               f"conf={s['confidence']:.2f} | {s['reason'][:50]}")
 
@@ -578,47 +504,34 @@ def run_cycle(db, cycle_num, dry_run=False):
             (cycle_id, timestamp, symbol, direction, confidence,
              source_node, reason, price, tp, sl, status)
             VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                   (cycle_id, ts, s["symbol"], s["direction"], s["confidence"],
-                    s["source"], s["reason"], price,
-                    price * (1 + s["tp_pct"] / 100) if s["direction"] == "LONG" else price * (1 - s["tp_pct"] / 100),
-                    price * (1 - s["sl_pct"] / 100) if s["direction"] == "LONG" else price * (1 + s["sl_pct"] / 100),
-                       "DRY_RUN" if dry_run else "NEW"))
+            (cycle_id, ts, s["symbol"], s["direction"], s["confidence"],
+             s["source"], s["reason"], price,
+             price * (1 + s["tp_pct"]/100) if s["direction"] == "LONG" else price * (1 - s["tp_pct"]/100),
+             price * (1 - s["sl_pct"]/100) if s["direction"] == "LONG" else price * (1 + s["sl_pct"]/100),
+             "DRY_RUN" if dry_run else "NEW"))
 
     # Store cycle
     db.execute("""INSERT INTO cycles
         (timestamp, cycle_id, nodes_used, signals_detected,
          actions_executed, elapsed_sec, market_snapshot)
         VALUES (?,?,?,?,?,?,?)""",
-               (ts, cycle_id, json.dumps(available), len(strong_signals),
-                0, elapsed, json.dumps({s: {"price": d["price"], "change": d["change_24h"]}
-                                        for s, d in list(market.items())[:10]})))
+        (ts, cycle_id, json.dumps(available), len(strong_signals),
+         0, elapsed, json.dumps({s: {"price": d["price"], "change": d["change_24h"]}
+                                  for s, d in list(market.items())[:10]})))
     db.commit()
     print(f"done ({elapsed:.1f}s)")
 
-    log_event(
-        db,
-        "INFO",
-        f"CYCLE_{cycle_num}",
-        f"signals={
-            len(strong_signals)} nodes={
-            len(available)} elapsed={
-                elapsed:.1f}s")
+    log_event(db, "INFO", f"CYCLE_{cycle_num}",
+              f"signals={len(strong_signals)} nodes={len(available)} elapsed={elapsed:.1f}s")
 
     # Telegram summary every 5 cycles
     if cycle_num % 5 == 0 and strong_signals:
-        msg_lines = [
-            f"<b>ORCH v3 Cycle #{cycle_num}</b>",
-            f"Nodes: {
-                len(available)}/4"]
+        msg_lines = [f"<b>ORCH v3 Cycle #{cycle_num}</b>", f"Nodes: {len(available)}/4"]
         for s in strong_signals[:3]:
-            msg_lines.append(
-                f"  {
-                    s['symbol']} {
-                    s['direction']} conf={
-                    s['confidence']:.2f}")
+            msg_lines.append(f"  {s['symbol']} {s['direction']} conf={s['confidence']:.2f}")
         send_telegram("\n".join(msg_lines))
 
-    print(f"{'=' * 70}")
+    print(f"{'='*70}")
     return {"signals": len(strong_signals), "actions": 0, "elapsed": elapsed}
 
 
@@ -630,11 +543,9 @@ def show_status():
     db.row_factory = sqlite3.Row
 
     total_cycles = db.execute("SELECT COUNT(*) FROM cycles").fetchone()[0]
-    last_cycle = db.execute(
-        "SELECT * FROM cycles ORDER BY id DESC LIMIT 1").fetchone()
+    last_cycle = db.execute("SELECT * FROM cycles ORDER BY id DESC LIMIT 1").fetchone()
     total_signals = db.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
-    strong_signals = db.execute(
-        "SELECT COUNT(*) FROM signals WHERE confidence >= 0.6").fetchone()[0]
+    strong_signals = db.execute("SELECT COUNT(*) FROM signals WHERE confidence >= 0.6").fetchone()[0]
     recent_signals = db.execute("""
         SELECT symbol, direction, confidence, source_node, reason, price
         FROM signals ORDER BY id DESC LIMIT 5
@@ -645,8 +556,7 @@ def show_status():
     print("=" * 70)
     print(f"  Total cycles: {total_cycles}")
     if last_cycle:
-        print(
-            f"  Last cycle: {last_cycle['cycle_id']} ({last_cycle['timestamp'][:19]})")
+        print(f"  Last cycle: {last_cycle['cycle_id']} ({last_cycle['timestamp'][:19]})")
         print(f"  Nodes used: {last_cycle['nodes_used']}")
         print(f"  Elapsed: {last_cycle['elapsed_sec']:.1f}s")
     print(f"  Total signals: {total_signals} ({strong_signals} strong)")
@@ -662,13 +572,11 @@ def show_status():
     for n, s in _node_state.items():
         print(f"    {n:<4} CB:{s['status']:<10} fails:{s['failures']}")
 
-    events = db.execute(
-        "SELECT * FROM orch_log ORDER BY id DESC LIMIT 5").fetchall()
+    events = db.execute("SELECT * FROM orch_log ORDER BY id DESC LIMIT 5").fetchall()
     if events:
         print(f"\n  RECENT EVENTS:")
         for e in events:
-            print(
-                f"    [{e['timestamp'][:19]}] {e['level']}: {e['event']} {e['detail'][:50]}")
+            print(f"    [{e['timestamp'][:19]}] {e['level']}: {e['event']} {e['detail'][:50]}")
 
     print("=" * 70)
     db.close()
@@ -677,21 +585,10 @@ def show_status():
 def main():
     parser = argparse.ArgumentParser(description="Autonomous Orchestrator v3")
     parser.add_argument("--once", action="store_true", help="Single cycle")
-    parser.add_argument(
-        "--dry",
-        action="store_true",
-        help="Dry run (no execution)")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=30,
-        help="Seconds between cycles")
+    parser.add_argument("--dry", action="store_true", help="Dry run (no execution)")
+    parser.add_argument("--interval", type=int, default=30, help="Seconds between cycles")
     parser.add_argument("--status", action="store_true", help="Show status")
-    parser.add_argument(
-        "--max-cycles",
-        type=int,
-        default=999999,
-        help="Max cycles")
+    parser.add_argument("--max-cycles", type=int, default=999999, help="Max cycles")
     args = parser.parse_args()
 
     if args.status:
@@ -713,10 +610,8 @@ def main():
     print(f"  PID:      {os.getpid()}")
     print(f"  DB:       {ORCH_DB}")
 
-    log_event(
-        db, "INFO", "ORCH_START", f"mode={
-            'single' if args.once else 'continuous'} interval={
-            args.interval}s")
+    log_event(db, "INFO", "ORCH_START",
+              f"mode={'single' if args.once else 'continuous'} interval={args.interval}s")
 
     cycle = 0
     max_cycles = 1 if args.once else args.max_cycles

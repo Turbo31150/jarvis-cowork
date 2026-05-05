@@ -23,7 +23,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 DB_PATH = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
+from _paths import ETOILE_DB
 
 # Latency targets (ms)
 LATENCY_TARGETS = {
@@ -174,8 +174,7 @@ def generate_optimizations(profiles):
 
         for strat_name, strat in OPTIMIZATION_STRATEGIES.items():
             if pattern in strat["applicable_to"]:
-                expected = p["avg_ms"] * \
-                    (1 - strat["latency_reduction_pct"] / 100)
+                expected = p["avg_ms"] * (1 - strat["latency_reduction_pct"] / 100)
                 applicable.append({
                     "strategy": strat_name,
                     "description": strat["description"],
@@ -241,14 +240,8 @@ def action_once():
 def main():
     parser = argparse.ArgumentParser(description="Dispatch Latency Optimizer")
     parser.add_argument("--once", action="store_true", help="Full analysis")
-    parser.add_argument(
-        "--profile",
-        action="store_true",
-        help="Latency profiling")
-    parser.add_argument(
-        "--stats",
-        action="store_true",
-        help="Optimization history")
+    parser.add_argument("--profile", action="store_true", help="Latency profiling")
+    parser.add_argument("--stats", action="store_true", help="Optimization history")
     args = parser.parse_args()
 
     if not any([args.once, args.profile, args.stats]):

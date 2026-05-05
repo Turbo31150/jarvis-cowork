@@ -11,7 +11,6 @@ Usage:
   python cowork/dev/sniper_improve_loop.py --cycles 1000
 """
 
-import urllib.request
 import json
 import os
 import sys
@@ -30,28 +29,14 @@ DB_PATH = TURBO_ROOT / "data" / "sniper_scan.db"
 IMPROVE_DB = TURBO_ROOT / "data" / "sniper_improve.db"
 
 # Full cluster
-CLUSTER = [{"id": "M1",
-            "url": "http://127.0.0.1:1234/v1/chat/completions",
-            "model": "qwen3-8b",
-            "type": "lmstudio",
-            "weight": 1.8},
-           {"id": "M2",
-            "url": "http://192.168.1.26:1234/v1/chat/completions",
-            "model": "deepseek-r1-0528-qwen3-8b",
-            "type": "lmstudio",
-            "weight": 1.5},
-           {"id": "OL1",
-            "url": "http://127.0.0.1:11434/api/chat",
-            "model": "qwen2.5:1.5b",
-            "type": "ollama",
-            "weight": 1.3},
-           {"id": "M3",
-            "url": "http://192.168.1.113:1234/v1/chat/completions",
-            "model": "deepseek-r1-0528-qwen3-8b",
-            "type": "lmstudio",
-            "weight": 1.2},
-           ]
+CLUSTER = [
+    {"id": "M1", "url": "http://127.0.0.1:1234/v1/chat/completions", "model": "qwen3-8b", "type": "lmstudio", "weight": 1.8},
+    {"id": "M2", "url": "http://192.168.1.26:1234/v1/chat/completions", "model": "deepseek-r1-0528-qwen3-8b", "type": "lmstudio", "weight": 1.5},
+    {"id": "OL1", "url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b", "type": "ollama", "weight": 1.3},
+    {"id": "M3", "url": "http://192.168.1.113:1234/v1/chat/completions", "model": "deepseek-r1-0528-qwen3-8b", "type": "lmstudio", "weight": 1.2},
+]
 
+import urllib.request
 
 def http_post(url, data, timeout=60, headers=None):
     body = json.dumps(data).encode()
@@ -104,84 +89,53 @@ def get_performance_stats():
             db.close()
             return None
 
-        closed = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE status != 'OPEN'").fetchone()[0]
-        tp1 = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE tp1_hit=1").fetchone()[0]
-        tp2 = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE tp2_hit=1").fetchone()[0]
-        tp3 = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE tp3_hit=1").fetchone()[0]
-        sl = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE sl_hit=1").fetchone()[0]
-        avg_pnl = db.execute(
-            "SELECT AVG(pnl_pct) FROM signal_tracker WHERE status != 'OPEN'").fetchone()[0] or 0
-        avg_score = db.execute(
-            "SELECT AVG(score) FROM signal_tracker").fetchone()[0] or 0
+        closed = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE status != 'OPEN'").fetchone()[0]
+        tp1 = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE tp1_hit=1").fetchone()[0]
+        tp2 = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE tp2_hit=1").fetchone()[0]
+        tp3 = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE tp3_hit=1").fetchone()[0]
+        sl = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE sl_hit=1").fetchone()[0]
+        avg_pnl = db.execute("SELECT AVG(pnl_pct) FROM signal_tracker WHERE status != 'OPEN'").fetchone()[0] or 0
+        avg_score = db.execute("SELECT AVG(score) FROM signal_tracker").fetchone()[0] or 0
 
         # Recent signals (last 50)
         recent = db.execute(
             "SELECT symbol, direction, score, pnl_pct, tp1_hit, sl_hit, validations, status "
-            "FROM signal_tracker ORDER BY id DESC LIMIT 50").fetchall()
+            "FROM signal_tracker ORDER BY id DESC LIMIT 50"
+        ).fetchall()
 
         # Direction bias
-        longs = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE direction='LONG'").fetchone()[0]
+        longs = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE direction='LONG'").fetchone()[0]
         shorts = total - longs
-        long_win = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE direction='LONG' AND tp1_hit=1").fetchone()[0]
-        short_win = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE direction='SHORT' AND tp1_hit=1").fetchone()[0]
+        long_win = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE direction='LONG' AND tp1_hit=1").fetchone()[0]
+        short_win = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE direction='SHORT' AND tp1_hit=1").fetchone()[0]
 
         # Score distribution
-        high_score = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE score >= 85").fetchone()[0]
-        high_tp1 = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE score >= 85 AND tp1_hit=1").fetchone()[0]
-        low_score = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE score < 85 AND score >= 70").fetchone()[0]
-        low_tp1 = db.execute(
-            "SELECT COUNT(*) FROM signal_tracker WHERE score < 85 AND score >= 70 AND tp1_hit=1").fetchone()[0]
+        high_score = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE score >= 85").fetchone()[0]
+        high_tp1 = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE score >= 85 AND tp1_hit=1").fetchone()[0]
+        low_score = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE score < 85 AND score >= 70").fetchone()[0]
+        low_tp1 = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE score < 85 AND score >= 70 AND tp1_hit=1").fetchone()[0]
 
         # Top patterns in winning signals
         winning_patterns = db.execute(
             "SELECT ss.pattern FROM scan_signals ss "
             "JOIN signal_tracker st ON ss.symbol = st.symbol AND ss.direction = st.direction "
-            "WHERE st.tp1_hit = 1 ORDER BY st.id DESC LIMIT 30").fetchall()
+            "WHERE st.tp1_hit = 1 ORDER BY st.id DESC LIMIT 30"
+        ).fetchall()
 
         db.close()
         return {
-            "total": total,
-            "closed": closed,
-            "tp1": tp1,
-            "tp2": tp2,
-            "tp3": tp3,
-            "sl": sl,
-            "tp1_rate": tp1 /
-            total *
-            100 if total > 0 else 0,
-            "sl_rate": sl /
-            total *
-            100 if total > 0 else 0,
-            "avg_pnl": avg_pnl,
-            "avg_score": avg_score,
-            "longs": longs,
-            "shorts": shorts,
-            "long_win_rate": long_win /
-            longs *
-            100 if longs > 0 else 0,
-            "short_win_rate": short_win /
-            shorts *
-            100 if shorts > 0 else 0,
-            "high_score_tp1": high_tp1 /
-            high_score *
-            100 if high_score > 0 else 0,
-            "low_score_tp1": low_tp1 /
-            low_score *
-            100 if low_score > 0 else 0,
+            "total": total, "closed": closed,
+            "tp1": tp1, "tp2": tp2, "tp3": tp3, "sl": sl,
+            "tp1_rate": tp1 / total * 100 if total > 0 else 0,
+            "sl_rate": sl / total * 100 if total > 0 else 0,
+            "avg_pnl": avg_pnl, "avg_score": avg_score,
+            "longs": longs, "shorts": shorts,
+            "long_win_rate": long_win / longs * 100 if longs > 0 else 0,
+            "short_win_rate": short_win / shorts * 100 if shorts > 0 else 0,
+            "high_score_tp1": high_tp1 / high_score * 100 if high_score > 0 else 0,
+            "low_score_tp1": low_tp1 / low_score * 100 if low_score > 0 else 0,
             "recent": recent,
-            "winning_patterns": [
-                r[0] for r in winning_patterns if r[0]],
+            "winning_patterns": [r[0] for r in winning_patterns if r[0]],
         }
     except Exception as e:
         log(f"  Stats error: {e}")
@@ -210,11 +164,7 @@ def query_node(node, prompt):
         text = re.sub(r'<think>[\s\S]*?</think>', '', text).strip()
         return {"node": node["id"], "text": text, "weight": node["weight"]}
     except Exception as e:
-        return {
-            "node": node["id"],
-            "text": "",
-            "error": str(e),
-            "weight": node["weight"]}
+        return {"node": node["id"], "text": "", "error": str(e), "weight": node["weight"]}
 
 
 def ask_cluster_improvements(stats):
@@ -237,18 +187,18 @@ PARAMETRES ACTUELS:
 - Indicateurs: BB squeeze, Volume ratio, RSI, EMA stack, ADX, VWAP, Consolidation, Order book, Momentum accel, Volume climax, Big candle, Hammer/Star, MTF 5min+15min, Momentum streak
 
 Reponds UNIQUEMENT en JSON avec cette structure:
-{"analysis": "resume en 1 ligne",
+{{
+  "analysis": "resume en 1 ligne",
   "improvements": [
-    {"param": "nom_param", "current": valeur, "suggested": valeur, "reason": "pourquoi"}
+    {{"param": "nom_param", "current": valeur, "suggested": valeur, "reason": "pourquoi"}}
   ],
   "priority": "HIGH/MEDIUM/LOW",
   "confidence": 0.0-1.0
-} """
+}}"""
 
     results = []
     with ThreadPoolExecutor(max_workers=6) as pool:
-        futs = {pool.submit(query_node, node, prompt)
-                            : node for node in CLUSTER}
+        futs = {pool.submit(query_node, node, prompt): node for node in CLUSTER}
         for f in as_completed(futs, timeout=100):
             try:
                 r = f.result()
@@ -301,11 +251,9 @@ def weighted_consensus_improvements(cluster_responses):
             continue  # Need at least 2 nodes to agree
         total_weight = sum(s["weight"] for s in suggestions)
         # Check if values are numeric
-        numeric = all(isinstance(s["value"], (int, float))
-                      for s in suggestions if s["value"] is not None)
+        numeric = all(isinstance(s["value"], (int, float)) for s in suggestions if s["value"] is not None)
         if numeric:
-            weighted_val = sum(s["value"] * s["weight"]
-                               for s in suggestions if s["value"] is not None) / total_weight
+            weighted_val = sum(s["value"] * s["weight"] for s in suggestions if s["value"] is not None) / total_weight
             consensus.append({
                 "param": param,
                 "suggested": round(weighted_val, 4),
@@ -362,13 +310,8 @@ def apply_safe_improvements(consensus, stats):
             "INSERT INTO param_history (param_name, old_value, new_value, reason, suggested_by) VALUES (?,?,?,?,?)",
             (param, None, val, imp["reason"], ",".join(imp["nodes"]))
         )
-        applied.append({"param": param, "value": val,
-                       "confidence": imp["confidence"]})
-        log(
-            f"  APPLY: {param} = {val} (conf={
-                imp['confidence']:.2f}, by {
-                ','.join(
-                    imp['nodes'])})")
+        applied.append({"param": param, "value": val, "confidence": imp["confidence"]})
+        log(f"  APPLY: {param} = {val} (conf={imp['confidence']:.2f}, by {','.join(imp['nodes'])})")
 
     db.commit()
     db.close()
@@ -386,12 +329,7 @@ def run_improvement_cycle(cycle_num):
         log("  No performance data yet — skipping")
         return None
 
-    log(
-        f"  Stats: {
-            stats['total']} signals, TP1={
-            stats['tp1_rate']:.1f}%, SL={
-                stats['sl_rate']:.1f}%, PnL={
-                    stats['avg_pnl']:+.2f}%")
+    log(f"  Stats: {stats['total']} signals, TP1={stats['tp1_rate']:.1f}%, SL={stats['sl_rate']:.1f}%, PnL={stats['avg_pnl']:+.2f}%")
 
     # 2. Ask cluster for improvements
     log(f"  Querying full cluster (6 nodes)...")
@@ -429,40 +367,20 @@ def run_improvement_cycle(cycle_num):
     except Exception as e:
         log(f"  DB save error: {e}")
 
-    log(
-        f"  Cycle {cycle_num} done in {
-            duration:.1f}s — {
-            len(applied)} improvements applied")
-    return {
-        "cycle": cycle_num,
-        "applied": applied,
-        "stats": stats,
-        "duration": duration}
+    log(f"  Cycle {cycle_num} done in {duration:.1f}s — {len(applied)} improvements applied")
+    return {"cycle": cycle_num, "applied": applied, "stats": stats, "duration": duration}
 
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(
-        description="JARVIS Sniper Improvement Loop")
-    parser.add_argument("--cycles", type=int, default=1000,
-                        help="Number of improvement cycles")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=180,
-        help="Seconds between cycles (default 180)")
+    parser = argparse.ArgumentParser(description="JARVIS Sniper Improvement Loop")
+    parser.add_argument("--cycles", type=int, default=1000, help="Number of improvement cycles")
+    parser.add_argument("--interval", type=int, default=180, help="Seconds between cycles (default 180)")
     args = parser.parse_args()
 
     init_improve_db()
-    log(
-        f"SNIPER IMPROVE LOOP — {
-            args.cycles} cycles, interval {
-            args.interval}s")
-    log(
-        f"  Cluster: {
-            ', '.join(
-                n['id'] for n in CLUSTER)} ({
-            len(CLUSTER)} nodes)")
+    log(f"SNIPER IMPROVE LOOP — {args.cycles} cycles, interval {args.interval}s")
+    log(f"  Cluster: {', '.join(n['id'] for n in CLUSTER)} ({len(CLUSTER)} nodes)")
 
     total_applied = 0
     for cycle in range(1, args.cycles + 1):
@@ -482,9 +400,7 @@ def main():
         if cycle < args.cycles:
             time.sleep(args.interval)
 
-    log(
-        f"IMPROVE LOOP COMPLETE — {
-            args.cycles} cycles, {total_applied} improvements applied")
+    log(f"IMPROVE LOOP COMPLETE — {args.cycles} cycles, {total_applied} improvements applied")
 
 
 if __name__ == "__main__":

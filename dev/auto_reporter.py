@@ -2,10 +2,11 @@
 """JARVIS Auto Reporter — Rapport quotidien cluster/trading/systeme."""
 import json, sys, os, subprocess, urllib.request
 from datetime import datetime
+from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT = "2010747443"
-REPORT_DIR = "/home/turbo/.openclaw/workspace/dev/reports"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+# TELEGRAM_CHAT loaded from _paths (.env)
+REPORT_DIR = "C:/Users/franc/.openclaw/workspace/dev/reports"
 
 NODES = {
     "M1": {"url": "http://127.0.0.1:1234/api/v1/models", "type": "lmstudio"},
@@ -135,6 +136,7 @@ if __name__ == "__main__":
             send_telegram(text)
     elif "--loop" in sys.argv:
         import time
+import argparse
         interval = 86400  # 24h
         print(f"Daily report... Ctrl+C to stop")
         while True:

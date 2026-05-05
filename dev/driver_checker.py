@@ -16,24 +16,19 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 from typing import List, Dict
+from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
-
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 
 def telegram_send(msg: str):
-    import urllib.parse
-    import urllib.request
+    import urllib.parse, urllib.request
     try:
-        data = urllib.parse.urlencode(
-            {"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
+        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        urllib.request.urlopen(
-            urllib.request.Request(
-                url, data=data), timeout=10)
+        urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=10)
     except Exception:
         pass
-
 
 def ps(cmd: str, timeout: int = 20) -> str:
     try:
@@ -44,22 +39,15 @@ def ps(cmd: str, timeout: int = 20) -> str:
     except Exception:
         return ""
 
-
 def run_cmd(cmd: List[str], timeout: int = 15) -> str:
     try:
-        return subprocess.check_output(
-            cmd,
-            text=True,
-            stderr=subprocess.DEVNULL,
-            timeout=timeout).strip()
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=timeout).strip()
     except Exception:
         return ""
 
 # ---------------------------------------------------------------------------
 # List drivers
 # ---------------------------------------------------------------------------
-
-
 def list_drivers():
     out = ps("""
         Get-WmiObject Win32_PnPSignedDriver |
@@ -90,8 +78,6 @@ def list_drivers():
 # ---------------------------------------------------------------------------
 # Outdated drivers
 # ---------------------------------------------------------------------------
-
-
 def check_outdated():
     out = ps("""
         Get-WmiObject Win32_PnPSignedDriver |
@@ -119,12 +105,7 @@ def check_outdated():
             # WMI format: 20231215000000.000000-000
             dt = datetime.strptime(date_str[:14], "%Y%m%d%H%M%S")
             if dt < one_year_ago:
-                outdated.append(
-                    (d["DeviceName"],
-                     d.get(
-                        "DriverVersion",
-                        "?"),
-                        dt.strftime("%Y-%m-%d")))
+                outdated.append((d["DeviceName"], d.get("DriverVersion", "?"), dt.strftime("%Y-%m-%d")))
         except Exception:
             continue
 
@@ -140,8 +121,6 @@ def check_outdated():
 # ---------------------------------------------------------------------------
 # Problem drivers
 # ---------------------------------------------------------------------------
-
-
 def check_problems():
     out = ps("""
         Get-PnpDevice |
@@ -175,24 +154,16 @@ def check_problems():
 # ---------------------------------------------------------------------------
 # GPU info
 # ---------------------------------------------------------------------------
-
-
 def gpu_info():
-    nv = run_cmd(["nvidia-smi",
-                  "--query-gpu=name,driver_version,temperature.gpu,memory.used,memory.total",
-                  "--format=csv,noheader,nounits"])
+    nv = run_cmd(["nvidia-smi", "--query-gpu=name,driver_version,temperature.gpu,memory.used,memory.total",
+                   "--format=csv,noheader,nounits"])
     if nv:
         print("GPU NVIDIA :")
         for line in nv.splitlines():
             parts = [p.strip() for p in line.split(",")]
             if len(parts) >= 5:
                 print(f"  🖥️ {parts[0]}")
-                print(
-                    f"    Driver: {
-                        parts[1]} | Temp: {
-                        parts[2]}°C | VRAM: {
-                        parts[3]}/{
-                        parts[4]} MB")
+                print(f"    Driver: {parts[1]} | Temp: {parts[2]}°C | VRAM: {parts[3]}/{parts[4]} MB")
     else:
         print("[driver_checker] nvidia-smi non disponible.")
 
@@ -205,34 +176,16 @@ def gpu_info():
                 gpus = [gpus]
             print("\nPilotes vidéo Windows :")
             for g in gpus:
-                print(
-                    f"  {
-                        g.get(
-                            'Name',
-                            '?')} — Driver v{
-                        g.get(
-                            'DriverVersion',
-                            '?')}")
+                print(f"  {g.get('Name', '?')} — Driver v{g.get('DriverVersion', '?')}")
         except Exception:
             pass
 
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Vérificateur de pilotes Windows.")
+    parser = argparse.ArgumentParser(description="Vérificateur de pilotes Windows.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--list",
-        action="store_true",
-        help="Lister tous les pilotes")
-    group.add_argument(
-        "--outdated",
-        action="store_true",
-        help="Pilotes anciens (> 1 an)")
-    group.add_argument(
-        "--problems",
-        action="store_true",
-        help="Pilotes en erreur")
+    group.add_argument("--list", action="store_true", help="Lister tous les pilotes")
+    group.add_argument("--outdated", action="store_true", help="Pilotes anciens (> 1 an)")
+    group.add_argument("--problems", action="store_true", help="Pilotes en erreur")
     group.add_argument("--gpu", action="store_true", help="Info GPU détaillée")
     args = parser.parse_args()
 
@@ -244,7 +197,6 @@ def main():
         check_problems()
     elif args.gpu:
         gpu_info()
-
 
 if __name__ == "__main__":
     main()

@@ -7,6 +7,7 @@ from pathlib import Path
 def resolve_project_root() -> Path:
     """Find the JARVIS project root directory."""
     candidates = [
+        Path("/home/turbo/jarvis-cowork"),
         Path("/home/turbo/Workspaces/jarvis-linux"),
         Path("/home/turbo/jarvis-linux"),
         Path("/home/turbo/Workspaces/turbo"),
@@ -14,12 +15,13 @@ def resolve_project_root() -> Path:
     for c in candidates:
         if c.exists():
             return c
-    return Path("/home/turbo/Workspaces/jarvis-linux")
+    return Path("/home/turbo/jarvis-cowork")
 
 
 def resolve_db_with_table(db_name: str, table_name: str) -> Path:
     """Find a SQLite database that contains the specified table."""
     search_dirs = [
+        Path("/home/turbo/jarvis-cowork"),
         Path("/home/turbo/Workspaces/jarvis-linux/data/db"),
         Path("/home/turbo/Workspaces/jarvis-linux/src/jarvis/core/data/storage"),
         Path("/home/turbo/jarvis-cowork/dev"),

@@ -37,16 +37,11 @@ def init_db():
 def query_m1(prompt, timeout=20):
     """Query M1 for compression."""
     try:
-        data = json.dumps({"model": "qwen3-8b",
-                           "input": f"/nothink\n{prompt}",
-                           "temperature": 0.2,
-                           "max_output_tokens": 1024,
-                           "stream": False,
-                           "store": False,
-                           }).encode()
-        req = urllib.request.Request(
-            M1_URL, data=data, headers={
-                "Content-Type": "application/json"})
+        data = json.dumps({
+            "model": "qwen3-8b", "input": f"/nothink\n{prompt}",
+            "temperature": 0.2, "max_output_tokens": 1024, "stream": False, "store": False,
+        }).encode()
+        req = urllib.request.Request(M1_URL, data=data, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             result = json.loads(r.read().decode())
             for item in reversed(result.get("output", [])):
@@ -64,24 +59,8 @@ def extract_keywords(text, top_n=20):
     import re
     words = re.findall(r'[a-zA-Z_][a-zA-Z0-9_]{3,}', text.lower())
     # Filter common words
-    stop = {
-        "this",
-        "that",
-        "with",
-        "from",
-        "have",
-        "been",
-        "will",
-        "would",
-        "could",
-        "should",
-        "there",
-        "their",
-        "about",
-        "which",
-        "when",
-        "what",
-        "your"}
+    stop = {"this", "that", "with", "from", "have", "been", "will", "would", "could",
+            "should", "there", "their", "about", "which", "when", "what", "your"}
     filtered = [w for w in words if w not in stop]
 
     # Count frequency
@@ -117,8 +96,7 @@ TEXTE:
 
     # Evaluate keyword preservation
     compressed_keywords = set(extract_keywords(current))
-    preserved = len(original_keywords & compressed_keywords) / \
-        max(len(original_keywords), 1)
+    preserved = len(original_keywords & compressed_keywords) / max(len(original_keywords), 1)
 
     return {
         "compressed": current,
@@ -138,8 +116,8 @@ def do_compress(text=None):
         # Demo text
         text = """JARVIS est un systeme d'assistant IA autonome deploye sur Windows 11 avec un cluster de 10 GPU
 totalisant 78 GB de VRAM. Le systeme utilise 3 serveurs LM Studio (M1 avec qwen3-8b sur 6 GPU 46GB,
-M2 avec deepseek-coder sur 3 GPU 24GB, M3 avec mistral-7b sur 1 GPU 8GB) plus Ollama avec 12 modeles
-(2 locaux + 10 cloud dont gpt-oss:120b champion 100/100). L'architecture comprend 192+ outils MCP,
+M2 avec deepseek-r1 sur 3 GPU 24GB, M3 avec deepseek-r1 sur 1 GPU 8GB) plus Ollama avec
+qwen3:1.7b local. L'architecture comprend 192+ outils MCP,
 89 skills, 2341 commandes vocales, 79 scripts COWORK, et 551 tests. Le pipeline vocal utilise
 OpenWakeWord avec Whisper large-v3-turbo CUDA et TTS Edge fr-FR-HenriNeural avec latence <2s."""
 
@@ -147,12 +125,9 @@ OpenWakeWord avec Whisper large-v3-turbo CUDA et TTS Edge fr-FR-HenriNeural avec
 
     db.execute(
         "INSERT INTO compressions (ts, original_len, compressed_len, ratio, passes, keywords_preserved) VALUES (?,?,?,?,?,?)",
-        (time.time(),
-         result["original_len"],
-         result["compressed_len"],
-         result["ratio"],
-         result["passes"],
-         result["keywords_preserved"]))
+        (time.time(), result["original_len"], result["compressed_len"],
+         result["ratio"], result["passes"], result["keywords_preserved"])
+    )
     db.commit()
     db.close()
 
@@ -186,10 +161,7 @@ def main():
     parser.add_argument("--once", action="store_true", help="Demo compression")
     parser.add_argument("--compress", metavar="TEXT", help="Compress text")
     parser.add_argument("--ratio", action="store_true", help="Show ratios")
-    parser.add_argument(
-        "--evaluate",
-        action="store_true",
-        help="Evaluate quality")
+    parser.add_argument("--evaluate", action="store_true", help="Evaluate quality")
     args = parser.parse_args()
 
     if args.ratio:

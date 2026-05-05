@@ -3,14 +3,15 @@
 import json, sys, os, re
 from datetime import datetime, timedelta
 from collections import Counter
+from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+# TELEGRAM_CHAT loaded from _paths (.env)
 
 LOG_SOURCES = [
-    {"name": "OpenClaw", "path": "/home/turbo/.openclaw/agents/main/logs", "pattern": "*.log"},
-    {"name": "Monitor", "path": "/home/turbo/.openclaw/workspace/dev/monitor_log.json", "type": "jsonl"},
-    {"name": "Optimizer", "path": "/home/turbo/.openclaw/workspace/dev/optimizer_log.json", "type": "jsonl"},
+    {"name": "OpenClaw", "path": os.path.expandvars(r"%USERPROFILE%\.openclaw\agents\main\logs"), "pattern": "*.log"},
+    {"name": "Monitor", "path": "C:/Users/franc/.openclaw/workspace/dev/monitor_log.json", "type": "jsonl"},
+    {"name": "Optimizer", "path": "C:/Users/franc/.openclaw/workspace/dev/optimizer_log.json", "type": "jsonl"},
 ]
 
 ERROR_PATTERNS = [
@@ -28,6 +29,7 @@ ERROR_PATTERNS = [
 
 def send_telegram(msg):
     import urllib.request
+import argparse
     data = json.dumps({"chat_id": TELEGRAM_CHAT, "text": msg}).encode()
     req = urllib.request.Request(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
                                  data=data, headers={"Content-Type": "application/json"})

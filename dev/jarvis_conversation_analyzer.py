@@ -19,8 +19,8 @@ from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
-JARVIS_DB = Path("/home/turbo/data/jarvis.db")
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import JARVIS_DB
+from _paths import ETOILE_DB
 DB_PATH = DEV / "data" / "conversation_analyzer.db"
 
 TOPIC_KEYWORDS = {

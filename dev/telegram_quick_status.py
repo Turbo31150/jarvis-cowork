@@ -24,10 +24,10 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 GAPS_DB = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 
 
 def get_db(path):
@@ -89,10 +89,7 @@ def get_crypto_status():
             GROUP BY pair HAVING id = MAX(id)
         """).fetchall()
         db.close()
-        return {
-            r["pair"]: {
-                "price": r["price"],
-                "change": r["change_24h_pct"]} for r in rows}
+        return {r["pair"]: {"price": r["price"], "change": r["change_24h_pct"]} for r in rows}
     except Exception:
         return {}
 
@@ -151,10 +148,8 @@ def build_status():
 
     # Compute overall health
     scores = []
-    if cluster["total"]:
-        scores.append(cluster["online"] / cluster["total"] * 100)
-    if dispatch["total"]:
-        scores.append(dispatch["success_pct"])
+    if cluster["total"]: scores.append(cluster["online"] / cluster["total"] * 100)
+    if dispatch["total"]: scores.append(dispatch["success_pct"])
     scores.append(100 if orch["success_pct"] >= 95 else orch["success_pct"])
     scores.append(100 - risk["max_risk"])
     overall = round(sum(scores) / max(len(scores), 1), 1)
@@ -174,13 +169,7 @@ def format_telegram(status):
     s = status
 
     # Header with grade
-    grade_emoji = {
-        "A+": "++",
-        "A": "+",
-        "A-": "+",
-        "B": "~",
-        "C": "-",
-        "F": "!!"}
+    grade_emoji = {"A+": "++", "A": "+", "A-": "+", "B": "~", "C": "-", "F": "!!"}
     ge = grade_emoji.get(s["grade"], "?")
 
     lines = [
@@ -199,12 +188,7 @@ def format_telegram(status):
     # Dispatch
     d = s["dispatch"]
     if d["total"]:
-        lines.append(
-            f"<b>Dispatch</b> {
-                d['success_pct']}% ok | q={
-                d['quality']}% | {
-                d['avg_lat_ms']}ms ({
-                    d['total']} recent)")
+        lines.append(f"<b>Dispatch</b> {d['success_pct']}% ok | q={d['quality']}% | {d['avg_lat_ms']}ms ({d['total']} recent)")
 
     # Crypto
     for pair, data in sorted(s.get("crypto", {}).items()):
@@ -214,18 +198,13 @@ def format_telegram(status):
 
     # Orchestrator
     o = s["orchestrator"]
-    lines.append(
-        f"<b>Tasks</b> {
-            o['tasks']} tasks | {
-            o['total_runs']} runs | {
-                o['success_pct']}% ok")
+    lines.append(f"<b>Tasks</b> {o['tasks']} tasks | {o['total_runs']} runs | {o['success_pct']}% ok")
 
     # Risk
     r = s["risk"]
     if r["total"]:
         risk_label = "SAFE" if r["max_risk"] < 25 else "CAUTION" if r["max_risk"] < 50 else "WARNING"
-        lines.append(
-            f"<b>Risk</b> {risk_label} ({r['total']} items, {r['high']} high)")
+        lines.append(f"<b>Risk</b> {risk_label} ({r['total']} items, {r['high']} high)")
 
     # Scripts
     lines.append(f"<b>Scripts</b> {s['scripts']}")
@@ -264,16 +243,7 @@ def main():
 
     msg = format_telegram(status)
     send_telegram(msg)
-    print(
-        msg.replace(
-            "<b>",
-            "").replace(
-            "</b>",
-            "").replace(
-                "<code>",
-                "").replace(
-                    "</code>",
-            ""))
+    print(msg.replace("<b>", "").replace("</b>", "").replace("<code>", "").replace("</code>", ""))
     print(json.dumps(status, indent=2))
 
 

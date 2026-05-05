@@ -8,18 +8,10 @@ import urllib.request
 import urllib.error
 
 NODES = {
-    "M1": {
-        "url": "http://127.0.0.1:1234/api/v1/models",
-        "type": "lmstudio"},
-    "M2": {
-        "url": "http://192.168.1.26:1234/api/v1/models",
-        "type": "lmstudio"},
-    "M3": {
-        "url": "http://192.168.1.113:1234/api/v1/models",
-        "type": "lmstudio"},
-    "OL1": {
-        "url": "http://127.0.0.1:11434/api/tags",
-        "type": "ollama"},
+    "M1": {"url": "http://127.0.0.1:1234/api/v1/models", "type": "lmstudio"},
+    "M2": {"url": "http://192.168.1.26:1234/api/v1/models", "type": "lmstudio"},
+    "M3": {"url": "http://192.168.1.113:1234/api/v1/models", "type": "lmstudio"},
+    "OL1": {"url": "http://127.0.0.1:11434/api/tags", "type": "ollama"},
 }
 
 
@@ -52,11 +44,7 @@ def check_node(name, node, timeout=5):
                 }
     except urllib.error.URLError as e:
         elapsed = round(time.perf_counter() - t0, 3)
-        return {
-            "status": "OFFLINE",
-            "latency_s": elapsed,
-            "error": str(
-                e.reason)}
+        return {"status": "OFFLINE", "latency_s": elapsed, "error": str(e.reason)}
     except Exception as e:
         elapsed = round(time.perf_counter() - t0, 3)
         return {"status": "OFFLINE", "latency_s": elapsed, "error": str(e)}
@@ -90,12 +78,8 @@ def run_once():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Deploy/verify cluster health status")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
+    parser = argparse.ArgumentParser(description="Deploy/verify cluster health status")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
     args = parser.parse_args()
 
     if args.once:

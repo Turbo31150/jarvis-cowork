@@ -139,20 +139,10 @@ def log_result(conn, result):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description=f"Dynamic runner for uncabled {PREFIX}*.py scripts")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run all scripts once")
-    parser.add_argument(
-        "--list",
-        action="store_true",
-        help="List discovered scripts")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show plan without executing")
+    parser = argparse.ArgumentParser(description=f"Dynamic runner for uncabled {PREFIX}*.py scripts")
+    parser.add_argument("--once", action="store_true", help="Run all scripts once")
+    parser.add_argument("--list", action="store_true", help="List discovered scripts")
+    parser.add_argument("--dry-run", action="store_true", help="Show plan without executing")
     args = parser.parse_args()
 
     scripts = discover_scripts()
@@ -161,10 +151,7 @@ def main():
         print(f"Discovered {len(scripts)} uncabled {PREFIX}*.py scripts:")
         for s in scripts:
             print(f"  {s.name}")
-        print(
-            f"\nAlready wired (excluded): {
-                ', '.join(
-                    sorted(ALREADY_WIRED))}")
+        print(f"\nAlready wired (excluded): {', '.join(sorted(ALREADY_WIRED))}")
         return
 
     if not args.once and not args.dry_run:

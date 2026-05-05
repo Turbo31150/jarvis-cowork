@@ -21,8 +21,8 @@ from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
-JARVIS_DB = Path("/home/turbo/data/jarvis.db")
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import JARVIS_DB
+from _paths import ETOILE_DB
 DB_PATH = DEV / "data" / "voice_gaps.db"
 M1_URL = "http://127.0.0.1:1234/api/v1/chat"
 OL1_URL = "http://127.0.0.1:11434/api/chat"
@@ -176,13 +176,9 @@ def validate_suggestion(suggestion):
     required = ["id", "triggers", "action_type"]
     if not all(k in suggestion for k in required):
         return False
-    if not isinstance(
-        suggestion.get("triggers"),
-        list) or len(
-            suggestion["triggers"]) == 0:
+    if not isinstance(suggestion.get("triggers"), list) or len(suggestion["triggers"]) == 0:
         return False
-    if suggestion.get("action_type") not in (
-            "python", "hotkey", "pipeline", "domino"):
+    if suggestion.get("action_type") not in ("python", "hotkey", "pipeline", "domino"):
         return False
     # Reject dangerous patterns
     dangerous = ["rm -rf", "format", "shutdown", "del /f", "rmdir"]
@@ -253,30 +249,16 @@ def get_test_results():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Voice Gap Filler — Detect & suggest missing voice commands")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Full analyze + generate cycle")
-    parser.add_argument(
-        "--analyze",
-        action="store_true",
-        help="Analyze gaps only")
-    parser.add_argument(
-        "--generate",
-        action="store_true",
-        help="Generate suggestions for known gaps")
-    parser.add_argument(
-        "--test",
-        action="store_true",
-        help="Show suggestion validation results")
+    parser = argparse.ArgumentParser(description="Voice Gap Filler — Detect & suggest missing voice commands")
+    parser.add_argument("--once", action="store_true", help="Full analyze + generate cycle")
+    parser.add_argument("--analyze", action="store_true", help="Analyze gaps only")
+    parser.add_argument("--generate", action="store_true", help="Generate suggestions for known gaps")
+    parser.add_argument("--test", action="store_true", help="Show suggestion validation results")
     args = parser.parse_args()
 
     if args.analyze:
         gaps = analyze_gaps()
-        print(json.dumps({"gaps": gaps, "total": len(gaps)},
-              ensure_ascii=False, indent=2))
+        print(json.dumps({"gaps": gaps, "total": len(gaps)}, ensure_ascii=False, indent=2))
     elif args.test:
         results = get_test_results()
         print(json.dumps(results, ensure_ascii=False, indent=2))

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """perplexity_mcp_bridge.py — Stub that checks if Perplexity MCP is reachable.
 
@@ -30,8 +29,8 @@ DEFAULT_TIMEOUT = 5
 
 # Known MCP config locations
 MCP_CONFIG_PATHS = [
-    Path("/home/turbo/.claude/.mcp.json"),
-    Path("/home/turbo/.claude/settings.json"),
+    Path("C:/Users/franc/.claude/.mcp.json"),
+    Path("C:/Users/franc/.claude/settings.json"),
     TURBO_DIR / ".mcp.json",
     TURBO_DIR / "mcp_config.json",
 ]
@@ -57,11 +56,7 @@ def find_perplexity_config() -> dict:
         except (json.JSONDecodeError, OSError):
             continue
 
-    return {
-        "found": False,
-        "config_file": None,
-        "server_name": None,
-        "config": None}
+    return {"found": False, "config_file": None, "server_name": None, "config": None}
 
 
 def check_port(host: str, port: int, timeout: float = 3.0) -> dict:
@@ -78,17 +73,9 @@ def check_port(host: str, port: int, timeout: float = 3.0) -> dict:
             "error": None if result == 0 else f"Connection refused (code {result})",
         }
     except socket.timeout:
-        return {
-            "reachable": False,
-            "host": host,
-            "port": port,
-            "error": "Timeout"}
+        return {"reachable": False, "host": host, "port": port, "error": "Timeout"}
     except OSError as e:
-        return {
-            "reachable": False,
-            "host": host,
-            "port": port,
-            "error": str(e)}
+        return {"reachable": False, "host": host, "port": port, "error": str(e)}
 
 
 def check_http_endpoint(host: str, port: int, timeout: float = 5.0) -> dict:
@@ -130,29 +117,11 @@ def main():
     parser = argparse.ArgumentParser(
         description="Check Perplexity MCP bridge status"
     )
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Check without side effects")
-    parser.add_argument(
-        "--host",
-        type=str,
-        default=DEFAULT_HOST,
-        help="MCP host")
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=DEFAULT_PORT,
-        help="MCP port")
-    parser.add_argument(
-        "--timeout",
-        type=float,
-        default=DEFAULT_TIMEOUT,
-        help="Timeout seconds")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Check without side effects")
+    parser.add_argument("--host", type=str, default=DEFAULT_HOST, help="MCP host")
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="MCP port")
+    parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="Timeout seconds")
     parser.add_argument("--json", action="store_true", help="Output raw JSON")
     args = parser.parse_args()
 
@@ -208,10 +177,7 @@ def main():
 
     if http_status:
         if http_status["http_reachable"]:
-            print(
-                f"HTTP {
-                    http_status['url']} — Status {
-                    http_status['status_code']}")
+            print(f"HTTP {http_status['url']} — Status {http_status['status_code']}")
             if http_status["body_preview"]:
                 preview = http_status["body_preview"][:100].replace("\n", " ")
                 print(f"  Response: {preview}")

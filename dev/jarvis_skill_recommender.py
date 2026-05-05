@@ -20,8 +20,8 @@ from pathlib import Path
 
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "skill_recommender.db"
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
-JARVIS_DB = Path("/home/turbo/data/jarvis.db")
+from _paths import ETOILE_DB
+from _paths import JARVIS_DB
 
 
 def init_db():
@@ -51,8 +51,7 @@ def get_failed_commands():
                 "SELECT original, confidence FROM voice_corrections WHERE confidence < 0.5 ORDER BY rowid DESC LIMIT 500"
             ).fetchall()
             for r in rows:
-                failed.append(
-                    {"text": r[0], "confidence": r[1], "source": "voice"})
+                failed.append({"text": r[0], "confidence": r[1], "source": "voice"})
             db.close()
         except Exception:
             pass
@@ -61,15 +60,13 @@ def get_failed_commands():
     if ETOILE_DB.exists():
         try:
             db = sqlite3.connect(str(ETOILE_DB))
-            tables = [t[0] for t in db.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            tables = [t[0] for t in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
             if "queries" in tables:
                 rows = db.execute(
                     "SELECT query, score FROM queries WHERE score < 0.5 ORDER BY rowid DESC LIMIT 500"
                 ).fetchall()
                 for r in rows:
-                    failed.append(
-                        {"text": r[0], "confidence": r[1] if r[1] else 0, "source": "query"})
+                    failed.append({"text": r[0], "confidence": r[1] if r[1] else 0, "source": "query"})
             db.close()
         except Exception:
             pass
@@ -99,8 +96,7 @@ def detect_patterns(failed_commands):
     for text, count in counter.most_common(50):
         if text in seen or count < 2:
             continue
-        similar = [t for t in normalized if t.startswith(
-            text[:10]) and t not in seen]
+        similar = [t for t in normalized if t.startswith(text[:10]) and t not in seen]
         total = len(similar)
         if total >= 2:
             patterns.append({
@@ -152,11 +148,8 @@ def do_analyze():
     for rec in recommendations:
         db.execute(
             "INSERT INTO recommendations (ts, pattern, frequency, suggested_skill, confidence) VALUES (?,?,?,?,?)",
-            (time.time(),
-             rec["pattern"],
-                rec["frequency"],
-                rec["suggested_name"],
-                rec["confidence"]))
+            (time.time(), rec["pattern"], rec["frequency"], rec["suggested_name"], rec["confidence"])
+        )
 
     db.execute(
         "INSERT INTO analyses (ts, failed_commands, patterns_found, recommendations_made) VALUES (?,?,?,?)",
@@ -175,20 +168,10 @@ def do_analyze():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Skill Recommender")
-    parser.add_argument(
-        "--once",
-        "--analyze",
-        action="store_true",
-        help="Analyze and recommend")
-    parser.add_argument(
-        "--recommend",
-        action="store_true",
-        help="Show recommendations")
+    parser.add_argument("--once", "--analyze", action="store_true", help="Analyze and recommend")
+    parser.add_argument("--recommend", action="store_true", help="Show recommendations")
     parser.add_argument("--gaps", action="store_true", help="Show gaps")
-    parser.add_argument(
-        "--create-stub",
-        action="store_true",
-        help="Create skill stub")
+    parser.add_argument("--create-stub", action="store_true", help="Create skill stub")
     args = parser.parse_args()
 
     if args.recommend or args.gaps:

@@ -2,7 +2,7 @@
 """prompt_router.py — Route les prompts vers le meilleur modele du cluster.
 
 Analyse le contenu du prompt et le dirige vers le noeud IA optimal:
-M1 (code/math), OL1 (rapide), M2 (debug), GEMINI (archi), gpt-oss (champion).
+M1 (code/math), OL1 (rapide), M2 (reasoning), M3 (fallback).
 
 Usage:
     python dev/prompt_router.py --route "ecris une fonction python"
@@ -44,7 +44,7 @@ NODES = {
     },
     "M2": {
         "url": "http://192.168.1.26:1234/api/v1/chat",
-        "model": "deepseek-coder-v2-lite-instruct",
+        "model": "deepseek-r1-0528-qwen3-8b",
         "format": "lm_studio",
         "weight": 1.4,
         "specialties": ["debug", "review"],
@@ -52,19 +52,19 @@ NODES = {
     },
     "M3": {
         "url": "http://192.168.1.113:1234/api/v1/chat",
-        "model": "mistral-7b-instruct-v0.3",
+        "model": "deepseek-r1-0528-qwen3-8b",
         "format": "lm_studio",
         "weight": 0.8,
         "specialties": ["general", "validation"],
         "speed": "slow",
     },
-    "gpt-oss": {
-        "url": "http://127.0.0.1:11434/api/chat",
-        "model": "gpt-oss:120b-cloud",
-        "format": "ollama",
-        "weight": 1.9,
-        "specialties": ["code", "review", "security"],
-        "speed": "medium",
+    "M3": {
+        "url": "http://192.168.1.113:1234/api/v1/chat",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "format": "lm_studio",
+        "weight": 1.2,
+        "specialties": ["reasoning", "general"],
+        "speed": "slow",
     },
 }
 
@@ -72,55 +72,27 @@ NODES = {
 # Routing rules
 # ---------------------------------------------------------------------------
 ROUTING = {
-    "code": {
-        "primary": "M1",
-        "secondary": "gpt-oss",
-        "reason": "Code: M1 champion local"},
-    "debug": {
-        "primary": "M2",
-        "secondary": "M1",
-        "reason": "Debug: M2 deepseek specialise"},
-    "review": {
-        "primary": "gpt-oss",
-        "secondary": "M1",
-        "reason": "Review: gpt-oss champion cloud"},
-    "math": {
-        "primary": "M1",
-        "secondary": "OL1-fast",
-        "reason": "Math: M1 100% raisonnement"},
-    "simple": {
-        "primary": "OL1-fast",
-        "secondary": "M1",
-        "reason": "Simple: OL1 ultra-rapide"},
-    "archi": {
-        "primary": "M1",
-        "secondary": "gpt-oss",
-        "reason": "Architecture: M1 + gpt-oss"},
-    "security": {
-        "primary": "gpt-oss",
-        "secondary": "M1",
-        "reason": "Securite: gpt-oss audit"},
-    "general": {
-        "primary": "M1",
-        "secondary": "OL1-fast",
-        "reason": "General: M1 polyvalent"},
-    "trading": {
-        "primary": "OL1-fast",
-        "secondary": "M1",
-        "reason": "Trading: OL1 rapide"},
+    "code":      {"primary": "M1",      "secondary": "M2",      "reason": "Code: M1 champion local"},
+    "debug":     {"primary": "M2",      "secondary": "M1",      "reason": "Debug: M2 deepseek-r1 reasoning"},
+    "review":    {"primary": "M1",      "secondary": "M2",      "reason": "Review: M1 champion local"},
+    "math":      {"primary": "M1",      "secondary": "OL1-fast","reason": "Math: M1 100% raisonnement"},
+    "simple":    {"primary": "OL1-fast","secondary": "M1",      "reason": "Simple: OL1 ultra-rapide"},
+    "archi":     {"primary": "M1",      "secondary": "M2",      "reason": "Architecture: M1 + M2 reasoning"},
+    "security":  {"primary": "M1",      "secondary": "M2",      "reason": "Securite: M1 audit"},
+    "general":   {"primary": "M1",      "secondary": "OL1-fast","reason": "General: M1 polyvalent"},
+    "trading":   {"primary": "OL1-fast","secondary": "M1",      "reason": "Trading: OL1 rapide"},
 }
 
 KEYWORDS = {
-    "code": ["code", "python", "function", "classe", "script", "programme", "ecris", "genere", "implement"],
-    "debug": ["bug", "erreur", "fix", "debug", "crash", "traceback", "exception", "corrige"],
-    "review": ["review", "revue", "analyse", "audit", "qualite", "ameliore", "optimise"],
-    "math": ["calcul", "math", "equation", "nombre", "statistique", "probabilite", "formule"],
-    "simple": ["bonjour", "salut", "oui", "non", "ok", "merci", "comment ca va", "status"],
-    "archi": ["architecture", "design", "pattern", "structure", "schema", "diagramme"],
+    "code":     ["code", "python", "function", "classe", "script", "programme", "ecris", "genere", "implement"],
+    "debug":    ["bug", "erreur", "fix", "debug", "crash", "traceback", "exception", "corrige"],
+    "review":   ["review", "revue", "analyse", "audit", "qualite", "ameliore", "optimise"],
+    "math":     ["calcul", "math", "equation", "nombre", "statistique", "probabilite", "formule"],
+    "simple":   ["bonjour", "salut", "oui", "non", "ok", "merci", "comment ca va", "status"],
+    "archi":    ["architecture", "design", "pattern", "structure", "schema", "diagramme"],
     "security": ["securite", "security", "vulnerability", "injection", "xss", "auth", "chiffrement"],
-    "trading": ["trading", "crypto", "bitcoin", "signal", "marche", "prix", "chart"],
+    "trading":  ["trading", "crypto", "bitcoin", "signal", "marche", "prix", "chart"],
 }
-
 
 def classify_prompt(text: str) -> str:
     """Classifie un prompt par categorie."""
@@ -137,7 +109,6 @@ def classify_prompt(text: str) -> str:
         return "simple"
     return "general"
 
-
 def route_prompt(text: str) -> dict:
     """Route un prompt vers le meilleur noeud."""
     category = classify_prompt(text)
@@ -153,8 +124,6 @@ def route_prompt(text: str) -> dict:
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
-
-
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -169,8 +138,6 @@ def init_db():
 # ---------------------------------------------------------------------------
 # Cluster call
 # ---------------------------------------------------------------------------
-
-
 def call_node(node_name: str, prompt: str) -> dict:
     """Appelle un noeud du cluster."""
     node = NODES.get(node_name)
@@ -196,9 +163,8 @@ def call_node(node_name: str, prompt: str) -> dict:
                 "think": False,
             }).encode()
 
-        req = urllib.request.Request(
-            node["url"], data=data, headers={
-                "Content-Type": "application/json"})
+        req = urllib.request.Request(node["url"], data=data,
+                                     headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=60) as resp:
             result = json.loads(resp.read().decode())
             latency = int((time.time() - start) * 1000)
@@ -208,14 +174,8 @@ def call_node(node_name: str, prompt: str) -> dict:
                     if block.get("type") == "message":
                         for c in block.get("content", []):
                             if c.get("type") == "output_text":
-                                return {
-                                    "content": c["text"],
-                                    "node": node_name,
-                                    "latency_ms": latency}
-                return {
-                    "content": str(result),
-                    "node": node_name,
-                    "latency_ms": latency}
+                                return {"content": c["text"], "node": node_name, "latency_ms": latency}
+                return {"content": str(result), "node": node_name, "latency_ms": latency}
             else:
                 return {
                     "content": result.get("message", {}).get("content", ""),
@@ -223,12 +183,7 @@ def call_node(node_name: str, prompt: str) -> dict:
                     "latency_ms": latency,
                 }
     except Exception as e:
-        return {
-            "error": str(e),
-            "node": node_name,
-            "latency_ms": int(
-                (time.time() - start) * 1000)}
-
+        return {"error": str(e), "node": node_name, "latency_ms": int((time.time() - start) * 1000)}
 
 def route_and_call(prompt: str, db) -> dict:
     """Route + appelle le meilleur noeud."""
@@ -255,31 +210,13 @@ def route_and_call(prompt: str, db) -> dict:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
-
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="JARVIS Prompt Router — Routage intelligent vers le cluster")
-    parser.add_argument(
-        "--route",
-        type=str,
-        help="Router et executer un prompt")
-    parser.add_argument(
-        "--classify",
-        type=str,
-        help="Classifier sans executer")
-    parser.add_argument(
-        "--benchmark",
-        type=str,
-        help="Tester sur tous les noeuds")
-    parser.add_argument(
-        "--stats",
-        action="store_true",
-        help="Statistiques de routage")
-    parser.add_argument(
-        "--nodes",
-        action="store_true",
-        help="Info sur les noeuds")
+    parser = argparse.ArgumentParser(description="JARVIS Prompt Router — Routage intelligent vers le cluster")
+    parser.add_argument("--route", type=str, help="Router et executer un prompt")
+    parser.add_argument("--classify", type=str, help="Classifier sans executer")
+    parser.add_argument("--benchmark", type=str, help="Tester sur tous les noeuds")
+    parser.add_argument("--stats", action="store_true", help="Statistiques de routage")
+    parser.add_argument("--nodes", action="store_true", help="Info sur les noeuds")
     args = parser.parse_args()
 
     db = init_db()
@@ -311,14 +248,11 @@ def main():
                 "content_preview": r.get("content", r.get("error", ""))[:100],
             })
         results.sort(key=lambda x: x["latency_ms"])
-        print(json.dumps(
-            {"prompt": args.benchmark[:50], "results": results}, indent=2, ensure_ascii=False))
+        print(json.dumps({"prompt": args.benchmark[:50], "results": results}, indent=2, ensure_ascii=False))
     elif args.stats:
         total = db.execute("SELECT COUNT(*) FROM routes").fetchone()[0]
-        by_node = db.execute(
-            "SELECT node, COUNT(*), AVG(latency_ms) FROM routes GROUP BY node ORDER BY 2 DESC").fetchall()
-        by_cat = db.execute(
-            "SELECT category, COUNT(*) FROM routes GROUP BY category ORDER BY 2 DESC").fetchall()
+        by_node = db.execute("SELECT node, COUNT(*), AVG(latency_ms) FROM routes GROUP BY node ORDER BY 2 DESC").fetchall()
+        by_cat = db.execute("SELECT category, COUNT(*) FROM routes GROUP BY category ORDER BY 2 DESC").fetchall()
         print(json.dumps({
             "total_routes": total,
             "by_node": {n: {"count": c, "avg_latency_ms": round(l)} for n, c, l in by_node},
@@ -328,7 +262,6 @@ def main():
         parser.print_help()
 
     db.close()
-
 
 if __name__ == "__main__":
     main()

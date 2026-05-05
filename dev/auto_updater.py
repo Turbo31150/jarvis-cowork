@@ -3,13 +3,14 @@
 import json, sys, os, subprocess
 from datetime import datetime
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT = "2010747443"
-TURBO_DIR = "/home/turbo"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+# TELEGRAM_CHAT loaded from _paths (.env)
+from _paths import TURBO_DIR, TELEGRAM_TOKEN, TELEGRAM_CHAT
 UV_BIN = "C:/Users/franc/.local/bin/uv.exe"
 
 def send_telegram(msg):
     import urllib.request
+import argparse
     data = json.dumps({"chat_id": TELEGRAM_CHAT, "text": msg}).encode()
     req = urllib.request.Request(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
                                  data=data, headers={"Content-Type": "application/json"})

@@ -10,8 +10,6 @@ Usage:
   python cowork/dev/sniper_scanner.py --chat-id 12345  # Send to specific chat
 """
 
-import urllib.error
-import urllib.request
 import json
 import math
 import os
@@ -40,22 +38,11 @@ MAX_KLINE_BARS = 200  # 200 candles x 15min = 50h lookback
 TOP_N = 100  # Top coins by volume to deep-scan (0 = ALL)
 
 # Cluster nodes for AI consensus
-CLUSTER_NODES = [{"id": "M1",
-                  "url": "http://127.0.0.1:1234/v1/chat/completions",
-                  "model": "qwen3-8b",
-                  "type": "lmstudio",
-                  "weight": 1.8},
-                 {"id": "M2",
-                  "url": "http://192.168.1.26:1234/v1/chat/completions",
-                  "model": "deepseek-r1-0528-qwen3-8b",
-                  "type": "lmstudio",
-                  "weight": 1.5},
-                 {"id": "OL1",
-                  "url": "http://127.0.0.1:11434/api/chat",
-                  "model": "qwen2.5:1.5b",
-                  "type": "ollama",
-                  "weight": 1.3},
-                 ]
+CLUSTER_NODES = [
+    {"id": "M1", "url": "http://127.0.0.1:1234/v1/chat/completions", "model": "qwen3-8b", "type": "lmstudio", "weight": 1.8},
+    {"id": "M2", "url": "http://192.168.1.26:1234/v1/chat/completions", "model": "deepseek-r1-0528-qwen3-8b", "type": "lmstudio", "weight": 1.5},
+    {"id": "OL1", "url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b", "type": "ollama", "weight": 1.3},
+]
 
 # Telegram
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
@@ -63,12 +50,13 @@ TELEGRAM_CHAT = os.getenv("TELEGRAM_CHAT", "2010747443")
 
 # ─── HTTP helper (no deps) ──────────────────────────────────────────────────
 
+import urllib.request
+import urllib.error
 
 def http_get(url, timeout=15):
     req = urllib.request.Request(url, headers={"User-Agent": "JARVIS/1.0"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
-
 
 def http_post(url, data, timeout=60, headers=None):
     body = json.dumps(data).encode()
@@ -79,12 +67,10 @@ def http_post(url, data, timeout=60, headers=None):
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
 
-
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
 
 # ─── Database ────────────────────────────────────────────────────────────────
-
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -182,27 +168,17 @@ def update_coin_registry(db, tickers):
             continue
 
         now = datetime.now().isoformat(timespec='seconds')
-        existing = db.execute(
-            "SELECT scan_count FROM coin_registry WHERE symbol=?", (sym,)).fetchone()
+        existing = db.execute("SELECT scan_count FROM coin_registry WHERE symbol=?", (sym,)).fetchone()
         if existing:
             db.execute(
                 "UPDATE coin_registry SET last_seen=?, last_price=?, last_volume=?, last_change=?, scan_count=scan_count+1, clean_name=? WHERE symbol=?",
-                (now,
-                 price,
-                 vol,
-                 change,
-                 clean,
-                 sym))
+                (now, price, vol, change, clean, sym)
+            )
         else:
             db.execute(
                 "INSERT INTO coin_registry (symbol, clean_name, first_seen, last_seen, last_price, last_volume, last_change) VALUES (?,?,?,?,?,?,?)",
-                (sym,
-                 clean,
-                 now,
-                 now,
-                 price,
-                 vol,
-                 change))
+                (sym, clean, now, now, price, vol, change)
+            )
 
 
 def update_registry_scores(db, symbol, score, direction):
@@ -210,7 +186,9 @@ def update_registry_scores(db, symbol, score, direction):
     db.execute(
         "UPDATE coin_registry SET avg_score = (avg_score * (scan_count - 1) + ?) / scan_count, "
         "best_score = MAX(best_score, ?), best_direction = CASE WHEN ? > best_score THEN ? ELSE best_direction END "
-        "WHERE symbol=?", (score, score, score, direction, symbol))
+        "WHERE symbol=?",
+        (score, score, score, direction, symbol)
+    )
 
 
 def get_hot_coins_from_db(db, min_scans=2, min_avg_score=30, limit=50):
@@ -221,8 +199,7 @@ def get_hot_coins_from_db(db, min_scans=2, min_avg_score=30, limit=50):
         "ORDER BY avg_score DESC LIMIT ?",
         (min_scans, min_avg_score, limit)
     ).fetchall()
-    return [{"symbol": r[0], "avg_score": r[1], "best_score": r[2],
-             "price": r[3], "change": r[4]} for r in rows]
+    return [{"symbol": r[0], "avg_score": r[1], "best_score": r[2], "price": r[3], "change": r[4]} for r in rows]
 
 
 def get_previous_snapshot(db, symbol):
@@ -268,14 +245,12 @@ def save_coin_snapshots(db, scan_id, results, tickers_map):
 
 # ─── MEXC Data Fetching ─────────────────────────────────────────────────────
 
-
 def fetch_all_tickers():
     """Fetch ALL futures tickers in one call."""
     data = http_get(f"{MEXC_FUTURES}/api/v1/contract/ticker")
     tickers = data.get("data", [])
     # Filter active USDT pairs
     return [t for t in tickers if t.get("symbol", "").endswith("_USDT")]
-
 
 def fetch_klines(symbol, interval="Min15", limit=MAX_KLINE_BARS):
     """Fetch candlestick data for a symbol."""
@@ -296,7 +271,6 @@ def fetch_klines(symbol, interval="Min15", limit=MAX_KLINE_BARS):
         })
     return candles
 
-
 def fetch_depth(symbol, limit=20):
     """Fetch order book depth."""
     url = f"{MEXC_FUTURES}/api/v1/contract/depth/{symbol}?limit={limit}"
@@ -312,7 +286,6 @@ def fetch_depth(symbol, limit=20):
 
 # ─── Technical Indicators ────────────────────────────────────────────────────
 
-
 def ema(values, period):
     if len(values) < period:
         return values[:]
@@ -323,13 +296,11 @@ def ema(values, period):
         result[i] = values[i] * k + result[i - 1] * (1 - k)
     return result
 
-
 def sma(values, period):
     result = [0.0] * len(values)
     for i in range(period - 1, len(values)):
         result[i] = sum(values[i - period + 1:i + 1]) / period
     return result
-
 
 def rsi(closes, period=14):
     if len(closes) < period + 1:
@@ -349,7 +320,6 @@ def rsi(closes, period=14):
     rs = avg_gain / avg_loss
     return 100 - (100 / (1 + rs))
 
-
 def atr(candles, period=14):
     if len(candles) < period + 1:
         return 0.0
@@ -368,7 +338,6 @@ def atr(candles, period=14):
         atr_val = (atr_val * (period - 1) + trs[i]) / period
     return atr_val
 
-
 def bollinger_bands(closes, period=20, std_mult=2.0):
     if len(closes) < period:
         return None
@@ -379,13 +348,7 @@ def bollinger_bands(closes, period=20, std_mult=2.0):
     upper = last_mid + std_mult * std
     lower = last_mid - std_mult * std
     bandwidth = (upper - lower) / last_mid if last_mid > 0 else 0
-    return {
-        "mid": last_mid,
-        "upper": upper,
-        "lower": lower,
-        "bandwidth": bandwidth,
-        "std": std}
-
+    return {"mid": last_mid, "upper": upper, "lower": lower, "bandwidth": bandwidth, "std": std}
 
 def volume_profile(candles, lookback=20):
     """Detect volume spikes vs average."""
@@ -395,7 +358,6 @@ def volume_profile(candles, lookback=20):
     avg_vol = sum(c["v"] for c in candles[-lookback - 5:-5]) / lookback
     return recent_vol / avg_vol if avg_vol > 0 else 1.0
 
-
 def detect_consolidation(candles, lookback=20):
     """Detect tight range (pre-breakout squeeze)."""
     if len(candles) < lookback:
@@ -403,12 +365,10 @@ def detect_consolidation(candles, lookback=20):
     recent = candles[-lookback:]
     highs = [c["h"] for c in recent]
     lows = [c["l"] for c in recent]
-    range_pct = (max(highs) - min(lows)) / ((max(highs) + min(lows)
-                                             ) / 2) if (max(highs) + min(lows)) > 0 else 0
+    range_pct = (max(highs) - min(lows)) / ((max(highs) + min(lows)) / 2) if (max(highs) + min(lows)) > 0 else 0
     # Tight range = low range_pct = high squeeze score
     squeeze = max(0, 1 - range_pct * 10)  # 0-1, higher = tighter
     return squeeze
-
 
 def compute_adx(candles, period=14):
     """Calculate ADX (Average Directional Index) — trend strength 0-100."""
@@ -418,25 +378,22 @@ def compute_adx(candles, period=14):
     minus_dm = []
     tr_list = []
     for i in range(1, len(candles)):
-        high_diff = candles[i]["h"] - candles[i - 1]["h"]
-        low_diff = candles[i - 1]["l"] - candles[i]["l"]
-        plus_dm.append(high_diff if high_diff >
-                       low_diff and high_diff > 0 else 0)
-        minus_dm.append(low_diff if low_diff >
-                        high_diff and low_diff > 0 else 0)
+        high_diff = candles[i]["h"] - candles[i-1]["h"]
+        low_diff = candles[i-1]["l"] - candles[i]["l"]
+        plus_dm.append(high_diff if high_diff > low_diff and high_diff > 0 else 0)
+        minus_dm.append(low_diff if low_diff > high_diff and low_diff > 0 else 0)
         tr = max(
             candles[i]["h"] - candles[i]["l"],
-            abs(candles[i]["h"] - candles[i - 1]["c"]),
-            abs(candles[i]["l"] - candles[i - 1]["c"])
+            abs(candles[i]["h"] - candles[i-1]["c"]),
+            abs(candles[i]["l"] - candles[i-1]["c"])
         )
         tr_list.append(tr)
     # Smooth with EMA
-
     def smooth(values, p):
         s = sum(values[:p])
         result = [s]
         for v in values[p:]:
-            s = s - s / p + v
+            s = s - s/p + v
             result.append(s)
         return result
     str_list = smooth(tr_list, period)
@@ -484,7 +441,6 @@ def detect_ema_alignment(candles):
     return 0, "mixed"
 
 # ─── Breakout Pattern Detection ──────────────────────────────────────────────
-
 
 def analyze_coin(symbol, candles, ticker, depth_info):
     """Full analysis of a single coin — returns signal dict or None."""
@@ -649,10 +605,8 @@ def analyze_coin(symbol, candles, ticker, depth_info):
             score += 10
             patterns.append("BIG_CANDLE")
         # Wick rejection (meche longue = rejet de niveau)
-        last_wick_up = candles[-1]["h"] - \
-            max(candles[-1]["c"], candles[-1]["o"])
-        last_wick_dn = min(candles[-1]["c"],
-                           candles[-1]["o"]) - candles[-1]["l"]
+        last_wick_up = candles[-1]["h"] - max(candles[-1]["c"], candles[-1]["o"])
+        last_wick_dn = min(candles[-1]["c"], candles[-1]["o"]) - candles[-1]["l"]
         if last_wick_dn > last_body * 2 and last_wick_dn > cur_atr * 0.5:
             score += 8
             patterns.append("HAMMER_REJECT")
@@ -730,7 +684,6 @@ def analyze_coin(symbol, candles, ticker, depth_info):
 
 # ─── Cluster AI Consensus ────────────────────────────────────────────────────
 
-
 def query_cluster_node(node, prompt):
     """Query a single cluster node."""
     try:
@@ -754,12 +707,7 @@ def query_cluster_node(node, prompt):
         text = re.sub(r'<think>[\s\S]*?</think>', '', text).strip()
         return {"node": node["id"], "text": text, "weight": node["weight"]}
     except Exception as e:
-        return {
-            "node": node["id"],
-            "text": "",
-            "error": str(e),
-            "weight": node["weight"]}
-
+        return {"node": node["id"], "text": "", "error": str(e), "weight": node["weight"]}
 
 def cluster_consensus(signal):
     """Get AI consensus from all cluster nodes on a signal."""
@@ -778,8 +726,7 @@ def cluster_consensus(signal):
     )
     results = []
     with ThreadPoolExecutor(max_workers=5) as pool:
-        futs = {pool.submit(query_cluster_node, node, prompt)
-                            : node for node in CLUSTER_NODES}
+        futs = {pool.submit(query_cluster_node, node, prompt): node for node in CLUSTER_NODES}
         for f in as_completed(futs, timeout=35):
             try:
                 results.append(f.result())
@@ -815,7 +762,6 @@ def cluster_consensus(signal):
 
 # ─── Main Scanner ────────────────────────────────────────────────────────────
 
-
 def compute_history_bonus(prev, current):
     """Calcule un bonus de score a partir de l'historique du coin."""
     if not prev:
@@ -834,8 +780,7 @@ def compute_history_bonus(prev, current):
         h_patterns.append("DIRECTION_CONFIRMEE")
 
     # 3. Retournement: changement de direction avec force
-    if prev.get("direction") and prev["direction"] != current.get(
-            "direction", ""):
+    if prev.get("direction") and prev["direction"] != current.get("direction", ""):
         if current.get("score", 0) >= 50:
             bonus += 8
             h_patterns.append("RETOURNEMENT")
@@ -855,13 +800,7 @@ def compute_history_bonus(prev, current):
             h_patterns.append("MOUVEMENT_RAPIDE")
 
     # 5. Volume en acceleration
-    if prev.get(
-            "volume_ratio",
-            1) > 0 and current.get(
-            "volume_ratio",
-            1) > prev.get(
-                "volume_ratio",
-            1) * 1.5:
+    if prev.get("volume_ratio", 1) > 0 and current.get("volume_ratio", 1) > prev.get("volume_ratio", 1) * 1.5:
         bonus += 8
         h_patterns.append("VOL_ACCELERATION")
 
@@ -875,28 +814,21 @@ def try_gpu_pipeline(symbols, max_coins=30):
         from data_fetcher import fetch_batch_klines, build_tensor_3d
         from strategies import compute_final_scores
         log(f"  GPU Pipeline: fetching klines for {len(symbols)} coins...")
-        klines = fetch_batch_klines(
-            symbols[:max_coins], limit=200, max_workers=8)
+        klines = fetch_batch_klines(symbols[:max_coins], limit=200, max_workers=8)
         if not klines:
             return {}
         tensor, sym_list = build_tensor_3d(klines, time_window=200)
-        log(
-            f"  GPU Pipeline: computing 100 strategies on tensor {
-                list(
-                    tensor.shape)}...")
+        log(f"  GPU Pipeline: computing 100 strategies on tensor {list(tensor.shape)}...")
         results = compute_final_scores(tensor)
         gpu_data = {}
         for i, sym in enumerate(sym_list):
             gpu_data[sym] = {
-                "confidence": float(
-                    results["confidences"][i]), "direction": int(
-                    results["directions"][i]), "regime": str(
-                    results["market_regimes"][i]) if i < len(
-                    results.get(
-                        "market_regimes", [])) else "unknown", "strategies": results.get(
-                            "triggered_strategies", {}).get(
-                                i, []), "atr": float(
-                                    results["atr"][i]) if "atr" in results else 0, }
+                "confidence": float(results["confidences"][i]),
+                "direction": int(results["directions"][i]),
+                "regime": str(results["market_regimes"][i]) if i < len(results.get("market_regimes", [])) else "unknown",
+                "strategies": results.get("triggered_strategies", {}).get(i, []),
+                "atr": float(results["atr"][i]) if "atr" in results else 0,
+            }
         log(f"  GPU Pipeline: {len(gpu_data)} coins traites")
         return gpu_data
     except Exception as e:
@@ -932,21 +864,12 @@ def scan(top_n=TOP_N, with_consensus=True):
     db.commit()
 
     # Pre-filtrage par volume pour le deep scan
-    valid_tickers.sort(
-        key=lambda t: float(
-            t.get(
-                "volume24",
-                t.get(
-                    "amount24",
-                    0))),
-        reverse=True)
+    valid_tickers.sort(key=lambda t: float(t.get("volume24", t.get("amount24", 0))), reverse=True)
     scan_tickers = valid_tickers if top_n <= 0 else valid_tickers[:top_n]
     tickers_map = {t["symbol"]: t for t in scan_tickers}
 
-    # Ajouter les coins chauds de la DB (historiquement performants) pas deja
-    # dans la liste
-    hot_coins = get_hot_coins_from_db(
-        db, min_scans=2, min_avg_score=35, limit=30)
+    # Ajouter les coins chauds de la DB (historiquement performants) pas deja dans la liste
+    hot_coins = get_hot_coins_from_db(db, min_scans=2, min_avg_score=35, limit=30)
     scan_symbols = {t["symbol"] for t in scan_tickers}
     added_hot = 0
     for hc in hot_coins:
@@ -962,11 +885,7 @@ def scan(top_n=TOP_N, with_consensus=True):
         log(f"  +{added_hot} coins chauds ajoutes depuis historique DB")
 
     phase1_ms = (time.time() - t1) * 1000
-    log(
-        f"  Phase 1: {
-            len(valid_tickers)} enregistres, {
-            len(scan_tickers)} a analyser ({
-                phase1_ms:.0f}ms)")
+    log(f"  Phase 1: {len(valid_tickers)} enregistres, {len(scan_tickers)} a analyser ({phase1_ms:.0f}ms)")
 
     # ═══════════════════════════════════════════════════════════════════════════
     # PHASE 2 — Deep scan: klines + indicateurs + order book
@@ -975,7 +894,6 @@ def scan(top_n=TOP_N, with_consensus=True):
     log(f"PHASE 2: Deep scan {len(scan_tickers)} coins (klines + indicateurs)...")
 
     all_results = []
-
     def process_ticker(t):
         sym = t["symbol"]
         try:
@@ -1007,11 +925,9 @@ def scan(top_n=TOP_N, with_consensus=True):
     mtf_candidates = [r for r in all_results if r["score"] >= 55]
     if mtf_candidates:
         mtf_boosts = 0
-
         def check_5min(r):
             try:
-                candles_5m = fetch_klines(
-                    r["symbol"], interval="Min5", limit=60)
+                candles_5m = fetch_klines(r["symbol"], interval="Min5", limit=60)
                 if not candles_5m or len(candles_5m) < 20:
                     return r
                 closes_5m = [c["c"] for c in candles_5m]
@@ -1055,8 +971,7 @@ def scan(top_n=TOP_N, with_consensus=True):
             r["patterns"].extend(h_pats)
             history_boosts += 1
         if prev:
-            price_delta = (r["price"] - prev["price"]) / \
-                prev["price"] * 100 if prev["price"] > 0 else 0
+            price_delta = (r["price"] - prev["price"]) / prev["price"] * 100 if prev["price"] > 0 else 0
             r["prev_price"] = prev["price"]
             r["prev_sentiment"] = prev.get("sentiment", "")
             r["prev_score"] = prev.get("score", 0)
@@ -1068,10 +983,7 @@ def scan(top_n=TOP_N, with_consensus=True):
 
     signals.sort(key=lambda s: s["score"], reverse=True)
     phase2_ms = (time.time() - t2) * 1000
-    log(
-        f"  Phase 2: {
-            len(signals)} signaux score>=50 ({history_boosts} boostes) ({
-            phase2_ms:.0f}ms)")
+    log(f"  Phase 2: {len(signals)} signaux score>=50 ({history_boosts} boostes) ({phase2_ms:.0f}ms)")
 
     # ═══════════════════════════════════════════════════════════════════════════
     # PHASE 3 — GPU strategies (100 strats) + cluster IA consensus
@@ -1093,8 +1005,7 @@ def scan(top_n=TOP_N, with_consensus=True):
                 gpu_bonus = int(gd["confidence"] * 15)
                 sig["score"] = min(sig["score"] + gpu_bonus, 100)
                 if gd["strategies"]:
-                    sig["patterns"].append(
-                        f"GPU_{len(gd['strategies'])}strats")
+                    sig["patterns"].append(f"GPU_{len(gd['strategies'])}strats")
 
     # Cluster consensus sur les top 8
     if with_consensus and signals:
@@ -1116,24 +1027,13 @@ def scan(top_n=TOP_N, with_consensus=True):
     phase3_ms = (time.time() - t3) * 1000
     duration = time.time() - t_start
     log(f"  Phase 3: GPU + consensus ({phase3_ms:.0f}ms)")
-    log(
-        f"  TOTAL: {
-            duration:.1f}s | {
-            len(valid_tickers)} coins registres | {
-                len(all_results)} analyses | {
-                    len(signals)} signaux")
+    log(f"  TOTAL: {duration:.1f}s | {len(valid_tickers)} coins registres | {len(all_results)} analyses | {len(signals)} signaux")
 
     # Check signaux trackes precedents (TP/SL touches ?)
     try:
         tracker = check_tracked_signals(db, tickers_map)
         if tracker["checked"] > 0:
-            log(
-                f"  Tracker: {
-                    tracker['checked']} signaux verifies | TP1:{
-                    tracker['tp1_hits']} TP2:{
-                    tracker['tp2_hits']} TP3:{
-                    tracker['tp3_hits']} SL:{
-                        tracker['sl_hits']}")
+            log(f"  Tracker: {tracker['checked']} signaux verifies | TP1:{tracker['tp1_hits']} TP2:{tracker['tp2_hits']} TP3:{tracker['tp3_hits']} SL:{tracker['sl_hits']}")
     except Exception:
         pass
 
@@ -1170,22 +1070,15 @@ def scan(top_n=TOP_N, with_consensus=True):
                  sig.get("gpu_regime", ""))
             )
         db.commit()
-        log(
-            f"  DB: scan #{scan_id} | {
-                len(all_results)} snapshots | {
-                len(signals)} signaux")
+        log(f"  DB: scan #{scan_id} | {len(all_results)} snapshots | {len(signals)} signaux")
     except Exception as e:
         log(f"  DB error: {e}")
     finally:
         db.close()
 
-    return {
-        "signals": signals,
-        "total_coins": len(scan_tickers),
-        "total_analyzed": len(all_results)}
+    return {"signals": signals, "total_coins": len(scan_tickers), "total_analyzed": len(all_results)}
 
 # ─── Telegram Formatting ─────────────────────────────────────────────────────
-
 
 def format_signal(sig, rank=1):
     """Format signal pour Telegram — clair, compact, lisible."""
@@ -1197,12 +1090,9 @@ def format_signal(sig, rank=1):
     cons_tag = " ✅" if cons == "AGREE" else " ⚠️" if cons == "DISAGREE" else ""
 
     def fmt(v):
-        if v >= 1000:
-            return f"{v:.2f}"
-        if v >= 1:
-            return f"{v:.4f}"
-        if v >= 0.01:
-            return f"{v:.6f}"
+        if v >= 1000: return f"{v:.2f}"
+        if v >= 1: return f"{v:.4f}"
+        if v >= 0.01: return f"{v:.6f}"
         return f"{v:.8f}"
 
     entry = sig['entry']
@@ -1237,19 +1127,13 @@ def format_signal(sig, rank=1):
         lines.append(f"   {' | '.join(patterns_clean)}")
     if sig.get("cluster_nodes"):
         nodes = ', '.join(sig['cluster_nodes'][:3])
-        lines.append(
-            f"   Cluster: {nodes} ({
-                sig.get(
-                    'consensus_pct',
-                    0) * 100:.0f}%)")
+        lines.append(f"   Cluster: {nodes} ({sig.get('consensus_pct', 0)*100:.0f}%)")
     if sig.get("prev_price"):
         evo = sig["price_evolution"]
         prev_dir = sig.get("prev_direction", "?")
         prev_score = sig.get("prev_score", 0)
-        lines.append(
-            f"   Hist: {evo:+.2f}% | avant {prev_dir} {prev_score:.0f}pts")
+        lines.append(f"   Hist: {evo:+.2f}% | avant {prev_dir} {prev_score:.0f}pts")
     return "\n".join(lines)
-
 
 def format_scan_report(signals, coins_total=0):
     """Format rapport scan complet pour Telegram — clair et compact."""
@@ -1257,13 +1141,7 @@ def format_scan_report(signals, coins_total=0):
         return "🔍 Scan termine — aucun signal score > 50."
 
     now = datetime.now().strftime('%H:%M')
-    breakouts = sum(
-        1 for s in signals if any(
-            p in s.get(
-                "patterns",
-                []) for p in [
-                "BB_SQUEEZE",
-                "TIGHT_RANGE"]))
+    breakouts = sum(1 for s in signals if any(p in s.get("patterns", []) for p in ["BB_SQUEEZE", "TIGHT_RANGE"]))
     longs = sum(1 for s in signals if s["direction"] == "LONG")
     shorts = len(signals) - longs
 
@@ -1283,12 +1161,10 @@ def format_scan_report(signals, coins_total=0):
     blocks.append("⚠️ Analyse IA — pas un conseil financier")
     return "\n".join(blocks)
 
-
 def _alerts_enabled():
     """Check if trading alerts are enabled (shared flag with Telegram bot)."""
     flag = TURBO_ROOT / "data" / ".trading_alerts_off"
     return not flag.exists()
-
 
 def send_telegram(text, chat_id=None):
     """Send message to Telegram. Respects global alert flag."""
@@ -1310,7 +1186,7 @@ def send_telegram(text, chat_id=None):
         return
     cid = chat_id or TELEGRAM_CHAT
     # Split long messages
-    chunks = [text[i:i + 4000] for i in range(0, len(text), 4000)]
+    chunks = [text[i:i+4000] for i in range(0, len(text), 4000)]
     for chunk in chunks:
         try:
             http_post(f"https://api.telegram.org/bot{token}/sendMessage", {
@@ -1325,7 +1201,6 @@ def send_telegram(text, chat_id=None):
             except Exception:
                 log(f"Telegram send failed: {e}")
 
-
 def send_voice_summary(signals, chat_id=None):
     """Generate TTS voice summary of top signals and send via Telegram."""
     if not signals or not _alerts_enabled():
@@ -1333,19 +1208,13 @@ def send_voice_summary(signals, chat_id=None):
     n = len(signals)
     longs = sum(1 for s in signals if s["direction"] == "LONG")
     shorts = n - longs
-    lines = [
-        f"Alerte sniper. {n} signaux detectes, {longs} achats et {shorts} ventes."]
+    lines = [f"Alerte sniper. {n} signaux detectes, {longs} achats et {shorts} ventes."]
     for i, sig in enumerate(signals[:3]):
         sym = sig["symbol"].replace("_USDT", "")
         d = "achat" if sig["direction"] == "LONG" else "vente"
         v = sig.get("validations", 0)
-        tp1_pct = abs(sig['tp1'] - sig['entry']) / \
-            sig['entry'] * 100 if sig['entry'] > 0 else 0
-        lines.append(
-            f"Numero {
-                i +
-                1}. {sym}, {d}, score {
-                sig['score']:.0f} sur 100, {v} validations.")
+        tp1_pct = abs(sig['tp1'] - sig['entry']) / sig['entry'] * 100 if sig['entry'] > 0 else 0
+        lines.append(f"Numero {i+1}. {sym}, {d}, score {sig['score']:.0f} sur 100, {v} validations.")
         lines.append(f"Objectif un a plus {tp1_pct:.1f} pour cent.")
         pats = sig.get("patterns", [])
         if "MTF_CONFIRM" in pats:
@@ -1357,9 +1226,7 @@ def send_voice_summary(signals, chat_id=None):
         evo = sig.get("price_evolution")
         if evo is not None and abs(evo) > 0.5:
             direction_evo = "hausse" if evo > 0 else "baisse"
-            lines.append(
-                f"Evolution de {
-                    abs(evo):.1f} pour cent en {direction_evo} depuis le dernier scan.")
+            lines.append(f"Evolution de {abs(evo):.1f} pour cent en {direction_evo} depuis le dernier scan.")
         if sig.get("confirmed_by_history"):
             lines.append("Direction confirmee par l'historique.")
     lines.append("Fin du rapport sniper.")
@@ -1369,12 +1236,7 @@ def send_voice_summary(signals, chat_id=None):
     if chat_id:
         tts_args.append(f"--chat-id={chat_id}")
     try:
-        proc = subprocess.run(
-            tts_args,
-            input=text,
-            capture_output=True,
-            text=True,
-            timeout=45)
+        proc = subprocess.run(tts_args, input=text, capture_output=True, text=True, timeout=45)
         if proc.returncode == 0:
             log("  Voice summary sent via Telegram")
         else:
@@ -1383,14 +1245,9 @@ def send_voice_summary(signals, chat_id=None):
         log(f"  TTS failed: {e}")
 
 
-# ─── Micro-Backtest — validate signal quality on recent klines ──────────
+# ─── Micro-Backtest — validate signal quality on recent klines ────────────────
 
-def micro_backtest(
-        candles,
-        direction,
-        entry_idx=-1,
-        tp1_mult=0.6,
-        sl_mult=1.0):
+def micro_backtest(candles, direction, entry_idx=-1, tp1_mult=0.6, sl_mult=1.0):
     """Quick backtest: would this signal have worked on last N candles?
     Returns win_rate (0-1) based on similar setups in recent history.
     """
@@ -1407,10 +1264,8 @@ def micro_backtest(
     # Test last 20 candles as hypothetical entries
     for i in range(max(20, len(candles) - 20), len(candles) - 3):
         entry_price = candles[i]["c"]
-        tp1 = entry_price + cur_atr * \
-            tp1_mult if direction == "LONG" else entry_price - cur_atr * tp1_mult
-        sl = entry_price - cur_atr * \
-            sl_mult if direction == "LONG" else entry_price + cur_atr * sl_mult
+        tp1 = entry_price + cur_atr * tp1_mult if direction == "LONG" else entry_price - cur_atr * tp1_mult
+        sl = entry_price - cur_atr * sl_mult if direction == "LONG" else entry_price + cur_atr * sl_mult
 
         # Check next 3 candles
         hit_tp = False
@@ -1469,36 +1324,23 @@ def filter_sniper_signals(signals, min_score=85):
 
         # Calcul confiance multi-validation
         validations = 0
-        if sig["score"] >= 85:
-            validations += 1
-        if sig.get("volume_ratio", 0) >= 2.0:
-            validations += 1
-        if "BB_SQUEEZE" in pats or "TIGHT_RANGE" in pats:
-            validations += 1
-        if sig.get("consensus") == "AGREE":
-            validations += 1
-        if confirmed:
-            validations += 1
-        if sig.get("gpu_confidence", 0) >= 0.7:
-            validations += 1
+        if sig["score"] >= 85: validations += 1
+        if sig.get("volume_ratio", 0) >= 2.0: validations += 1
+        if "BB_SQUEEZE" in pats or "TIGHT_RANGE" in pats: validations += 1
+        if sig.get("consensus") == "AGREE": validations += 1
+        if confirmed: validations += 1
+        if sig.get("gpu_confidence", 0) >= 0.7: validations += 1
         # Indicateurs de mouvement imminent
-        if "MOMENTUM_ACCEL" in pats:
-            validations += 1
-        if "VOLUME_CLIMAX" in pats:
-            validations += 1
-        if "BIG_CANDLE" in pats:
-            validations += 1
-        if "MTF_CONFIRM" in pats:
-            validations += 1  # Multi-timeframe = tres fiable
-        if "STRONG_TREND" in pats:
-            validations += 1  # ADX > 30 = tendance forte
+        if "MOMENTUM_ACCEL" in pats: validations += 1
+        if "VOLUME_CLIMAX" in pats: validations += 1
+        if "BIG_CANDLE" in pats: validations += 1
+        if "MTF_CONFIRM" in pats: validations += 1  # Multi-timeframe = tres fiable
+        if "STRONG_TREND" in pats: validations += 1  # ADX > 30 = tendance forte
         # VWAP alignment
         if (sig["direction"] == "LONG" and "ABOVE_VWAP" in pats) or \
-           (sig["direction"] == "SHORT" and "BELOW_VWAP" in pats):
-            validations += 1
+           (sig["direction"] == "SHORT" and "BELOW_VWAP" in pats): validations += 1
         # Momentum streak
-        if any(p.startswith("STREAK_") for p in pats):
-            validations += 1
+        if any(p.startswith("STREAK_") for p in pats): validations += 1
 
         # Bonus imminence: si momentum + volume = c'est maintenant
         imminent = sum(1 for p in pats if p in [
@@ -1513,14 +1355,7 @@ def filter_sniper_signals(signals, min_score=85):
         if validations >= 3:
             sniper.append(sig)
 
-    sniper.sort(
-        key=lambda s: (
-            s["validations"],
-            s.get(
-                "imminent_score",
-                0),
-            s["score"]),
-        reverse=True)
+    sniper.sort(key=lambda s: (s["validations"], s.get("imminent_score", 0), s["score"]), reverse=True)
     return sniper
 
 
@@ -1531,12 +1366,9 @@ def format_sniper_alert(signals):
     now = datetime.now().strftime('%H:%M')
 
     def fmt(val):
-        if val >= 1000:
-            return f"{val:.2f}"
-        if val >= 1:
-            return f"{val:.4f}"
-        if val >= 0.01:
-            return f"{val:.6f}"
+        if val >= 1000: return f"{val:.2f}"
+        if val >= 1: return f"{val:.4f}"
+        if val >= 0.01: return f"{val:.6f}"
         return f"{val:.8f}"
 
     lines = [
@@ -1557,49 +1389,28 @@ def format_sniper_alert(signals):
         rr = tp2_pct / risk_pct if risk_pct > 0 else 0
 
         lines.append(f"")
-        lines.append(
-            f"{emoji} {
-                i +
-                1}. {pair} — {d} {
-                sig['score']:.0f}/100 ({v} valid.)")
+        lines.append(f"{emoji} {i+1}. {pair} — {d} {sig['score']:.0f}/100 ({v} valid.)")
         lines.append(f"   Entry   {fmt(entry)}")
         lines.append(f"   TP1     {fmt(sig['tp1'])}  (+{tp1_pct:.1f}%)")
         lines.append(f"   TP2     {fmt(sig['tp2'])}  (+{tp2_pct:.1f}%)")
         lines.append(f"   TP3     {fmt(sig['tp3'])}  (+{tp3_pct:.1f}%)")
         lines.append(f"   SL      {fmt(sig['sl'])}  (-{risk_pct:.1f}%)")
-        lines.append(
-            f"   R:R {
-                rr:.1f}x | RSI {
-                sig.get(
-                    'rsi',
-                    0):.0f} | Vol x{
-                    sig.get(
-                        'volume_ratio',
-                        0):.1f}")
+        lines.append(f"   R:R {rr:.1f}x | RSI {sig.get('rsi', 0):.0f} | Vol x{sig.get('volume_ratio', 0):.1f}")
 
         reasons = []
-        if "BB_SQUEEZE" in sig.get("patterns", []):
-            reasons.append("Squeeze BB")
-        if sig.get("volume_ratio", 0) >= 2.0:
-            reasons.append(f"Vol x{sig['volume_ratio']:.1f}")
-        if sig.get("consensus") == "AGREE":
-            reasons.append("Cluster OK")
-        if sig.get("confirmed_by_history"):
-            reasons.append("Hist. confirme")
-        if sig.get("gpu_confidence", 0) >= 0.7:
-            reasons.append(f"GPU {sig['gpu_confidence']:.0%}")
-        if "MTF_CONFIRM" in sig.get("patterns", []):
-            reasons.append("Multi-TF OK")
+        if "BB_SQUEEZE" in sig.get("patterns", []): reasons.append("Squeeze BB")
+        if sig.get("volume_ratio", 0) >= 2.0: reasons.append(f"Vol x{sig['volume_ratio']:.1f}")
+        if sig.get("consensus") == "AGREE": reasons.append("Cluster OK")
+        if sig.get("confirmed_by_history"): reasons.append("Hist. confirme")
+        if sig.get("gpu_confidence", 0) >= 0.7: reasons.append(f"GPU {sig['gpu_confidence']:.0%}")
+        if "MTF_CONFIRM" in sig.get("patterns", []): reasons.append("Multi-TF OK")
         imm = sig.get("imminent_score", 0)
-        if imm >= 2:
-            reasons.append(f"IMMINENT({imm})")
+        if imm >= 2: reasons.append(f"IMMINENT({imm})")
         if reasons:
             lines.append(f"   {' | '.join(reasons)}")
 
         if sig.get("price_evolution") is not None:
-            lines.append(
-                f"   Hist: {
-                    sig['price_evolution']:+.2f}% depuis dernier scan")
+            lines.append(f"   Hist: {sig['price_evolution']:+.2f}% depuis dernier scan")
 
     lines.append("")
     lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -1613,19 +1424,10 @@ def emit_tracked_signal(db, sig):
     db.execute(
         "INSERT INTO signal_tracker (symbol, direction, entry_price, tp1, tp2, tp3, sl, "
         "score, validations, emitted_at, status) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-        (sig["symbol"],
-         sig["direction"],
-         sig["entry"],
-         sig["tp1"],
-         sig["tp2"],
-         sig["tp3"],
-         sig["sl"],
-         sig["score"],
-         sig.get(
-            "validations",
-            0),
-            now,
-            "OPEN"))
+        (sig["symbol"], sig["direction"], sig["entry"],
+         sig["tp1"], sig["tp2"], sig["tp3"], sig["sl"],
+         sig["score"], sig.get("validations", 0), now, "OPEN")
+    )
     db.commit()
 
 
@@ -1636,13 +1438,7 @@ def check_tracked_signals(db, tickers_map):
     ).fetchall()
     now = datetime.now().isoformat(timespec='seconds')
     now_ts = time.time()
-    results = {
-        "tp1_hits": 0,
-        "tp2_hits": 0,
-        "tp3_hits": 0,
-        "sl_hits": 0,
-        "checked": 0,
-        "expired": 0}
+    results = {"tp1_hits": 0, "tp2_hits": 0, "tp3_hits": 0, "sl_hits": 0, "checked": 0, "expired": 0}
 
     for row in open_sigs:
         sid, sym, direction, entry, tp1, tp2, tp3, sl, emitted_at = row
@@ -1652,8 +1448,7 @@ def check_tracked_signals(db, tickers_map):
             emit_dt = datetime.fromisoformat(emitted_at)
             age_s = (datetime.now() - emit_dt).total_seconds()
             if age_s > 7200:  # 2 hours
-                db.execute(
-                    "UPDATE signal_tracker SET status='EXPIRED', checked_at=? WHERE id=?", (now, sid))
+                db.execute("UPDATE signal_tracker SET status='EXPIRED', checked_at=? WHERE id=?", (now, sid))
                 results["expired"] += 1
                 continue
         except Exception:
@@ -1667,26 +1462,15 @@ def check_tracked_signals(db, tickers_map):
             continue
         results["checked"] += 1
 
-        pnl = (cur_price - entry) / entry * \
-            100 if direction == "LONG" else (entry - cur_price) / entry * 100
-        tp1_hit = (
-            cur_price >= tp1) if direction == "LONG" else (
-            cur_price <= tp1)
-        tp2_hit = (
-            cur_price >= tp2) if direction == "LONG" else (
-            cur_price <= tp2)
-        tp3_hit = (
-            cur_price >= tp3) if direction == "LONG" else (
-            cur_price <= tp3)
-        sl_hit = (
-            cur_price <= sl) if direction == "LONG" else (
-            cur_price >= sl)
+        pnl = (cur_price - entry) / entry * 100 if direction == "LONG" else (entry - cur_price) / entry * 100
+        tp1_hit = (cur_price >= tp1) if direction == "LONG" else (cur_price <= tp1)
+        tp2_hit = (cur_price >= tp2) if direction == "LONG" else (cur_price <= tp2)
+        tp3_hit = (cur_price >= tp3) if direction == "LONG" else (cur_price <= tp3)
+        sl_hit = (cur_price <= sl) if direction == "LONG" else (cur_price >= sl)
 
         status = "OPEN"
-        if tp1_hit:
-            results["tp1_hits"] += 1
-        if tp2_hit:
-            results["tp2_hits"] += 1
+        if tp1_hit: results["tp1_hits"] += 1
+        if tp2_hit: results["tp2_hits"] += 1
         if tp3_hit:
             results["tp3_hits"] += 1
             status = "TP3_HIT"
@@ -1700,15 +1484,8 @@ def check_tracked_signals(db, tickers_map):
 
         db.execute(
             "UPDATE signal_tracker SET checked_at=?, current_price=?, tp1_hit=?, tp2_hit=?, tp3_hit=?, sl_hit=?, pnl_pct=?, status=? WHERE id=?",
-            (now,
-             cur_price,
-             int(tp1_hit),
-                int(tp2_hit),
-                int(tp3_hit),
-                int(sl_hit),
-                pnl,
-                status,
-                sid))
+            (now, cur_price, int(tp1_hit), int(tp2_hit), int(tp3_hit), int(sl_hit), pnl, status, sid)
+        )
     db.commit()
     return results
 
@@ -1717,10 +1494,8 @@ def periodic_report(scan_count, total_alerts, chat_id=None):
     """Rapport periodique envoye sur Telegram — resume marche."""
     try:
         db = sqlite3.connect(str(DB_PATH))
-        reg_count = db.execute(
-            "SELECT COUNT(*) FROM coin_registry").fetchone()[0]
-        snap_count = db.execute(
-            "SELECT COUNT(*) FROM coin_snapshots").fetchone()[0]
+        reg_count = db.execute("SELECT COUNT(*) FROM coin_registry").fetchone()[0]
+        snap_count = db.execute("SELECT COUNT(*) FROM coin_snapshots").fetchone()[0]
         # Top 5 coins les plus chauds actuellement
         hot = db.execute(
             "SELECT clean_name, avg_score, best_score, best_direction, last_change "
@@ -1739,42 +1514,25 @@ def periodic_report(scan_count, total_alerts, chat_id=None):
             f"Coins en registry: {reg_count} | Snapshots: {snap_count}",
         ]
         if last:
-            lines.append(
-                f"Dernier scan: {
-                    last[0]} signaux, {
-                    last[1]} breakouts, {
-                    last[2]:.0f}s")
+            lines.append(f"Dernier scan: {last[0]} signaux, {last[1]} breakouts, {last[2]:.0f}s")
         if hot:
             lines.append("")
             lines.append("Coins les plus chauds:")
             for h in hot:
                 d = "achat" if h[3] == "LONG" else "vente" if h[3] == "SHORT" else "?"
-                lines.append(
-                    f"  {
-                        h[0]} — avg {
-                        h[1]:.0f}, best {
-                        h[2]:.0f}, {d}, 24h {
-                        h[4]:+.1f}%")
+                lines.append(f"  {h[0]} — avg {h[1]:.0f}, best {h[2]:.0f}, {d}, 24h {h[4]:+.1f}%")
 
         # Performance tracker
         try:
-            total_tracked = db.execute(
-                "SELECT COUNT(*) FROM signal_tracker").fetchone()[0]
+            total_tracked = db.execute("SELECT COUNT(*) FROM signal_tracker").fetchone()[0]
             if total_tracked > 0:
-                tp1_wins = db.execute(
-                    "SELECT COUNT(*) FROM signal_tracker WHERE tp1_hit=1").fetchone()[0]
-                sl_losses = db.execute(
-                    "SELECT COUNT(*) FROM signal_tracker WHERE sl_hit=1").fetchone()[0]
-                avg_pnl = db.execute(
-                    "SELECT AVG(pnl_pct) FROM signal_tracker WHERE status != 'OPEN'").fetchone()[0] or 0
+                tp1_wins = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE tp1_hit=1").fetchone()[0]
+                sl_losses = db.execute("SELECT COUNT(*) FROM signal_tracker WHERE sl_hit=1").fetchone()[0]
+                avg_pnl = db.execute("SELECT AVG(pnl_pct) FROM signal_tracker WHERE status != 'OPEN'").fetchone()[0] or 0
                 lines.append("")
                 lines.append(f"Performance: {total_tracked} signaux trackes")
-                lines.append(
-                    f"  TP1 touches: {tp1_wins} ({
-                        tp1_wins * 100 // total_tracked}%)")
-                lines.append(
-                    f"  SL touches: {sl_losses} ({
-                        sl_losses * 100 // total_tracked}%)")
+                lines.append(f"  TP1 touches: {tp1_wins} ({tp1_wins*100//total_tracked}%)")
+                lines.append(f"  SL touches: {sl_losses} ({sl_losses*100//total_tracked}%)")
                 lines.append(f"  PnL moyen: {avg_pnl:+.2f}%")
         except Exception:
             pass
@@ -1790,12 +1548,7 @@ def periodic_report(scan_count, total_alerts, chat_id=None):
 
 # ─── REALTIME MODE — Catch the Wave ──────────────────────────────────────────
 
-def realtime_loop(
-        notify=True,
-        voice=True,
-        chat_id=None,
-        min_move=0.4,
-        interval=30):
+def realtime_loop(notify=True, voice=True, chat_id=None, min_move=0.4, interval=30):
     """Mode temps reel — detecte les mouvements explosifs EN COURS.
 
     Cycle rapide (30s):
@@ -1862,10 +1615,7 @@ def realtime_loop(
 
             if not movers:
                 if scan_count % 20 == 0:
-                    log(
-                        f"  [{scan_count}] {
-                            len(tickers)} tickers, 0 movers (>{min_move}%) ({
-                            fetch_ms:.0f}ms)")
+                    log(f"  [{scan_count}] {len(tickers)} tickers, 0 movers (>{min_move}%) ({fetch_ms:.0f}ms)")
                 time.sleep(interval)
                 continue
 
@@ -1873,12 +1623,10 @@ def realtime_loop(
             movers.sort(key=lambda m: abs(m["delta_pct"]), reverse=True)
             log(f"  [{scan_count}] {len(movers)} MOVERS detectes en {fetch_ms:.0f}ms:")
             for m in movers[:5]:
-                log(f"    {m['symbol'].replace('_USDT',
-                                               '')} {m['delta_pct']:+.2f}% en {m['elapsed']:.0f}s")
+                log(f"    {m['symbol'].replace('_USDT','')} {m['delta_pct']:+.2f}% en {m['elapsed']:.0f}s")
 
             # 3. Deep scan des movers (klines + indicateurs + depth)
             confirmed = []
-
             def deep_scan_mover(m):
                 sym = m["symbol"]
                 try:
@@ -1900,13 +1648,11 @@ def realtime_loop(
                     result["prev_price"] = m["prev_price"]
                     result["price_evolution"] = m["delta_pct"]
 
-                    # FORCE direction from actual price movement (realtime
-                    # truth)
+                    # FORCE direction from actual price movement (realtime truth)
                     realtime_dir = "LONG" if m["delta_pct"] > 0 else "SHORT"
                     if result["direction"] != realtime_dir:
                         # Indicators disagree with actual movement — trust the move
-                        # but penalize score slightly (divergence = less
-                        # reliable)
+                        # but penalize score slightly (divergence = less reliable)
                         result["direction"] = realtime_dir
                         result["score"] = max(result["score"] - 5, 0)
                         result["patterns"].append("DIR_OVERRIDE")
@@ -1914,8 +1660,7 @@ def realtime_loop(
                     # TP serre pour realtime (TP1 rapide a toucher)
                     atr_val = result["atr"] if result["atr"] > 0 else m["price"] * 0.003
                     if result["direction"] == "LONG":
-                        result["tp1"] = m["price"] + \
-                            atr_val * 0.6   # TP1 rapide
+                        result["tp1"] = m["price"] + atr_val * 0.6   # TP1 rapide
                         result["tp2"] = m["price"] + atr_val * 1.2
                         result["tp3"] = m["price"] + atr_val * 2.0
                         result["sl"] = m["price"] - atr_val * 1.0
@@ -1931,22 +1676,19 @@ def realtime_loop(
 
                     # Check MTF 15min pour confirmation
                     try:
-                        candles_15m = fetch_klines(
-                            sym, interval="Min15", limit=30)
+                        candles_15m = fetch_klines(sym, interval="Min15", limit=30)
                         if candles_15m and len(candles_15m) >= 15:
                             closes_15m = [c["c"] for c in candles_15m]
                             ema8_15 = ema(closes_15m, 8)
                             ema21_15 = ema(closes_15m, 21)
                             dir_15m = "LONG" if ema8_15[-1] > ema21_15[-1] else "SHORT"
                             if dir_15m == result["direction"]:
-                                result["score"] = min(
-                                    result["score"] + 10, 100)
+                                result["score"] = min(result["score"] + 10, 100)
                                 result["patterns"].append("MTF_15M_OK")
                     except Exception:
                         pass
 
-                    # Micro-backtest: would similar setups have worked
-                    # recently?
+                    # Micro-backtest: would similar setups have worked recently?
                     try:
                         bt_rate = micro_backtest(candles, result["direction"])
                         result["backtest_rate"] = bt_rate
@@ -1964,8 +1706,7 @@ def realtime_loop(
                     return None
 
             with ThreadPoolExecutor(max_workers=8) as pool:
-                futs = {pool.submit(deep_scan_mover, m)
-                                    : m for m in movers[:10]}
+                futs = {pool.submit(deep_scan_mover, m): m for m in movers[:10]}
                 for f in as_completed(futs, timeout=30):
                     try:
                         r = f.result()
@@ -2003,42 +1744,27 @@ def realtime_loop(
                 # Compter validations
                 pats = sig.get("patterns", [])
                 v = 0
-                if sig["score"] >= 80:
-                    v += 1
-                if "REALTIME_MOVE" in pats:
-                    v += 1
-                if "MTF_15M_OK" in pats:
-                    v += 1
-                if sig.get("consensus") == "AGREE":
-                    v += 1
-                if sig.get("volume_ratio", 0) >= 1.5:
-                    v += 1
-                if "STRONG_TREND" in pats:
-                    v += 1
-                if abs(sig.get("realtime_delta", 0)) >= 0.8:
-                    v += 1
+                if sig["score"] >= 80: v += 1
+                if "REALTIME_MOVE" in pats: v += 1
+                if "MTF_15M_OK" in pats: v += 1
+                if sig.get("consensus") == "AGREE": v += 1
+                if sig.get("volume_ratio", 0) >= 1.5: v += 1
+                if "STRONG_TREND" in pats: v += 1
+                if abs(sig.get("realtime_delta", 0)) >= 0.8: v += 1
                 # VWAP alignment (price above VWAP for LONG, below for SHORT)
                 if (sig["direction"] == "LONG" and "ABOVE_VWAP" in pats) or \
-                   (sig["direction"] == "SHORT" and "BELOW_VWAP" in pats):
-                    v += 1
+                   (sig["direction"] == "SHORT" and "BELOW_VWAP" in pats): v += 1
                 # Momentum streak (3+ candles same direction)
-                if any(p.startswith("STREAK_") or p.startswith("streak_")
-                       for p in pats):
-                    v += 1
+                if any(p.startswith("STREAK_") or p.startswith("streak_") for p in pats): v += 1
                 # Micro-backtest validation
-                if "BACKTEST_OK" in pats:
-                    v += 1
+                if "BACKTEST_OK" in pats: v += 1
                 sig["validations"] = v
                 if v >= 3:
                     alerts.append(sig)
                     cooldowns[sig["symbol"]] = now
 
             if alerts:
-                alerts.sort(
-                    key=lambda s: (
-                        s["validations"],
-                        s["score"]),
-                    reverse=True)
+                alerts.sort(key=lambda s: (s["validations"], s["score"]), reverse=True)
                 total_alerts += len(alerts)
                 log(f"  REALTIME ALERT: {len(alerts)} signaux valides!")
 
@@ -2060,13 +1786,8 @@ def realtime_loop(
             # Check signaux ouverts
             try:
                 tracker = check_tracked_signals(db, tickers_map)
-                if tracker["checked"] > 0 and (
-                        tracker["tp1_hits"] > 0 or tracker["sl_hits"] > 0):
-                    log(
-                        f"  Tracker: TP1:{
-                            tracker['tp1_hits']} TP2:{
-                            tracker['tp2_hits']} SL:{
-                            tracker['sl_hits']}")
+                if tracker["checked"] > 0 and (tracker["tp1_hits"] > 0 or tracker["sl_hits"] > 0):
+                    log(f"  Tracker: TP1:{tracker['tp1_hits']} TP2:{tracker['tp2_hits']} SL:{tracker['sl_hits']}")
             except Exception:
                 pass
 
@@ -2085,12 +1806,9 @@ def format_realtime_alert(signals):
     now = datetime.now().strftime('%H:%M:%S')
 
     def fmt(val):
-        if val >= 1000:
-            return f"{val:.2f}"
-        if val >= 1:
-            return f"{val:.4f}"
-        if val >= 0.01:
-            return f"{val:.6f}"
+        if val >= 1000: return f"{val:.2f}"
+        if val >= 1: return f"{val:.4f}"
+        if val >= 0.01: return f"{val:.6f}"
         return f"{val:.8f}"
 
     lines = [
@@ -2108,8 +1826,7 @@ def format_realtime_alert(signals):
         risk_pct = abs(sig['sl'] - entry) / entry * 100
         tp1_pct = abs(sig['tp1'] - entry) / entry * 100
 
-        lines.append(
-            f"{i + 1}. {sym} {d} score {sig['score']:.0f}/100 ({v} valid.)")
+        lines.append(f"{i+1}. {sym} {d} score {sig['score']:.0f}/100 ({v} valid.)")
         lines.append(f"   Mouvement: {delta:+.2f}% en {elapsed_s:.0f}s")
         lines.append(f"   Entry  {fmt(entry)}")
         lines.append(f"   TP1    {fmt(sig['tp1'])} (+{tp1_pct:.2f}%)")
@@ -2117,32 +1834,14 @@ def format_realtime_alert(signals):
         lines.append(f"   SL     {fmt(sig['sl'])} (-{risk_pct:.2f}%)")
 
         reasons = []
-        if sig.get("consensus") == "AGREE":
-            reasons.append("Cluster OK")
-        if "MTF_15M_OK" in sig.get("patterns", []):
-            reasons.append("MTF 15m OK")
-        if "STRONG_TREND" in sig.get("patterns", []):
-            reasons.append("Trend fort")
-        if sig.get("volume_ratio", 0) >= 2:
-            reasons.append(f"Vol x{sig['volume_ratio']:.1f}")
-        if "BACKTEST_OK" in sig.get("patterns", []):
-            reasons.append(
-                f"Backtest {
-                    sig.get(
-                        'backtest_rate',
-                        0) * 100:.0f}%")
-        if "ABOVE_VWAP" in sig.get(
-                "patterns",
-                []) or "BELOW_VWAP" in sig.get(
-                "patterns",
-                []):
-            reasons.append("VWAP OK")
-        streak_pat = [
-            p for p in sig.get(
-                "patterns",
-                []) if p.startswith("STREAK_")]
-        if streak_pat:
-            reasons.append(f"Streak {streak_pat[0].split('_')[1]}")
+        if sig.get("consensus") == "AGREE": reasons.append("Cluster OK")
+        if "MTF_15M_OK" in sig.get("patterns", []): reasons.append("MTF 15m OK")
+        if "STRONG_TREND" in sig.get("patterns", []): reasons.append("Trend fort")
+        if sig.get("volume_ratio", 0) >= 2: reasons.append(f"Vol x{sig['volume_ratio']:.1f}")
+        if "BACKTEST_OK" in sig.get("patterns", []): reasons.append(f"Backtest {sig.get('backtest_rate', 0)*100:.0f}%")
+        if "ABOVE_VWAP" in sig.get("patterns", []) or "BELOW_VWAP" in sig.get("patterns", []): reasons.append("VWAP OK")
+        streak_pat = [p for p in sig.get("patterns", []) if p.startswith("STREAK_")]
+        if streak_pat: reasons.append(f"Streak {streak_pat[0].split('_')[1]}")
         if reasons:
             lines.append(f"   {' | '.join(reasons)}")
         lines.append("")
@@ -2156,53 +1855,19 @@ def format_realtime_alert(signals):
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Sniper Scanner")
     parser.add_argument("--once", action="store_true", help="Single scan")
-    parser.add_argument(
-        "--loop",
-        action="store_true",
-        help="Continuous scanning")
-    parser.add_argument(
-        "--realtime",
-        action="store_true",
-        help="Realtime mode: detect moves in progress")
-    parser.add_argument("--top", type=int, default=TOP_N,
-                        help="Top N coins by volume (0=ALL)")
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Scan ALL coins (equivalent to --top 0)")
-    parser.add_argument(
-        "--notify",
-        action="store_true",
-        help="Send to Telegram")
+    parser.add_argument("--loop", action="store_true", help="Continuous scanning")
+    parser.add_argument("--realtime", action="store_true", help="Realtime mode: detect moves in progress")
+    parser.add_argument("--top", type=int, default=TOP_N, help="Top N coins by volume (0=ALL)")
+    parser.add_argument("--all", action="store_true", help="Scan ALL coins (equivalent to --top 0)")
+    parser.add_argument("--notify", action="store_true", help="Send to Telegram")
     parser.add_argument("--chat-id", type=str, help="Telegram chat ID")
-    parser.add_argument(
-        "--no-consensus",
-        action="store_true",
-        help="Skip cluster consensus")
-    parser.add_argument(
-        "--voice",
-        action="store_true",
-        help="Send voice via TTS + Telegram")
-    parser.add_argument(
-        "--sniper",
-        action="store_true",
-        help="Sniper auto mode: only ultra-high confidence signals")
-    parser.add_argument(
-        "--min-score",
-        type=int,
-        default=50,
-        help="Minimum score to report (default 50, sniper=85)")
-    parser.add_argument(
-        "--min-move",
-        type=float,
-        default=0.4,
-        help="Min move % for realtime detection (default 0.4)")
+    parser.add_argument("--no-consensus", action="store_true", help="Skip cluster consensus")
+    parser.add_argument("--voice", action="store_true", help="Send voice via TTS + Telegram")
+    parser.add_argument("--sniper", action="store_true", help="Sniper auto mode: only ultra-high confidence signals")
+    parser.add_argument("--min-score", type=int, default=50, help="Minimum score to report (default 50, sniper=85)")
+    parser.add_argument("--min-move", type=float, default=0.4, help="Min move % for realtime detection (default 0.4)")
     parser.add_argument("--json", action="store_true", help="Output JSON")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=SCAN_INTERVAL,
-        help="Scan interval in seconds (default 300)")
+    parser.add_argument("--interval", type=int, default=SCAN_INTERVAL, help="Scan interval in seconds (default 300)")
     args = parser.parse_args()
 
     init_db()
@@ -2218,8 +1883,7 @@ def main():
 
         # Sniper mode: filtre strict multi-validation
         if args.sniper:
-            sniper_signals = filter_sniper_signals(
-                signals, min_score=min_score)
+            sniper_signals = filter_sniper_signals(signals, min_score=min_score)
             if sniper_signals:
                 report = format_sniper_alert(sniper_signals)
                 print(report)
@@ -2236,12 +1900,10 @@ def main():
                     pass
                 log(f"  SNIPER ALERT: {len(sniper_signals)} signaux explosifs envoyes")
             else:
-                log(
-                    f"  Sniper: aucun signal >= {min_score} multi-valide ({len(signals)} candidats)")
+                log(f"  Sniper: aucun signal >= {min_score} multi-valide ({len(signals)} candidats)")
         else:
             if args.json:
-                print(json.dumps([{k: v for k, v in s.items() if k != "reasons"}
-                      for s in signals[:10]], indent=2, default=str))
+                print(json.dumps([{k: v for k, v in s.items() if k != "reasons"} for s in signals[:10]], indent=2, default=str))
             else:
                 report = format_scan_report(signals, coins_total=total)
                 print(report)
@@ -2272,19 +1934,16 @@ def main():
                 log(f"--- Scan #{scan_count} ---")
                 sigs = run_scan()
                 if sigs and args.sniper:
-                    total_alerts += len([s for s in sigs if s.get("validations", 0)
-                                        >= 3 and s["score"] >= min_score])
+                    total_alerts += len([s for s in sigs if s.get("validations", 0) >= 3 and s["score"] >= min_score])
 
                 # Rapport periodique toutes les 10 scans en sniper mode
                 if args.sniper and scan_count % 10 == 0:
-                    periodic_report(
-                        scan_count, total_alerts, chat_id=args.chat_id)
+                    periodic_report(scan_count, total_alerts, chat_id=args.chat_id)
             except Exception as e:
                 log(f"Scan error: {e}")
             time.sleep(interval)
     else:
         run_scan()
-
 
 if __name__ == "__main__":
     main()

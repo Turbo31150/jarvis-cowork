@@ -23,7 +23,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 DB_PATH = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
+from _paths import ETOILE_DB
 
 
 def init_db(conn):
@@ -56,8 +56,7 @@ def analyze_trends():
     edb = sqlite3.connect(str(ETOILE_DB))
     edb.row_factory = sqlite3.Row
 
-    total = edb.execute(
-        "SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
+    total = edb.execute("SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
     midpoint = total // 2
 
     # Recent half vs older half

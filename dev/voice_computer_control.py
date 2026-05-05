@@ -66,11 +66,7 @@ class VoiceComputerControl:
     def _run_cmd(self, cmd: list, timeout: int = 15) -> str:
         """Execute une commande systeme et retourne stdout."""
         try:
-            r = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=timeout)
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
             return r.stdout.strip() if r.returncode == 0 else r.stderr.strip()
         except subprocess.TimeoutExpired:
             return "ERREUR: Timeout commande"
@@ -83,11 +79,7 @@ class VoiceComputerControl:
             return "ERREUR: browser_pilot.py introuvable"
         cmd = [PYTHON, str(BROWSER_PILOT)] + list(args)
         try:
-            r = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=timeout)
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
             output = r.stdout.strip()
             if r.returncode != 0 and r.stderr.strip():
                 return r.stderr.strip()
@@ -160,10 +152,7 @@ Start-Sleep -Milliseconds 200
         """Page suivante."""
         return self._browser_cmd("--forward")
 
-    def browser_scroll(
-            self,
-            direction: str = "down",
-            amount: int = 500) -> str:
+    def browser_scroll(self, direction: str = "down", amount: int = 500) -> str:
         """Scroller la page (up/down/top/bottom)."""
         d = direction.lower()
         if d in ("up", "down", "top", "bottom"):
@@ -200,10 +189,8 @@ Start-Sleep -Milliseconds 200
         try:
             tabs = json.loads(output)
             if isinstance(tabs, list):
-                lines = [f"{i + 1}. {t.get('title',
-                                           'Sans titre')} — {t.get('url',
-                                                                   '')}" for i,
-                         t in enumerate(tabs)]
+                lines = [f"{i+1}. {t.get('title', 'Sans titre')} — {t.get('url', '')}"
+                         for i, t in enumerate(tabs)]
                 return f"{len(tabs)} onglet(s):\n" + "\n".join(lines)
         except (json.JSONDecodeError, ValueError):
             pass
@@ -230,11 +217,7 @@ Start-Sleep -Milliseconds 200
     def browser_find(self, text: str) -> str:
         """Chercher du texte dans la page (Ctrl+F)."""
         # Utiliser window.find() en JS
-        js = f"window.find('{
-            text.replace(
-                chr(39),
-                chr(92) +
-                chr(39))}') ? 'Trouve: {text}' : 'Non trouve: {text}'"
+        js = f"window.find('{text.replace(chr(39), chr(92)+chr(39))}') ? 'Trouve: {text}' : 'Non trouve: {text}'"
         return self._browser_cmd("--eval", js)
 
     def browser_bookmark(self) -> str:
@@ -244,8 +227,7 @@ Start-Sleep -Milliseconds 200
 
     def browser_refresh(self) -> str:
         """Rafraichir la page."""
-        return self._browser_cmd(
-            "--eval", "location.reload(); 'page rafraichie'")
+        return self._browser_cmd("--eval", "location.reload(); 'page rafraichie'")
 
     def browser_fullscreen(self) -> str:
         """Basculer en plein ecran (F11)."""
@@ -311,8 +293,7 @@ Start-Sleep -Milliseconds 200
         }
         key = name.lower().strip()
         if key in uri_map:
-            return self._run_ps(
-                f"Start-Process '{uri_map[key]}'") or f"{name} ouvert"
+            return self._run_ps(f"Start-Process '{uri_map[key]}'")  or f"{name} ouvert"
         exe = app_map.get(key, key)
         return self._run_ps(f"Start-Process '{exe}'") or f"{name} ouvert"
 
@@ -432,10 +413,7 @@ public class Audio {
         if key not in ps_map:
             return f"Action inconnue: {action}. Utilise up/down/mute."
         self._run_ps(ps_map[key])
-        labels = {
-            "up": "Volume augmente",
-            "down": "Volume baisse",
-            "mute": "Son coupe/reactive"}
+        labels = {"up": "Volume augmente", "down": "Volume baisse", "mute": "Son coupe/reactive"}
         return labels.get(key, "Volume modifie")
 
     def win_brightness(self, action: str = "up") -> str:
@@ -445,8 +423,7 @@ public class Audio {
         else:
             script = "(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, [Math]::Max(0, (Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness - 10))"
         result = self._run_ps(script)
-        return result or f"Luminosite {
-            'augmentee' if action.lower() == 'up' else 'baissee'}"
+        return result or f"Luminosite {'augmentee' if action.lower() == 'up' else 'baissee'}"
 
     def win_wifi(self, on_off: str = "on") -> str:
         """Activer/desactiver le WiFi."""
@@ -454,25 +431,16 @@ public class Audio {
             script = "netsh interface set interface name='Wi-Fi' admin=enabled"
         else:
             script = "netsh interface set interface name='Wi-Fi' admin=disabled"
-        result = self._run_cmd(["netsh",
-                                "interface",
-                                "set",
-                                "interface",
-                                "name=Wi-Fi",
-                                f"admin={'enabled' if on_off.lower() in ('on',
-                                                                         'activer',
-                                                                         'oui') else 'disabled'}"])
-        return result or f"WiFi {
-            'active' if on_off.lower() in (
-                'on', 'activer', 'oui') else 'desactive'}"
+        result = self._run_cmd(["netsh", "interface", "set", "interface",
+                                 "name=Wi-Fi",
+                                 f"admin={'enabled' if on_off.lower() in ('on', 'activer', 'oui') else 'disabled'}"])
+        return result or f"WiFi {'active' if on_off.lower() in ('on', 'activer', 'oui') else 'desactive'}"
 
     def win_bluetooth(self, on_off: str = "on") -> str:
         """Activer/desactiver le Bluetooth."""
         # Ouvrir les parametres Bluetooth
         self._run_ps("Start-Process 'ms-settings:bluetooth'")
-        return f"Parametres Bluetooth ouverts — {
-            'activez' if on_off.lower() in (
-                'on', 'activer', 'oui') else 'desactivez'} manuellement"
+        return f"Parametres Bluetooth ouverts — {'activez' if on_off.lower() in ('on', 'activer', 'oui') else 'desactivez'} manuellement"
 
     def win_shutdown(self) -> str:
         """Eteindre l'ordinateur."""
@@ -593,11 +561,8 @@ Get-PSDrive -PSProvider FileSystem | Where-Object {$_.Used -gt 0} | ForEach-Obje
 
     def sys_gpu_temp(self) -> str:
         """Temperature GPU (nvidia-smi)."""
-        result = self._run_cmd(
-            [
-                "nvidia-smi",
-                "--query-gpu=name,temperature.gpu,utilization.gpu,memory.used,memory.total",
-                "--format=csv,noheader,nounits"])
+        result = self._run_cmd(["nvidia-smi", "--query-gpu=name,temperature.gpu,utilization.gpu,memory.used,memory.total",
+                                 "--format=csv,noheader,nounits"])
         if "ERREUR" in result or not result:
             return "nvidia-smi non disponible ou pas de GPU NVIDIA"
         lines = result.strip().split("\n")
@@ -605,8 +570,7 @@ Get-PSDrive -PSProvider FileSystem | Where-Object {$_.Used -gt 0} | ForEach-Obje
         for line in lines:
             parts = [p.strip() for p in line.split(",")]
             if len(parts) >= 5:
-                output.append(
-                    f"{parts[0]}: {parts[1]}C, GPU {parts[2]}%, VRAM {parts[3]}/{parts[4]} Mo")
+                output.append(f"{parts[0]}: {parts[1]}C, GPU {parts[2]}%, VRAM {parts[3]}/{parts[4]} Mo")
             else:
                 output.append(line.strip())
         return "GPU:\n" + "\n".join(output)
@@ -1197,10 +1161,7 @@ def _normalize(text: str) -> str:
     return text
 
 
-def _fuzzy_match(
-        text: str,
-        candidates: list,
-        threshold: float = 0.55) -> tuple:
+def _fuzzy_match(text: str, candidates: list, threshold: float = 0.55) -> tuple:
     """Retourne la meilleure correspondance fuzzy (commande, score)."""
     best_match = None
     best_score = 0.0
@@ -1242,7 +1203,7 @@ def execute_voice_command(text: str) -> str:
     if not normalized:
         return "Je n'ai pas compris la commande."
 
-    # ----- Etape 1: Essayer les patterns regex pour extraire des parametres -
+    # ----- Etape 1: Essayer les patterns regex pour extraire des parametres -----
     for pattern, method_name, param_name in PARAM_PATTERNS:
         m = re.match(pattern, normalized)
         if m:
@@ -1268,8 +1229,7 @@ def execute_voice_command(text: str) -> str:
                 return f"Erreur: {e}"
 
     # ----- Etape 3: Chercher la meilleure sous-chaine dans le texte -----
-    # Trier les candidats par longueur decroissante (preference aux commandes
-    # longues)
+    # Trier les candidats par longueur decroissante (preference aux commandes longues)
     candidates = sorted(VOICE_COMMANDS.keys(), key=len, reverse=True)
     for candidate in candidates:
         if candidate in normalized:
@@ -1283,8 +1243,7 @@ def execute_voice_command(text: str) -> str:
                         # Tenter de passer le reste comme premier parametre
                         import inspect
                         sig = inspect.signature(method)
-                        param_names = [
-                            p for p in sig.parameters if p != "self"]
+                        param_names = [p for p in sig.parameters if p != "self"]
                         if param_names:
                             return method(**{param_names[0]: remainder})
                     return method(**params)
@@ -1336,24 +1295,11 @@ Exemples:
   python voice_computer_control.py --list-methods
 """)
     parser.add_argument("--cmd", type=str, help="Commande vocale a executer")
-    parser.add_argument(
-        "--method",
-        type=str,
-        help="Methode a appeler directement")
-    parser.add_argument("--params", type=str, default="{}",
-                        help="Parametres JSON pour --method")
-    parser.add_argument(
-        "--list",
-        action="store_true",
-        help="Lister toutes les commandes vocales")
-    parser.add_argument(
-        "--list-methods",
-        action="store_true",
-        help="Lister toutes les methodes disponibles")
-    parser.add_argument(
-        "--count",
-        action="store_true",
-        help="Compter les commandes vocales")
+    parser.add_argument("--method", type=str, help="Methode a appeler directement")
+    parser.add_argument("--params", type=str, default="{}", help="Parametres JSON pour --method")
+    parser.add_argument("--list", action="store_true", help="Lister toutes les commandes vocales")
+    parser.add_argument("--list-methods", action="store_true", help="Lister toutes les methodes disponibles")
+    parser.add_argument("--count", action="store_true", help="Compter les commandes vocales")
     parser.add_argument("--json", action="store_true", help="Sortie JSON")
     args = parser.parse_args()
 
@@ -1382,17 +1328,14 @@ Exemples:
     # Liste des methodes
     if args.list_methods:
         ctrl = VoiceComputerControl()
-        methods = [m for m in dir(ctrl) if not m.startswith(
-            "_") and callable(getattr(ctrl, m))]
+        methods = [m for m in dir(ctrl) if not m.startswith("_") and callable(getattr(ctrl, m))]
         if args.json:
             info = {}
             for m in methods:
                 import inspect
                 sig = inspect.signature(getattr(ctrl, m))
-                params = {
-                    p: str(
-                        v.default) if v.default is not inspect.Parameter.empty else "required" for p,
-                    v in sig.parameters.items() if p != "self"}
+                params = {p: str(v.default) if v.default is not inspect.Parameter.empty else "required"
+                          for p, v in sig.parameters.items() if p != "self"}
                 doc = getattr(ctrl, m).__doc__ or ""
                 info[m] = {"params": params, "doc": doc.strip().split("\n")[0]}
             print(json.dumps(info, indent=2, ensure_ascii=False))
@@ -1415,19 +1358,13 @@ Exemples:
         try:
             params = json.loads(args.params)
         except json.JSONDecodeError:
-            print(
-                f"ERREUR: Parametres JSON invalides: {
-                    args.params}",
-                file=sys.stderr)
+            print(f"ERREUR: Parametres JSON invalides: {args.params}", file=sys.stderr)
             sys.exit(1)
         try:
             result = method(**params)
             if args.json:
-                print(json.dumps({"method": args.method,
-                                  "params": params,
-                                  "result": result},
-                                 indent=2,
-                                 ensure_ascii=False))
+                print(json.dumps({"method": args.method, "params": params, "result": result},
+                                 indent=2, ensure_ascii=False))
             else:
                 print(result)
         except Exception as e:
@@ -1439,8 +1376,7 @@ Exemples:
     if args.cmd:
         result = execute_voice_command(args.cmd)
         if args.json:
-            print(json.dumps({"command": args.cmd,
-                  "result": result}, indent=2, ensure_ascii=False))
+            print(json.dumps({"command": args.cmd, "result": result}, indent=2, ensure_ascii=False))
         else:
             print(result)
         return

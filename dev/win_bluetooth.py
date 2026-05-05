@@ -12,14 +12,11 @@ def query_bluetooth_devices():
     ps_cmd = (
         "Get-PnpDevice -Class Bluetooth -ErrorAction SilentlyContinue | "
         "Select-Object Status, Class, FriendlyName, InstanceId, Manufacturer | "
-        "ConvertTo-Json -Compress")
+        "ConvertTo-Json -Compress"
+    )
     cmd = ["powershell", "-NoProfile", "-Command", ps_cmd]
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=15)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
         if result.returncode != 0:
             return {"error": f"PowerShell failed: {result.stderr.strip()}"}
     except FileNotFoundError:
@@ -29,10 +26,7 @@ def query_bluetooth_devices():
 
     output = result.stdout.strip()
     if not output:
-        return {
-            "devices": [],
-            "count": 0,
-            "note": "No Bluetooth devices found or Bluetooth not available"}
+        return {"devices": [], "count": 0, "note": "No Bluetooth devices found or Bluetooth not available"}
 
     try:
         data = json.loads(output)
@@ -62,12 +56,8 @@ def run_once():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="List Bluetooth devices via PowerShell (JSON output)")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
+    parser = argparse.ArgumentParser(description="List Bluetooth devices via PowerShell (JSON output)")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
     args = parser.parse_args()
 
     if args.once:

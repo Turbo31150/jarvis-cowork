@@ -24,7 +24,6 @@ CLI:
 Stdlib-only for core, optional playwright.
 """
 
-from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 import argparse
 import json
 import sqlite3
@@ -38,6 +37,7 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
+from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 
 # Default topics for auto-generation
 DEFAULT_TOPICS = [
@@ -101,18 +101,17 @@ def call_m1(prompt, max_tokens=1024, timeout=60):
         for block in reversed(d.get("output", [])):
             if isinstance(block, dict) and block.get("type") == "message":
                 content = block.get("content", "")
-                return (content if isinstance(content, str)
-                        else str(content)), elapsed, "M1"
+                return (content if isinstance(content, str) else str(content)), elapsed, "M1"
     except Exception as e:
         pass
     return None, 0, None
 
 
 def call_ol1(prompt, timeout=30):
-    """Fallback OL1/qwen2.5:1.5b."""
+    """Fallback OL1/qwen3:1.7b."""
     try:
         data = json.dumps({
-            "model": "qwen2.5:1.5b",
+            "model": "qwen3:1.7b",
             "messages": [{"role": "user", "content": prompt}],
             "stream": False,
         }).encode()
@@ -145,7 +144,6 @@ def load_real_specs():
     except Exception:
         pass
     return ""
-
 
 REAL_SPECS_STATIC = """
 Specs REELLES du projet JARVIS Etoile v12.4 (GitHub: Turbo31150/turbo):
@@ -210,7 +208,7 @@ def schedule_posts(db, count, topics=None):
 
     for i in range(count):
         topic = topics[i % len(topics)]
-        print(f"\n  [{i + 1}/{count}] Generating: {topic[:50]}...")
+        print(f"\n  [{i+1}/{count}] Generating: {topic[:50]}...")
 
         text, ms, agent = generate_post(topic)
         if not text:
@@ -235,8 +233,7 @@ def schedule_posts(db, count, topics=None):
         db.commit()
 
         print(f"    OK: {len(text)} chars, {ms}ms [{agent}] -> {scheduled_at}")
-        scheduled.append(
-            {"topic": topic, "scheduled": scheduled_at, "chars": len(text)})
+        scheduled.append({"topic": topic, "scheduled": scheduled_at, "chars": len(text)})
 
     return scheduled
 
@@ -247,34 +244,12 @@ def list_scheduled(db):
         SELECT id, scheduled_at, status, topic, LENGTH(post_text) as chars, agent_used
         FROM linkedin_schedule ORDER BY scheduled_at
     """).fetchall()
-    print(
-        f"\n  {
-            'ID':>3} | {
-            'Scheduled':16} | {
-                'Status':9} | {
-                    'Chars':>5} | {
-                        'Agent':5} | Topic")
+    print(f"\n  {'ID':>3} | {'Scheduled':16} | {'Status':9} | {'Chars':>5} | {'Agent':5} | Topic")
     print("  " + "-" * 80)
     for r in rows:
-        icon = {"pending": " ", "published": "+",
-                "failed": "X", "skipped": "-"}.get(r["status"], "?")
-        print(
-            f"  {
-                r['id']:3} | {
-                r['scheduled_at']:16} | [{icon}] {
-                r['status']:7} | {
-                    r['chars']:5} | {
-                        r['agent_used'] or '?':5} | {
-                            (
-                                r['topic'] or '')[
-                                    :30]}")
-    print(
-        f"\n  Total: {
-            len(rows)} posts ({
-            sum(
-                1 for r in rows if r['status'] in (
-                    'pending',
-                    'verified'))} pending)")
+        icon = {"pending": " ", "published": "+", "failed": "X", "skipped": "-"}.get(r["status"], "?")
+        print(f"  {r['id']:3} | {r['scheduled_at']:16} | [{icon}] {r['status']:7} | {r['chars']:5} | {r['agent_used'] or '?':5} | {(r['topic'] or '')[:30]}")
+    print(f"\n  Total: {len(rows)} posts ({sum(1 for r in rows if r['status'] in ('pending','verified'))} pending)")
 
 
 def get_next_due(db):
@@ -305,8 +280,7 @@ def publish_post(db, row, method="clipboard"):
                 subprocess.Popen(
                     ['powershell', '-Command', 'Start-Process "https://www.linkedin.com/feed/"'],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                print(
-                    f"    [+] Clipboard: {len(text)} chars + LinkedIn opened")
+                print(f"    [+] Clipboard: {len(text)} chars + LinkedIn opened")
                 success = True
         except Exception as e:
             print(f"    [-] Clipboard: {e}")
@@ -314,10 +288,8 @@ def publish_post(db, row, method="clipboard"):
     if method in ("telegram", "all"):
         try:
             if TELEGRAM_TOKEN and TELEGRAM_CHAT:
-                header = f"LINKEDIN POST #{post_id} (planifie {
-                    row['scheduled_at']})\n{
-                    '=' * 30}\n\n"
-                footer = f"\n\n{'=' * 30}\nCopiez et collez sur LinkedIn"
+                header = f"LINKEDIN POST #{post_id} (planifie {row['scheduled_at']})\n{'='*30}\n\n"
+                footer = f"\n\n{'='*30}\nCopiez et collez sur LinkedIn"
                 msg = header + text + footer
                 data = urllib.parse.urlencode({
                     "chat_id": TELEGRAM_CHAT,
@@ -356,10 +328,7 @@ def run_daemon(db, method="all", interval=300):
         try:
             due = get_next_due(db)
             if due:
-                print(
-                    f"  [{
-                        datetime.now().strftime('%H:%M')}] Post #{
-                        due['id']} is due!")
+                print(f"  [{datetime.now().strftime('%H:%M')}] Post #{due['id']} is due!")
                 publish_post(db, due, method)
             else:
                 # Show next upcoming
@@ -369,11 +338,9 @@ def run_daemon(db, method="all", interval=300):
                 """).fetchone()
                 if upcoming:
                     next_time = upcoming["scheduled_at"]
-                    print(
-                        f"  [{datetime.now().strftime('%H:%M')}] Next post: {next_time}")
+                    print(f"  [{datetime.now().strftime('%H:%M')}] Next post: {next_time}")
                 else:
-                    print(
-                        f"  [{datetime.now().strftime('%H:%M')}] No pending posts")
+                    print(f"  [{datetime.now().strftime('%H:%M')}] No pending posts")
 
             time.sleep(interval)
         except KeyboardInterrupt:
@@ -463,8 +430,7 @@ def auto_refill_queue(db, min_pending=3, generate_count=5, topics=None):
     ).fetchone()[0]
     if pending >= min_pending:
         return 0
-    print(
-        f"  Auto-refill: {pending} pending < {min_pending} min, generating {generate_count}...")
+    print(f"  Auto-refill: {pending} pending < {min_pending} min, generating {generate_count}...")
     results = schedule_posts(db, generate_count, topics)
     return len(results)
 
@@ -473,10 +439,8 @@ def send_telegram_status(db):
     """Send a status summary to Telegram."""
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT:
         return
-    pending = db.execute(
-        "SELECT COUNT(*) FROM linkedin_schedule WHERE status IN ('pending','verified')").fetchone()[0]
-    published = db.execute(
-        "SELECT COUNT(*) FROM linkedin_schedule WHERE status='published'").fetchone()[0]
+    pending = db.execute("SELECT COUNT(*) FROM linkedin_schedule WHERE status IN ('pending','verified')").fetchone()[0]
+    published = db.execute("SELECT COUNT(*) FROM linkedin_schedule WHERE status='published'").fetchone()[0]
     upcoming = db.execute("""
         SELECT scheduled_at, topic FROM linkedin_schedule
         WHERE status='pending' ORDER BY scheduled_at LIMIT 3
@@ -509,21 +473,10 @@ def main():
                         help="Generate N posts in advance")
     parser.add_argument("--topics", type=str,
                         help="Comma-separated topics for generation")
-    parser.add_argument(
-        "--schedule",
-        nargs=2,
-        metavar=(
-            "DATETIME",
-            "TEXT"),
-        help="Schedule a specific post: 'YYYY-MM-DD HH:MM' 'text'")
-    parser.add_argument(
-        "--list",
-        action="store_true",
-        help="List all scheduled posts")
-    parser.add_argument(
-        "--next",
-        action="store_true",
-        help="Show next due post")
+    parser.add_argument("--schedule", nargs=2, metavar=("DATETIME", "TEXT"),
+                        help="Schedule a specific post: 'YYYY-MM-DD HH:MM' 'text'")
+    parser.add_argument("--list", action="store_true", help="List all scheduled posts")
+    parser.add_argument("--next", action="store_true", help="Show next due post")
     parser.add_argument("--publish-next", action="store_true",
                         help="Publish the next due post now")
     parser.add_argument("--run", action="store_true", help="Daemon mode")
@@ -572,10 +525,7 @@ def main():
                 WHERE status IN ('pending','verified') ORDER BY scheduled_at LIMIT 1
             """).fetchone()
             if upcoming:
-                print(
-                    f"Next upcoming: #{
-                        upcoming['id']} at {
-                        upcoming['scheduled_at']}")
+                print(f"Next upcoming: #{upcoming['id']} at {upcoming['scheduled_at']}")
                 print(f"Topic: {upcoming['topic']}")
             else:
                 print("No pending posts. Use --generate N to create some.")
@@ -591,24 +541,17 @@ def main():
         run_daemon(db, args.method)
 
     elif args.verify:
-        row = db.execute(
-            "SELECT * FROM linkedin_schedule WHERE id=?",
-            (args.verify,
-             )).fetchone()
+        row = db.execute("SELECT * FROM linkedin_schedule WHERE id=?", (args.verify,)).fetchone()
         if not row:
             print(f"Post #{args.verify} not found")
         else:
-            print(
-                f"Verifying post #{row['id']} ({len(row['post_text'])} chars)...")
-            ok, score, details = verify_post_cluster(
-                row["post_text"], row["topic"] or "")
+            print(f"Verifying post #{row['id']} ({len(row['post_text'])} chars)...")
+            ok, score, details = verify_post_cluster(row["post_text"], row["topic"] or "")
             for d in details:
                 print(f"  {d}")
-            print(
-                f"  Average: {score:.1f}/10 -> {'APPROVED' if ok else 'REJECTED'}")
+            print(f"  Average: {score:.1f}/10 -> {'APPROVED' if ok else 'REJECTED'}")
             if ok:
-                db.execute(
-                    "UPDATE linkedin_schedule SET status='verified' WHERE id=?", (args.verify,))
+                db.execute("UPDATE linkedin_schedule SET status='verified' WHERE id=?", (args.verify,))
                 db.commit()
 
     elif args.auto_generate:
@@ -617,8 +560,7 @@ def main():
             print(f"Generated {refilled} new posts")
             send_telegram_status(db)
         else:
-            pending = db.execute(
-                "SELECT COUNT(*) FROM linkedin_schedule WHERE status IN ('pending','verified')").fetchone()[0]
+            pending = db.execute("SELECT COUNT(*) FROM linkedin_schedule WHERE status IN ('pending','verified')").fetchone()[0]
             print(f"Queue OK: {pending} pending posts")
 
     elif args.once:

@@ -8,7 +8,7 @@ parasites sont supprimes AVANT et APRES le transit.
 10 agents de sanitisation:
   1. THINK_STRIP   — Supprime les blocs <think>...</think> et reasoning tokens
   2. PUNCT_CLEAN   — Corrige les ponctuations doubles, espaces avant ponctuation
-  3. ESCAPE_CLEAN  — Supprime les backslash parasites /n, /t en dehors du code
+  3. ESCAPE_CLEAN  — Supprime les backslash parasites \\n, \\t en dehors du code
   4. FORMAT_NORM   — Normalise le formatage Markdown (**, `, #, etc.)
   5. UNICODE_FIX   — Remplace les caracteres Unicode speciaux par ASCII
   6. CODE_FENCE    — Corrige les code blocks mal fermes (``` sans fermeture)
@@ -22,12 +22,10 @@ Usage:
     clean = sanitize_response(raw_text, source="M1", target="telegram")
 """
 
-import argparse
 import json
 import re
 
 # ── Agent 1: THINK_STRIP ────────────────────────────────────
-
 
 def strip_think_tokens(text):
     """Supprime les blocs de reflexion des modeles (deepseek-r1, qwen3 think)."""
@@ -41,15 +39,10 @@ def strip_think_tokens(text):
     if text.startswith("/nothink\n"):
         text = text[9:]
     # Remove thinking: prefix
-    text = re.sub(
-        r"^(?:Thinking|Reflexion|Raisonnement)\s*:\s*\n",
-        "",
-        text,
-        flags=re.MULTILINE)
+    text = re.sub(r"^(?:Thinking|Reflexion|Raisonnement)\s*:\s*\n", "", text, flags=re.MULTILINE)
     return text.strip()
 
 # ── Agent 2: PUNCT_CLEAN ────────────────────────────────────
-
 
 def clean_punctuation(text):
     """Corrige les ponctuations doubles et espaces parasites."""
@@ -69,7 +62,6 @@ def clean_punctuation(text):
 
 # ── Agent 3: ESCAPE_CLEAN ───────────────────────────────────
 
-
 def clean_escapes(text):
     """Supprime les backslash parasites en dehors des blocs de code."""
     lines = text.split("\n")
@@ -79,34 +71,25 @@ def clean_escapes(text):
         if line.strip().startswith("```"):
             in_code = not in_code
         if not in_code:
-            # Remove literal /n that should be newlines
-            line = line.replace("/n", "\n")
+            # Remove literal \\n that should be newlines
+            line = line.replace("\\n", "\n")
             # Remove escaped quotes that shouldn't be
-            line = line.replace('/"', '"')
-            line = line.replace("/'", "'")
+            line = line.replace('\\"', '"')
+            line = line.replace("\\'", "'")
         result.append(line)
     return "\n".join(result)
 
 # ── Agent 4: FORMAT_NORM ────────────────────────────────────
 
-
 def normalize_markdown(text):
     """Normalise le formatage Markdown pour Telegram."""
     # Fix bold markers: ***text*** -> *text*
-    text = re.sub(
-        r"\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*{3,}([^*]+)\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*{3,}",
-        r"*\1*",
-        text)
+    text = re.sub(r"\\\\\\\\\\\\\\*{3,}([^*]+)\\\\\\\\\\\\\\*{3,}", r"*\1*", text)
     # Fix headers without space: ##Title -> ## Title
-    text = re.sub(
-        r"^(#{1,3})(\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\S)",
-        r"\1 \2",
-        text,
-        flags=re.MULTILINE)
+    text = re.sub(r"^(#{1,3})(\\\\\\\\\\\\\\S)", r"\1 \2", text, flags=re.MULTILINE)
     return text
 
 # ── Agent 5: UNICODE_FIX ────────────────────────────────────
-
 
 UNICODE_REPLACEMENTS = {
     "\u2018": "'", "\u2019": "'",  # smart quotes
@@ -120,7 +103,6 @@ UNICODE_REPLACEMENTS = {
     "\ufeff": "",                  # BOM
 }
 
-
 def fix_unicode(text):
     """Remplace les caracteres Unicode speciaux par ASCII."""
     for old, new in UNICODE_REPLACEMENTS.items():
@@ -128,7 +110,6 @@ def fix_unicode(text):
     return text
 
 # ── Agent 6: CODE_FENCE ─────────────────────────────────────
-
 
 def fix_code_fences(text):
     """Corrige les code blocks mal fermes."""
@@ -140,32 +121,11 @@ def fix_code_fences(text):
 
 # ── Agent 7: LANG_FIX ───────────────────────────────────────
 
-
 def check_language(text, target_lang="fr"):
     """Verifie que la reponse est en francais si demande."""
     # Simple heuristic: check for common French vs English words
-    fr_words = {
-        "est",
-        "les",
-        "des",
-        "une",
-        "pour",
-        "dans",
-        "avec",
-        "sur",
-        "qui",
-        "pas"}
-    en_words = {
-        "the",
-        "and",
-        "for",
-        "with",
-        "that",
-        "this",
-        "from",
-        "have",
-        "are",
-        "not"}
+    fr_words = {"est", "les", "des", "une", "pour", "dans", "avec", "sur", "qui", "pas"}
+    en_words = {"the", "and", "for", "with", "that", "this", "from", "have", "are", "not"}
 
     words = set(text.lower().split())
     fr_count = len(words & fr_words)
@@ -179,7 +139,6 @@ def check_language(text, target_lang="fr"):
 
 # ── Agent 8: JSON_CLEAN ─────────────────────────────────────
 
-
 def extract_json(text):
     """Extrait le JSON valide d'une reponse mixte texte+JSON."""
     # Try full text as JSON first
@@ -189,7 +148,7 @@ def extract_json(text):
         pass
 
     # Try to find JSON in code blocks
-    match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
+    match = re.search(r"```(?:json)?\\\\\\\\\\\\\\s*\n?(.*?)\n?```", text, re.DOTALL)
     if match:
         try:
             return json.loads(match.group(1))
@@ -197,7 +156,7 @@ def extract_json(text):
             pass
 
     # Try to find JSON object/array
-    for pattern in [r"\{.*\}", r"\[.*\]"]:
+    for pattern in [r"\\\\\\\\\\\\\\{.*\\\\\\\\\\\\\\}", r"\\\\\\\\\\\\\\[.*\\\\\\\\\\\\\\]"]:
         match = re.search(pattern, text, re.DOTALL)
         if match:
             try:
@@ -208,7 +167,6 @@ def extract_json(text):
     return None
 
 # ── Agent 9: TRUNCATE ───────────────────────────────────────
-
 
 def smart_truncate(text, max_chars=4000):
     """Coupe intelligemment au dernier paragraphe complet."""
@@ -230,7 +188,6 @@ def smart_truncate(text, max_chars=4000):
 
 # ── Agent 10: DEDUP ─────────────────────────────────────────
 
-
 def remove_duplicates(text):
     """Supprime les paragraphes repetes."""
     paragraphs = text.split("\n\n")
@@ -241,14 +198,13 @@ def remove_duplicates(text):
         if not p_stripped:
             continue
         # Normalize for comparison
-        key = re.sub(r"\s+", " ", p_stripped.lower())[:200]
+        key = re.sub(r"\\\\\\\\\\\\\\s+", " ", p_stripped.lower())[:200]
         if key not in seen:
             seen.add(key)
             unique.append(p)
     return "\n\n".join(unique)
 
 # ── Main Sanitizer Pipeline ─────────────────────────────────
-
 
 def sanitize_response(text, source=None, target=None):
     """Pipeline complet de sanitisation.
@@ -290,13 +246,11 @@ def sanitize_response(text, source=None, target=None):
 
     return text.strip()
 
-
 def sanitize_for_telegram(text, max_chars=4000):
     """Sanitise + tronque pour envoi Telegram."""
     text = sanitize_response(text, target="telegram")
     text = smart_truncate(text, max_chars)
     return text
-
 
 def sanitize_json_response(text):
     """Extrait et valide le JSON d'une reponse."""
@@ -306,6 +260,13 @@ def sanitize_json_response(text):
 
 # ── CLI ──────────────────────────────────────────────────────
 
-
 if __name__ == "__main__":
     import sys
+import argparse
+    if len(sys.argv) > 1:
+        text = " ".join(sys.argv[1:])
+    else:
+        text = sys.stdin.read()
+
+    clean = sanitize_response(text)
+    print(clean)

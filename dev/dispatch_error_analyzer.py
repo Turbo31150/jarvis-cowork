@@ -23,7 +23,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 DB_PATH = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
+from _paths import ETOILE_DB
 
 
 def init_db(conn):
@@ -267,10 +267,7 @@ def action_stats():
 def main():
     parser = argparse.ArgumentParser(description="Dispatch Error Analyzer")
     parser.add_argument("--once", action="store_true", help="Run analysis")
-    parser.add_argument(
-        "--fix-nulls",
-        action="store_true",
-        help="Backfill null errors")
+    parser.add_argument("--fix-nulls", action="store_true", help="Backfill null errors")
     parser.add_argument("--stats", action="store_true", help="Show stats")
     args = parser.parse_args()
 

@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """JARVIS Alert System — send alerts via Telegram."""
-import argparse
-import json
-import os
-import urllib.request
-import urllib.parse
-
+import argparse, json, os, urllib.request, urllib.parse
 
 def load_env():
     env_path = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
@@ -17,7 +12,6 @@ def load_env():
                     k, v = line.split("=", 1)
                     os.environ.setdefault(k.strip(), v.strip())
 
-
 def send_telegram(message: str) -> bool:
     load_env()
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
@@ -26,8 +20,7 @@ def send_telegram(message: str) -> bool:
         print("No TELEGRAM_BOT_TOKEN found")
         return False
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    data = urllib.parse.urlencode(
-        {"chat_id": chat_id, "text": message}).encode()
+    data = urllib.parse.urlencode({"chat_id": chat_id, "text": message}).encode()
     try:
         req = urllib.request.Request(url, data=data, method="POST")
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -36,21 +29,11 @@ def send_telegram(message: str) -> bool:
         print(f"Telegram error: {e}")
         return False
 
-
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Alert via Telegram")
-    parser.add_argument(
-        "message",
-        nargs="?",
-        default="JARVIS Alert: system check required")
+    parser.add_argument("message", nargs="?", default="JARVIS Alert: system check required")
     parser.add_argument("--once", action="store_true")
-    parser.add_argument(
-        "--level",
-        choices=[
-            "info",
-            "warn",
-            "critical"],
-        default="info")
+    parser.add_argument("--level", choices=["info", "warn", "critical"], default="info")
     args = parser.parse_args()
 
     prefix = {"info": "[INFO]", "warn": "[WARN]", "critical": "[CRITICAL]"}
@@ -60,7 +43,6 @@ def main():
         print(f"Alert sent: {full_msg}")
     else:
         print(f"Alert failed (logged locally): {full_msg}")
-
 
 if __name__ == "__main__":
     main()

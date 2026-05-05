@@ -1,6 +1,6 @@
 """Shared path constants and config for COWORK scripts.
 
-Derives TURBO_DIR from the file location instead of hardcoding /home/turbo/jarvis-linux.
+Derives TURBO_DIR from the file location instead of hardcoding F:/BUREAU/turbo.
 All cowork scripts should use: from _paths import TURBO_DIR, ETOILE_DB, JARVIS_DB
 Telegram config loaded from .env (never hardcode tokens).
 """
@@ -8,8 +8,9 @@ import os
 from pathlib import Path
 import argparse
 
-# cowork/dev/_paths.py -> cowork/dev/ -> cowork/ -> turbo/
-TURBO_DIR = Path(__file__).resolve().parent.parent.parent
+# cowork/dev/_paths.py -> cowork/dev/ -> cowork/
+TURBO_DIR = Path(__file__).resolve().parent.parent
+
 DATA_DIR = TURBO_DIR / "data"
 ETOILE_DB = DATA_DIR / "etoile.db"
 JARVIS_DB = DATA_DIR / "jarvis.db"
@@ -18,9 +19,7 @@ SNIPER_DB = DATA_DIR / "sniper.db"
 # Load .env if not already in environment
 _env_file = TURBO_DIR / ".env"
 if _env_file.exists():
-    for _line in _env_file.read_text(
-            encoding="utf-8",
-            errors="ignore").splitlines():
+    for _line in _env_file.read_text(encoding="utf-8", errors="ignore").splitlines():
         _line = _line.strip()
         if not _line or _line.startswith("#"):
             continue
@@ -36,11 +35,6 @@ TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT", "")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description=f"{
-            Path(__file__).stem} — COWORK script")
-    parser.add_argument(
-        "--help-ext",
-        action="store_true",
-        help="Show extended help")
+    parser = argparse.ArgumentParser(description=f"{Path(__file__).stem} — COWORK script")
+    parser.add_argument("--help-ext", action="store_true", help="Show extended help")
     args = parser.parse_args()

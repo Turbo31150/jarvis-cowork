@@ -21,8 +21,8 @@ from datetime import datetime
 from pathlib import Path
 
 DEV = Path(__file__).parent
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
-JARVIS_DB = Path("/home/turbo/data/jarvis.db")
+from _paths import ETOILE_DB
+from _paths import JARVIS_DB
 DB_PATH = DEV / "data" / "prediction_trainer.db"
 
 
@@ -41,8 +41,7 @@ def count_patterns():
     """Count current patterns in etoile.db."""
     try:
         conn = sqlite3.connect(str(ETOILE_DB))
-        count = conn.execute(
-            "SELECT COUNT(*) FROM user_patterns").fetchone()[0]
+        count = conn.execute("SELECT COUNT(*) FROM user_patterns").fetchone()[0]
         conn.close()
         return count
     except Exception:
@@ -144,8 +143,7 @@ def cleanup_old_patterns(max_days=90):
     cutoff = time.time() - (max_days * 86400)
     try:
         conn = sqlite3.connect(str(ETOILE_DB))
-        cursor = conn.execute(
-            "DELETE FROM user_patterns WHERE timestamp < ?", (cutoff,))
+        cursor = conn.execute("DELETE FROM user_patterns WHERE timestamp < ?", (cutoff,))
         cleaned = cursor.rowcount
         conn.commit()
         conn.close()
@@ -168,8 +166,7 @@ def analyze_accuracy():
         """).fetchall()
 
         # Calculate entropy-based predictability
-        total_records = conn.execute(
-            "SELECT COUNT(*) FROM user_patterns").fetchone()[0]
+        total_records = conn.execute("SELECT COUNT(*) FROM user_patterns").fetchone()[0]
         if total_records == 0:
             conn.close()
             return {"accuracy": 0, "total": 0, "message": "No data"}
@@ -187,15 +184,13 @@ def analyze_accuracy():
         accuracy = predictable_hours / max(len(hours), 1)
         conn.close()
 
-        return {"accuracy": round(accuracy,
-                                  3),
-                "total_patterns": total_records,
-                "active_hours": len(hours),
-                "predictable_hours": predictable_hours,
-                "top_hours": [{"hour": h["hour"],
-                               "actions": h["unique_actions"],
-                               "total": h["total"]} for h in hours[:5]],
-                }
+        return {
+            "accuracy": round(accuracy, 3),
+            "total_patterns": total_records,
+            "active_hours": len(hours),
+            "predictable_hours": predictable_hours,
+            "top_hours": [{"hour": h["hour"], "actions": h["unique_actions"], "total": h["total"]} for h in hours[:5]],
+        }
     except Exception as e:
         return {"error": str(e)}
 
@@ -217,24 +212,14 @@ def do_train():
         "ts": datetime.now().isoformat(),
         "patterns_before": before,
         "patterns_after": after,
-        "injected": {
-            "voice": voice_injected,
-            "mcp": mcp_injected,
-            "total": total_injected},
+        "injected": {"voice": voice_injected, "mcp": mcp_injected, "total": total_injected},
         "accuracy": accuracy,
     }
 
     db.execute(
         "INSERT INTO training_runs (ts, patterns_before, patterns_after, injected, cleaned, accuracy, report) VALUES (?,?,?,?,?,?,?)",
-        (time.time(),
-         before,
-         after,
-         total_injected,
-         0,
-         accuracy.get(
-            "accuracy",
-            0),
-            json.dumps(report)))
+        (time.time(), before, after, total_injected, 0, accuracy.get("accuracy", 0), json.dumps(report))
+    )
     db.commit()
     db.close()
     return report
@@ -242,28 +227,11 @@ def do_train():
 
 def main():
     parser = argparse.ArgumentParser(description="Prediction Engine Trainer")
-    parser.add_argument(
-        "--once",
-        "--train",
-        action="store_true",
-        help="Run training cycle")
-    parser.add_argument(
-        "--report",
-        action="store_true",
-        help="Accuracy report")
-    parser.add_argument(
-        "--cleanup",
-        action="store_true",
-        help="Cleanup old patterns")
-    parser.add_argument(
-        "--days",
-        type=int,
-        default=90,
-        help="Max age for cleanup")
-    parser.add_argument(
-        "--inject-history",
-        action="store_true",
-        help="Inject from voice/MCP history")
+    parser.add_argument("--once", "--train", action="store_true", help="Run training cycle")
+    parser.add_argument("--report", action="store_true", help="Accuracy report")
+    parser.add_argument("--cleanup", action="store_true", help="Cleanup old patterns")
+    parser.add_argument("--days", type=int, default=90, help="Max age for cleanup")
+    parser.add_argument("--inject-history", action="store_true", help="Inject from voice/MCP history")
     args = parser.parse_args()
 
     if args.report:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Auto-deploy JARVIS: git pull + verify services."""
+from _paths import TURBO_DIR
 import argparse
 import json
 import subprocess
@@ -7,7 +8,7 @@ import socket
 import time
 import sys
 
-TURBO_DIR = "/home/turbo/jarvis-linux"
+TURBO_DIR = str(TURBO_DIR)
 SERVICES = {
     "WS": {"port": 9742, "host": "127.0.0.1"},
     "LMStudio": {"port": 1234, "host": "127.0.0.1"},
@@ -35,8 +36,7 @@ def git_pull(repo_dir: str) -> dict:
             "stderr": result.stderr.strip(),
         }
     except subprocess.TimeoutExpired:
-        return {"success": False, "stdout": "",
-                "stderr": "git pull timeout (60s)"}
+        return {"success": False, "stdout": "", "stderr": "git pull timeout (60s)"}
     except FileNotFoundError:
         return {"success": False, "stdout": "", "stderr": "git not found"}
 
@@ -62,15 +62,8 @@ def deploy_cycle() -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Auto-deploy JARVIS")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=300,
-        help="Loop interval (sec)")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
+    parser.add_argument("--interval", type=int, default=300, help="Loop interval (sec)")
     args = parser.parse_args()
 
     while True:

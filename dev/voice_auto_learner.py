@@ -47,8 +47,7 @@ def get_corrections(db_path: Path) -> list:
                 cursor = conn.execute(f"PRAGMA table_info({table})")
                 columns = [row[1] for row in cursor.fetchall()]
 
-                cursor = conn.execute(
-                    f"SELECT * FROM {table} ORDER BY rowid DESC LIMIT 5000")
+                cursor = conn.execute(f"SELECT * FROM {table} ORDER BY rowid DESC LIMIT 5000")
                 rows = cursor.fetchall()
                 for row in rows:
                     record = dict(zip(columns, row))
@@ -143,24 +142,10 @@ def main():
     parser = argparse.ArgumentParser(
         description="Analyze voice corrections for auto-learning patterns"
     )
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Analyze without applying changes")
-    parser.add_argument(
-        "--top",
-        type=int,
-        default=10,
-        help="Number of top results (default: 10)")
-    parser.add_argument(
-        "--db",
-        type=str,
-        default=None,
-        help="Path to jarvis.db")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Analyze without applying changes")
+    parser.add_argument("--top", type=int, default=10, help="Number of top results (default: 10)")
+    parser.add_argument("--db", type=str, default=None, help="Path to jarvis.db")
     parser.add_argument("--json", action="store_true", help="Output raw JSON")
     args = parser.parse_args()
 
@@ -211,13 +196,8 @@ def main():
         "status": "ok",
         "timestamp": datetime.now().isoformat(),
         "total_corrections": analysis["total_corrections"],
-        "auto_learn_candidates": len(
-            analysis.get(
-                "auto_learn_candidates",
-                [])),
-        "unique_patterns": analysis.get(
-            "unique_pairs",
-            0),
+        "auto_learn_candidates": len(analysis.get("auto_learn_candidates", [])),
+        "unique_patterns": analysis.get("unique_pairs", 0),
     }
     print(json.dumps(result))
     sys.exit(0)

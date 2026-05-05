@@ -1,25 +1,12 @@
 #!/usr/bin/env python3
 """JARVIS Service Monitor — checks health of all JARVIS services."""
 import argparse, json, time, urllib.request
-from pathlib import Path
-import sys
-
-ROOT = Path(__file__).resolve().parents[3]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-try:
-    from core.unified.services import get_service_registry
-    _services = get_service_registry()
-except Exception:
-    _services = None
 
 SERVICES = {
-    "WS": _services.health_url("jarvis_ws") if _services else "http://127.0.0.1:9742/health",
+    "WS": "http://127.0.0.1:9742/health",
     "M1-LMStudio": "http://127.0.0.1:1234/api/v1/models",
-    "OL1-Ollama": _services.health_url("ollama") if _services else "http://127.0.0.1:11434/api/tags",
-    "OpenClaw": _services.health_url("openclaw") if _services else "http://127.0.0.1:18789/health",
-    "BrowserOS": _services.health_url("browseros") if _services else "http://127.0.0.1:9200/health",
+    "OL1-Ollama": "http://127.0.0.1:11434/api/tags",
+    "OpenClaw": "http://127.0.0.1:18789/health",
     "Dashboard": "http://127.0.0.1:8080",
     "Gemini-Proxy": "http://127.0.0.1:18791/health",
     "Canvas-Proxy": "http://127.0.0.1:18800/health",

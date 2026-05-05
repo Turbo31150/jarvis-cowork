@@ -6,6 +6,16 @@ Chaque pass sauvegarde tout en SQL (nom, prix, heure, sentiment, score).
 Usage:
     python cowork/dev/sniper_deep.py [--top 10] [--no-consensus] [--chat-id=ID]
 """
+import sqlite3
+import sys
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from pathlib import Path
+
+TURBO_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(TURBO_ROOT / "cowork" / "dev"))
+
 from sniper_scanner import (
     DB_PATH,
     analyze_coin,
@@ -24,15 +34,6 @@ from sniper_scanner import (
     update_coin_registry,
     update_registry_scores,
 )
-import sqlite3
-import sys
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
-from pathlib import Path
-
-TURBO_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(TURBO_ROOT / "cowork" / "dev"))
 
 
 def deep_scan(final_count=10, with_consensus=True, chat_id=None):
@@ -47,12 +48,9 @@ def deep_scan(final_count=10, with_consensus=True, chat_id=None):
 
     tickers = fetch_all_tickers()
     valid_tickers = [
-        t for t in tickers if t.get(
-            "symbol",
-            "").endswith("_USDT") and float(
-            t.get(
-                "lastPrice",
-                0)) > 0]
+        t for t in tickers
+        if t.get("symbol", "").endswith("_USDT") and float(t.get("lastPrice", 0)) > 0
+    ]
     update_coin_registry(db, valid_tickers)
     db.commit()
     log(f"  {len(valid_tickers)} coins enregistres en SQL")
@@ -94,8 +92,7 @@ def deep_scan(final_count=10, with_consensus=True, chat_id=None):
                 r["prev_score"] = prev.get("score", 0)
                 r["prev_direction"] = prev.get("direction", "")
                 if prev.get("price", 0) > 0:
-                    r["price_evolution"] = (
-                        r["price"] - prev["price"]) / prev["price"] * 100
+                    r["price_evolution"] = (r["price"] - prev["price"]) / prev["price"] * 100
         except Exception:
             pass
 
@@ -117,16 +114,14 @@ def deep_scan(final_count=10, with_consensus=True, chat_id=None):
     all_pass1.sort(key=lambda s: s["score"], reverse=True)
     top100 = all_pass1[:100]
     p1_time = time.time() - t_start
-    log(
-        f"  Pass 1: {len(all_pass1)} analyses, top 100 (score min {top100[-1]['score'] if top100 else 0}) [{p1_time:.0f}s]")
+    log(f"  Pass 1: {len(all_pass1)} analyses, top 100 (score min {top100[-1]['score'] if top100 else 0}) [{p1_time:.0f}s]")
 
     # === PASS 2 -- Multi-TF re-scan top 100 ==================================
     t2 = time.time()
     log(f"DEEP SCAN PASS 2/3: Multi-TF sur {len(top100)} coins...")
     if chat_id:
         scores_range = f"{top100[-1]['score']}-{top100[0]['score']}" if top100 else "?"
-        send_telegram(
-            f"Pass 2/3 -- Re-scan multi-TF {len(top100)} coins (scores {scores_range})...", chat_id)
+        send_telegram(f"Pass 2/3 -- Re-scan multi-TF {len(top100)} coins (scores {scores_range})...", chat_id)
 
     def deep_analyze(sig):
         """Re-analyse avec 3 timeframes (1min, 5min, 15min) + orderbook."""
@@ -145,15 +140,11 @@ def deep_scan(final_count=10, with_consensus=True, chat_id=None):
             if tf_scores:
                 avg_score = sum(tf_scores) / len(tf_scores)
                 all_same = len(set(tf_directions)) == 1
-                convergence_bonus = 15 if all_same and len(
-                    tf_directions) >= 3 else (8 if all_same else 0)
-                sig["score"] = min(int(sig["score"] *
-                                       0.4 +
-                                       avg_score *
-                                       0.4 +
-                                       convergence_bonus *
-                                       0.2 +
-                                       convergence_bonus), 100, )
+                convergence_bonus = 15 if all_same and len(tf_directions) >= 3 else (8 if all_same else 0)
+                sig["score"] = min(
+                    int(sig["score"] * 0.4 + avg_score * 0.4 + convergence_bonus * 0.2 + convergence_bonus),
+                    100,
+                )
                 sig["tf_scores"] = tf_scores
                 sig["tf_directions"] = tf_directions
                 if all_same:
@@ -194,19 +185,15 @@ def deep_scan(final_count=10, with_consensus=True, chat_id=None):
     pass2_results.sort(key=lambda s: s["score"], reverse=True)
     top30 = pass2_results[:30]
     p2_time = time.time() - t2
-    mtf_conv = sum(
-        1 for s in pass2_results if "MTF_CONVERGENCE" in s.get(
-            "patterns", []))
-    log(
-        f"  Pass 2: {len(pass2_results)} re-analyses, {mtf_conv} MTF convergents, top 30 (score min {top30[-1]['score'] if top30 else 0}) [{p2_time:.0f}s]")
+    mtf_conv = sum(1 for s in pass2_results if "MTF_CONVERGENCE" in s.get("patterns", []))
+    log(f"  Pass 2: {len(pass2_results)} re-analyses, {mtf_conv} MTF convergents, top 30 (score min {top30[-1]['score'] if top30 else 0}) [{p2_time:.0f}s]")
 
     # === PASS 3 -- GPU + Cluster consensus sur top 30 ========================
     t3 = time.time()
     log(f"DEEP SCAN PASS 3/3: GPU + Cluster sur {len(top30)} coins...")
     if chat_id:
         names = ", ".join(s["symbol"].replace("_USDT", "") for s in top30[:8])
-        send_telegram(
-            f"Pass 3/3 -- GPU + IA cluster sur {len(top30)} coins ({names}...)", chat_id)
+        send_telegram(f"Pass 3/3 -- GPU + IA cluster sur {len(top30)} coins ({names}...)", chat_id)
 
     # GPU 100 strategies
     gpu_symbols = [s["symbol"] for s in top30]
@@ -224,13 +211,7 @@ def deep_scan(final_count=10, with_consensus=True, chat_id=None):
 
     # Cluster consensus
     if with_consensus:
-        top_for_cons = sorted(
-            top30,
-            key=lambda s: s["score"],
-            reverse=True)[
-            : min(
-                final_count + 2,
-                12)]
+        top_for_cons = sorted(top30, key=lambda s: s["score"], reverse=True)[: min(final_count + 2, 12)]
         log(f"  Cluster consensus sur {len(top_for_cons)} coins...")
         for sig in top_for_cons:
             try:
@@ -250,39 +231,16 @@ def deep_scan(final_count=10, with_consensus=True, chat_id=None):
         for sig in final:
             db.execute(
                 "INSERT INTO scan_signals (symbol, direction, score, entry, tp1, tp2, tp3, sl, atr, rsi, volume_ratio, bb_squeeze, pattern, consensus, cluster_nodes, gpu_confidence, gpu_strategies, gpu_regime) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (sig["symbol"],
-                 sig["direction"],
-                    sig["score"],
-                    sig["entry"],
-                    sig["tp1"],
-                    sig["tp2"],
-                    sig["tp3"],
-                    sig["sl"],
-                    sig["atr"],
-                    sig["rsi"],
-                    sig["volume_ratio"],
-                    sig["bb_squeeze"],
-                    ",".join(
-                    sig["patterns"]),
-                    sig.get(
-                    "consensus",
-                    ""),
-                    ",".join(
-                    sig.get(
-                        "cluster_nodes",
-                        [])),
-                    sig.get(
-                    "gpu_confidence",
-                    0),
-                    ",".join(
-                    sig.get(
-                        "gpu_strategies",
-                        [])[
-                        :5]),
-                    sig.get(
-                    "gpu_regime",
-                    ""),
-                 ),
+                (
+                    sig["symbol"], sig["direction"], sig["score"], sig["entry"],
+                    sig["tp1"], sig["tp2"], sig["tp3"], sig["sl"], sig["atr"],
+                    sig["rsi"], sig["volume_ratio"], sig["bb_squeeze"],
+                    ",".join(sig["patterns"]), sig.get("consensus", ""),
+                    ",".join(sig.get("cluster_nodes", [])),
+                    sig.get("gpu_confidence", 0),
+                    ",".join(sig.get("gpu_strategies", [])[:5]),
+                    sig.get("gpu_regime", ""),
+                ),
             )
         db.commit()
     except Exception as e:
@@ -341,24 +299,10 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     parser = argparse.ArgumentParser(description="JARVIS Deep Scanner")
-    parser.add_argument(
-        "--top",
-        type=int,
-        default=10,
-        help="Nombre de signaux finaux (defaut 10)")
-    parser.add_argument(
-        "--no-consensus",
-        action="store_true",
-        help="Skip cluster consensus")
-    parser.add_argument(
-        "--chat-id",
-        type=str,
-        default=None,
-        help="Telegram chat ID pour updates")
-    parser.add_argument(
-        "--notify",
-        action="store_true",
-        help="Envoyer resultat sur Telegram")
+    parser.add_argument("--top", type=int, default=10, help="Nombre de signaux finaux (defaut 10)")
+    parser.add_argument("--no-consensus", action="store_true", help="Skip cluster consensus")
+    parser.add_argument("--chat-id", type=str, default=None, help="Telegram chat ID pour updates")
+    parser.add_argument("--notify", action="store_true", help="Envoyer resultat sur Telegram")
     args = parser.parse_args()
 
     result = deep_scan(

@@ -45,18 +45,10 @@ def run_once(message):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Send Telegram notification via JARVIS API")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
-    parser.add_argument(
-        "--message",
-        "-m",
-        type=str,
-        default="JARVIS cowork notification test",
-        help="Message to send (default: test message)")
+    parser = argparse.ArgumentParser(description="Send Telegram notification via JARVIS API")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
+    parser.add_argument("--message", "-m", type=str, default="JARVIS cowork notification test",
+                        help="Message to send (default: test message)")
     args = parser.parse_args()
 
     if args.once:

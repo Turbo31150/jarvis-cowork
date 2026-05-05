@@ -1,0 +1,1144 @@
+{
+  "cycle": "full",
+  "tests": {
+    "total": 520,
+    "ok": 502,
+    "fail": 18,
+    "missing": 0,
+    "warnings_total": 214,
+    "avg_lines": 232,
+    "avg_functions": 7,
+    "with_docstring": 502,
+    "with_argparse": 502,
+    "with_main": 502,
+    "non_stdlib": [
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: statistics",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: requests",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: functions",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: py_compile",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: sched",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: asyncio",
+      "Non-stdlib import: src.quality_gate",
+      "Non-stdlib import: src.self_improvement",
+      "Non-stdlib import: src.pattern_agents",
+      "Non-stdlib import: httpx",
+      "Non-stdlib import: src.pattern_agents",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: asyncio",
+      "Non-stdlib import: src.pattern_agents",
+      "Non-stdlib import: httpx",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: linkedin_content_generator",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: playwright.sync_api",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: gzip",
+      "Non-stdlib import: importlib.util",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: dynamic_timeout",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: asyncio",
+      "Non-stdlib import: openclaw_watchdog",
+      "Non-stdlib import: websocket",
+      "Non-stdlib import: websocket",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: statistics",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: shlex",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: dynamic_timeout",
+      "Non-stdlib import: smart_routing_engine",
+      "Non-stdlib import: statistics",
+      "Non-stdlib import: prompt_router",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: sniper_scanner",
+      "Non-stdlib import: data_fetcher",
+      "Non-stdlib import: strategies",
+      "Non-stdlib import: multi_strategy_scanner",
+      "Non-stdlib import: multi_strategy_scanner",
+      "Non-stdlib import: strategy_optimizer",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: importlib.util",
+      "Non-stdlib import: unittest",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: difflib",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: difflib",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: whisper",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: asyncio",
+      "Non-stdlib import: edge_tts",
+      "Non-stdlib import: pyttsx3",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: shlex",
+      "Non-stdlib import: _paths"
+    ],
+    "elapsed_s": 30.2,
+    "timestamp": "2026-05-05T01:39:45.072454"
+  },
+  "gaps": {
+    "patterns_by_script_count": {
+      "cw-browser": 2,
+      "cw-file-watch": 2,
+      "cw-routing": 4,
+      "cw-trading": 5,
+      "cw-devtools": 6,
+      "cw-comms": 7,
+      "cw-win-security": 7,
+      "cw-win-automation": 8,
+      "cw-jarvis-core": 9,
+      "cw-win-maintenance": 10,
+      "cw-win-network": 10,
+      "cw-ia-orchestration": 11,
+      "cw-jarvis-devops": 11,
+      "cw-cluster": 12,
+      "cw-ia-analysis": 12,
+      "cw-ia-generation": 12,
+      "cw-ia-learning": 12,
+      "cw-ia-optimization": 12,
+      "cw-jarvis-evolve": 12,
+      "cw-jarvis-intelligence": 12,
+      "cw-jarvis-voice": 12,
+      "cw-win-monitoring": 12,
+      "cw-autonomous": 13,
+      "cw-jarvis-nlp": 14,
+      "cw-jarvis-pipes": 14,
+      "cw-data": 15,
+      "cw-jarvis-dashboard": 15,
+      "cw-win-media": 15,
+      "cw-win-desktop": 21,
+      "cw-win-system": 22
+    },
+    "unused_patterns": [],
+    "unmapped_scripts": [
+      "_auto_repair",
+      "_paths",
+      "_run_domino_cascade",
+      "adaptive_load_balancer",
+      "adaptive_timeout_manager",
+      "api_rate_limiter",
+      "auto_changelog",
+      "auto_cleaner",
+      "auto_deploy",
+      "auto_documentation_updater",
+      "auto_heal",
+      "auto_ops_runner",
+      "auto_publisher",
+      "auto_scale",
+      "auto_test",
+      "autonomous_cluster_pipeline",
+      "autonomous_orchestrator",
+      "autonomous_orchestrator_v3",
+      "autonomy_scorer",
+      "benchmark_trend_analyzer",
+      "browser_orchestrator",
+      "browseros_workflow_runner",
+      "calendar_sync",
+      "chatgpt_dispatcher",
+      "cleanup_zombies",
+      "cluster_auto_healer",
+      "cluster_consensus",
+      "cluster_deep_analysis_worker",
+      "cluster_deploy",
+      "cluster_health_watchdog",
+      "cluster_heartbeat",
+      "cluster_migrate",
+      "cluster_ops_runner",
+      "cluster_scale",
+      "cluster_strategy_worker",
+      "cluster_warmup",
+      "code_lint_agents",
+      "codeur_profile_manager",
+      "config_drift_detector",
+      "continuous_improver",
+      "cowork_auto_improver",
+      "cowork_cycle_runner",
+      "cowork_dependency_mapper",
+      "cowork_full_cycle",
+      "cowork_gap_analyzer",
+      "cowork_health_summary",
+      "cowork_loop_generator",
+      "cowork_openclaw_sync",
+      "cowork_scheduler",
+      "cowork_script_validator",
+      "cowork_self_test_runner",
+      "cross_script_integration_tester",
+      "crypto_price_alert",
+      "daily_audit_report",
+      "daily_cowork_report",
+      "daily_health_report",
+      "db_syncer",
+      "dependency_vulnerability_scanner",
+      "disk_space_watcher",
+      "dispatch_ab_tester",
+      "dispatch_audit",
+      "dispatch_auto_improve",
+      "dispatch_benchmark",
+      "dispatch_cache",
+      "dispatch_cost_estimator",
+      "dispatch_error_analyzer",
+      "dispatch_integration_test",
+      "dispatch_latency_optimizer",
+      "dispatch_learner",
+      "dispatch_ops_runner",
+      "dispatch_optimize",
+      "dispatch_pattern_profiler",
+      "dispatch_quality_scorer",
+      "dispatch_quality_tracker",
+      "dispatch_quick_bench",
+      "dispatch_realtime_monitor",
+      "dispatch_reliability_improver",
+      "dispatch_trend_analyzer",
+      "docker_health_monitor",
+      "drive_organizer",
+      "dynamic_timeout",
+      "email_orchestrator",
+      "failure_predictor",
+      "feedback_loop",
+      "grade_optimizer",
+      "ia_agent_swarm_runner",
+      "ia_benchmark",
+      "ia_context_compressor",
+      "ia_dispatch",
+      "ia_optimize",
+      "ia_train",
+      "integrity_auditor",
+      "interaction_bot",
+      "jarvis_alert",
+      "jarvis_boot",
+      "jarvis_config",
+      "jarvis_dashboard",
+      "jarvis_deploy",
+      "jarvis_master_autonome",
+      "jarvis_mega_runner",
+      "jarvis_monitor",
+      "jarvis_services_runner",
+      "jarvis_super_loop",
+      "jarvis_test",
+      "kill_phantoms",
+      "latency_monitor",
+      "linkedin_auto_routine",
+      "linkedin_content_generator",
+      "linkedin_growth_engine",
+      "linkedin_publisher",
+      "linkedin_scheduler",
+      "log_compressor",
+      "log_predictor",
+      "mcp_health_monitor",
+      "metric_stream",
+      "metrics_aggregator",
+      "misc_tools_runner",
+      "model_health_checker",
+      "multi_browser_dispatcher",
+      "multi_ia_task_distributor",
+      "multi_strategy_dispatcher",
+      "n8n_bridge",
+      "news_reactor",
+      "night_cluster_tasks",
+      "night_work_loop",
+      "node_failover_simulator",
+      "node_reliability_scorer",
+      "notification_dispatcher",
+      "openclaw_bridge",
+      "openclaw_prompt_generator",
+      "page_element_extractor",
+      "pattern_detector",
+      "pattern_load_balancer",
+      "performance_regression_detector",
+      "perplexity_dispatcher",
+      "perplexity_mcp_bridge",
+      "pipeline_domino_hook",
+      "pipeline_integration_test",
+      "predictive_failure_detector",
+      "proactive_alert_monitor",
+      "proactive_healer",
+      "process_gc",
+      "production_monitor",
+      "production_report",
+      "prompt_library",
+      "query_optimizer",
+      "quick_answer_cache",
+      "registry_manager",
+      "resilient_dispatcher",
+      "resource_contention_monitor",
+      "response_sanitizer",
+      "rollback_guard",
+      "scheduled_task_improver",
+      "script_deduplication",
+      "security_auditor",
+      "smart_retry_dispatcher",
+      "smart_routing_engine",
+      "sniper_deep",
+      "sniper_improve_loop",
+      "sniper_scanner",
+      "social_automation_engine",
+      "social_pipeline",
+      "strategy_evolution_loop",
+      "system_health",
+      "task_queue",
+      "telegram_command",
+      "telegram_cowork_dashboard",
+      "telegram_mcp_bridge",
+      "telegram_notify",
+      "telegram_ops_runner",
+      "telegram_quick_status",
+      "telegram_sender",
+      "test_monitoring_stack",
+      "timeout_auto_fixer",
+      "utility_mega_runner",
+      "voice_auto_learner",
+      "voice_command_fuzzer",
+      "voice_computer_control",
+      "voice_correction_miner",
+      "voice_ops_runner",
+      "voice_stt",
+      "voice_tts",
+      "voice_wake",
+      "vram_monitor",
+      "whisperflow_guardian",
+      "win_autonomics_runner",
+      "win_bluetooth",
+      "win_gpu",
+      "win_usb",
+      "workflow_chain_engine",
+      "workflow_trigger",
+      "zombie_killer"
+    ],
+    "category_distribution": {
+      "": 3,
+      "adaptive": 2,
+      "agent": 1,
+      "ai": 1,
+      "alert": 1,
+      "anomaly": 1,
+      "api": 2,
+      "audio": 1,
+      "auto": 20,
+      "autonomous": 4,
+      "autonomy": 1,
+      "benchmark": 1,
+      "bluetooth": 1,
+      "browser": 3,
+      "browseros": 1,
+      "calendar": 1,
+      "chatgpt": 1,
+      "cleanup": 1,
+      "clipboard": 1,
+      "cluster": 18,
+      "code": 3,
+      "codeur": 1,
+      "config": 2,
+      "context": 1,
+      "continuous": 4,
+      "conversation": 1,
+      "cowork": 11,
+      "cross": 2,
+      "crypto": 1,
+      "daily": 3,
+      "dashboard": 1,
+      "data": 1,
+      "db": 2,
+      "decision": 1,
+      "dependency": 1,
+      "deployment": 1,
+      "desktop": 2,
+      "disk": 1,
+      "dispatch": 19,
+      "display": 1,
+      "docker": 1,
+      "domino": 1,
+      "drive": 1,
+      "driver": 1,
+      "dynamic": 1,
+      "electron": 1,
+      "email": 2,
+      "event": 2,
+      "failure": 1,
+      "feedback": 1,
+      "file": 1,
+      "generate": 1,
+      "gpu": 2,
+      "grade": 1,
+      "health": 1,
+      "ia": 55,
+      "integrity": 1,
+      "intent": 1,
+      "interaction": 2,
+      "jarvis": 87,
+      "kill": 1,
+      "knowledge": 2,
+      "latency": 1,
+      "linkedin": 5,
+      "load": 1,
+      "log": 4,
+      "mcp": 2,
+      "memory": 1,
+      "metric": 1,
+      "metrics": 2,
+      "misc": 1,
+      "model": 4,
+      "multi": 4,
+      "n8n": 1,
+      "network": 2,
+      "news": 1,
+      "night": 2,
+      "node": 3,
+      "notification": 2,
+      "openclaw": 3,
+      "page": 1,
+      "pattern": 2,
+      "performance": 2,
+      "perplexity": 2,
+      "pipeline": 3,
+      "portfolio": 1,
+      "power": 1,
+      "prediction": 1,
+      "predictive": 1,
+      "proactive": 3,
+      "process": 2,
+      "production": 2,
+      "prompt": 3,
+      "query": 1,
+      "quick": 1,
+      "registry": 1,
+      "report": 1,
+      "resilient": 1,
+      "resource": 2,
+      "response": 2,
+      "risk": 1,
+      "rollback": 1,
+      "scheduled": 2,
+      "screenshot": 1,
+      "script": 1,
+      "security": 2,
+      "self": 2,
+      "service": 2,
+      "signal": 1,
+      "smart": 4,
+      "sniper": 3,
+      "social": 2,
+      "startup": 1,
+      "strategy": 1,
+      "system": 3,
+      "task": 3,
+      "telegram": 11,
+      "test": 2,
+      "timeout": 1,
+      "trading": 1,
+      "tts": 1,
+      "usage": 1,
+      "usb": 1,
+      "utility": 1,
+      "voice": 13,
+      "vram": 1,
+      "whisperflow": 1,
+      "wifi": 1,
+      "win": 83,
+      "window": 1,
+      "windows": 2,
+      "workflow": 2,
+      "workspace": 2,
+      "zombie": 1
+    },
+    "potential_gaps": [],
+    "total_capabilities": 18,
+    "timestamp": "2026-05-05T01:39:45.084410"
+  },
+  "predictions": {
+    "predictions": [
+      {
+        "type": "maintenance",
+        "script": "jarvis_webhook_server",
+        "lines": 431,
+        "action": "Refactor jarvis_webhook_server (431 lines, 14 functions)"
+      },
+      {
+        "type": "maintenance",
+        "script": "sniper_scanner",
+        "lines": 1949,
+        "action": "Refactor sniper_scanner (1949 lines, 50 functions)"
+      },
+      {
+        "type": "maintenance",
+        "script": "dispatch_realtime_monitor",
+        "lines": 569,
+        "action": "Refactor dispatch_realtime_monitor (569 lines, 18 functions)"
+      },
+      {
+        "type": "maintenance",
+        "script": "ia_agent_swarm_runner",
+        "lines": 421,
+        "action": "Refactor ia_agent_swarm_runner (421 lines, 8 functions)"
+      },
+      {
+        "type": "maintenance",
+        "script": "cross_script_integration_tester",
+        "lines": 595,
+        "action": "Refactor cross_script_integration_tester (595 lines, 15 functions)"
+      }
+    ],
+    "hot_patterns": [],
+    "failing_patterns": [],
+    "slow_patterns": [],
+    "complex_scripts": [
+      {
+        "script": "jarvis_webhook_server",
+        "lines": 431,
+        "functions": 14,
+        "needs": "review"
+      },
+      {
+        "script": "sniper_scanner",
+        "lines": 1949,
+        "functions": 50,
+        "needs": "refactoring"
+      },
+      {
+        "script": "dispatch_realtime_monitor",
+        "lines": 569,
+        "functions": 18,
+        "needs": "refactoring"
+      },
+      {
+        "script": "ia_agent_swarm_runner",
+        "lines": 421,
+        "functions": 8,
+        "needs": "review"
+      },
+      {
+        "script": "cross_script_integration_tester",
+        "lines": 595,
+        "functions": 15,
+        "needs": "refactoring"
+      },
+      {
+        "script": "memory_optimizer",
+        "lines": 1068,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "decision_engine",
+        "lines": 475,
+        "functions": 12,
+        "needs": "review"
+      },
+      {
+        "script": "agent_orchestrator",
+        "lines": 922,
+        "functions": 27,
+        "needs": "refactoring"
+      },
+      {
+        "script": "cowork_scheduler",
+        "lines": 562,
+        "functions": 15,
+        "needs": "refactoring"
+      },
+      {
+        "script": "utility_mega_runner",
+        "lines": 548,
+        "functions": 11,
+        "needs": "refactoring"
+      },
+      {
+        "script": "autonomous_orchestrator",
+        "lines": 849,
+        "functions": 9,
+        "needs": "refactoring"
+      },
+      {
+        "script": "dependency_vulnerability_scanner",
+        "lines": 481,
+        "functions": 4,
+        "needs": "review"
+      },
+      {
+        "script": "win_autonomics_runner",
+        "lines": 538,
+        "functions": 11,
+        "needs": "refactoring"
+      },
+      {
+        "script": "strategy_evolution_loop",
+        "lines": 922,
+        "functions": 22,
+        "needs": "refactoring"
+      },
+      {
+        "script": "ia_self_critic",
+        "lines": 407,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "dispatch_quality_tracker",
+        "lines": 416,
+        "functions": 10,
+        "needs": "review"
+      },
+      {
+        "script": "cowork_dependency_mapper",
+        "lines": 533,
+        "functions": 17,
+        "needs": "refactoring"
+      },
+      {
+        "script": "win_power_plan_manager",
+        "lines": 437,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "win_startup_profiler",
+        "lines": 412,
+        "functions": 10,
+        "needs": "review"
+      },
+      {
+        "script": "voice_browser_nav",
+        "lines": 425,
+        "functions": 4,
+        "needs": "review"
+      },
+      {
+        "script": "ia_knowledge_distiller",
+        "lines": 445,
+        "functions": 14,
+        "needs": "review"
+      },
+      {
+        "script": "code_lint_agents",
+        "lines": 501,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "model_benchmark",
+        "lines": 453,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "conversation_manager",
+        "lines": 431,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "jarvis_master_autonome",
+        "lines": 676,
+        "functions": 18,
+        "needs": "refactoring"
+      },
+      {
+        "script": "resource_contention_monitor",
+        "lines": 432,
+        "functions": 8,
+        "needs": "review"
+      },
+      {
+        "script": "misc_tools_runner",
+        "lines": 800,
+        "functions": 12,
+        "needs": "refactoring"
+      },
+      {
+        "script": "voice_computer_control",
+        "lines": 1405,
+        "functions": 66,
+        "needs": "refactoring"
+      },
+      {
+        "script": "voice_command_fuzzer",
+        "lines": 463,
+        "functions": 15,
+        "needs": "review"
+      },
+      {
+        "script": "jarvis_services_runner",
+        "lines": 409,
+        "functions": 8,
+        "needs": "review"
+      },
+      {
+        "script": "gpu_optimizer",
+        "lines": 935,
+        "functions": 14,
+        "needs": "refactoring"
+      },
+      {
+        "script": "interaction_predictor",
+        "lines": 414,
+        "functions": 10,
+        "needs": "review"
+      },
+      {
+        "script": "code_generator",
+        "lines": 754,
+        "functions": 12,
+        "needs": "refactoring"
+      },
+      {
+        "script": "linkedin_scheduler",
+        "lines": 588,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "network_optimizer",
+        "lines": 1032,
+        "functions": 20,
+        "needs": "refactoring"
+      },
+      {
+        "script": "jarvis_super_loop",
+        "lines": 729,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "knowledge_updater",
+        "lines": 471,
+        "functions": 13,
+        "needs": "review"
+      },
+      {
+        "script": "telegram_stats",
+        "lines": 652,
+        "functions": 12,
+        "needs": "refactoring"
+      },
+      {
+        "script": "continuous_coder",
+        "lines": 433,
+        "functions": 13,
+        "needs": "review"
+      },
+      {
+        "script": "node_failover_simulator",
+        "lines": 593,
+        "functions": 12,
+        "needs": "refactoring"
+      },
+      {
+        "script": "predictive_failure_detector",
+        "lines": 483,
+        "functions": 8,
+        "needs": "review"
+      },
+      {
+        "script": "autonomous_orchestrator_v3",
+        "lines": 643,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "config_drift_detector",
+        "lines": 547,
+        "functions": 17,
+        "needs": "refactoring"
+      },
+      {
+        "script": "sniper_improve_loop",
+        "lines": 407,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "browser_pilot",
+        "lines": 442,
+        "functions": 24,
+        "needs": "review"
+      },
+      {
+        "script": "performance_regression_detector",
+        "lines": 477,
+        "functions": 14,
+        "needs": "review"
+      },
+      {
+        "script": "linkedin_growth_engine",
+        "lines": 543,
+        "functions": 11,
+        "needs": "refactoring"
+      },
+      {
+        "script": "telegram_cowork_dashboard",
+        "lines": 964,
+        "functions": 35,
+        "needs": "refactoring"
+      },
+      {
+        "script": "jarvis_orchestrator_v3",
+        "lines": 411,
+        "functions": 12,
+        "needs": "review"
+      },
+      {
+        "script": "resilient_dispatcher",
+        "lines": 416,
+        "functions": 12,
+        "needs": "review"
+      },
+      {
+        "script": "dynamic_timeout",
+        "lines": 435,
+        "functions": 11,
+        "needs": "review"
+      }
+    ],
+    "timestamp": "2026-05-05T01:39:46.038867"
+  },
+  "improvements": {
+    "fixed": 33,
+    "skipped": 487,
+    "details": [
+      {
+        "script": "anomaly_detector",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "audio_controller",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "auto_cleaner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "browser_orchestrator",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "cluster_dashboard_api",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "code_lint_agents",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "daily_audit_report",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "display_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "ia_code_generator",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_autonomy_engine",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_conversation_memory",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_deploy",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_feature_builder",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_mega_runner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "memory_optimizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "network_optimizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "process_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "registry_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "response_sanitizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "smart_launcher",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "system_restore",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_accessibility_enhancer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_autonomics_runner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_battery_monitor",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_certificate_checker",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_context_menu",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_game_mode_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_pagefile_optimizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_registry_guardian",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_scheduled_task_auditor",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_sound_mixer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_task_automator",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_temp_cleaner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      }
+    ]
+  },
+  "sync": {
+    "new": 0,
+    "updated": 33,
+    "unchanged": 487,
+    "total": 520,
+    "timestamp": "2026-05-05T01:39:47.294702"
+  },
+  "timestamp": "2026-05-05T01:39:47.294718"
+}

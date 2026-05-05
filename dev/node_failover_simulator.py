@@ -23,8 +23,8 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
-GAPS_DB = Path(r"/home/turbo/cowork/dev/data/cowork_gaps.db")
+from _paths import ETOILE_DB
+GAPS_DB = Path(__file__).parent / "data" / "cowork_gaps.db"
 
 # Fallback chain: if a node dies, redistribute to these in order
 FALLBACK_CHAIN = ["M1", "M2", "M3", "OL1"]
@@ -108,28 +108,20 @@ def model_to_node(model_str):
         return None
     s = model_str.strip()
 
-    # Explicit node prefix (e.g. "M2:deepseek-r1", "M1:qwen3-8b",
-    # "M1B:gpt-oss-20b")
-    for prefix in ["M1B:", "M1:", "M2:", "M3:", "OL1:"]:
+    # Explicit node prefix (e.g. "M2:deepseek-r1", "M1:qwen3-8b")
+    for prefix in ["M1:", "M2:", "M3:", "OL1:"]:
         if s.startswith(prefix):
-            node = prefix.rstrip(":")
-            # Normalize M1B -> M1 for simulation purposes
-            return "M1" if node == "M1B" else node
+            return prefix.rstrip(":")
 
     # Cloud models route through OL1 (Ollama)
-    if "cloud" in s or s.startswith("minimax") or s.startswith(
-            "gpt-oss") or s.startswith("devstral"):
+    if "cloud" in s or s.startswith("minimax"):
         return "OL1"
 
     # Known model -> node mappings
-    if s in ("qwen3-8b", "qwen/qwen3-8b", "gpt-oss-20b"):
+    if s in ("qwen3-8b", "qwen/qwen3-8b"):
         return "M1"
-    if s in ("deepseek-coder-v2-lite-instruct",):
-        return "M2"
     if s.startswith("deepseek-r1"):
-        return "M2"  # primary reasoning node
-    if s in ("mistral-7b-instruct-v0.3",):
-        return "M3"
+        return "M2"  # M2 primary reasoning; M3 also runs deepseek-r1 but use M2 by default
     if s.startswith("qwen3:") or s == "qwen3:1.7b":
         return "OL1"
 
@@ -193,8 +185,7 @@ def simulate_node_failure(dead_node, dispatches, pattern_map):
             "error": "No dispatch data available",
         }
 
-    traffic_pct = (affected_count / total_dispatches) * \
-        100 if total_dispatches else 0
+    traffic_pct = (affected_count / total_dispatches) * 100 if total_dispatches else 0
 
     # Current stats for affected dispatches
     affected_successes = sum(1 for d in affected_dispatches if d["success"])
@@ -248,18 +239,11 @@ def simulate_node_failure(dead_node, dispatches, pattern_map):
         if nd:
             node_stats_before[node] = {
                 "count": len(nd),
-                "success_rate": sum(
-                    1 for d in nd if d["success"]) /
-                len(nd),
-                "avg_latency_ms": sum(
-                    d["latency_ms"] for d in nd if d["latency_ms"]) /
-                len(nd),
+                "success_rate": sum(1 for d in nd if d["success"]) / len(nd),
+                "avg_latency_ms": sum(d["latency_ms"] for d in nd if d["latency_ms"]) / len(nd),
             }
         else:
-            node_stats_before[node] = {
-                "count": 0,
-                "success_rate": 0.0,
-                "avg_latency_ms": 0.0}
+            node_stats_before[node] = {"count": 0, "success_rate": 0.0, "avg_latency_ms": 0.0}
 
     redistribution_detail = {}
     estimated_new_success = 0
@@ -268,8 +252,7 @@ def simulate_node_failure(dead_node, dispatches, pattern_map):
 
     for target, target_dispatches in redistributed.items():
         extra_load = len(target_dispatches)
-        current = node_stats_before.get(
-            target, {"count": 0, "success_rate": 0.0, "avg_latency_ms": 0.0})
+        current = node_stats_before.get(target, {"count": 0, "success_rate": 0.0, "avg_latency_ms": 0.0})
         current_count = current["count"]
         new_total = current_count + extra_load
 
@@ -279,19 +262,15 @@ def simulate_node_failure(dead_node, dispatches, pattern_map):
         else:
             load_factor = 1.5  # new node, moderate penalty
 
-        # Estimate degraded latency (based on stress test data: ~56-86%
-        # degradation at 5x)
+        # Estimate degraded latency (based on stress test data: ~56-86% degradation at 5x)
         degradation = min(1.0 + (load_factor - 1.0) * 0.4, 3.0)  # cap at 3x
 
         base_latency = current["avg_latency_ms"] if current["avg_latency_ms"] > 0 else affected_avg_latency
-        estimated_latency = base_latency * \
-            degradation * LATENCY_PENALTY.get(target, 1.0)
+        estimated_latency = base_latency * degradation * LATENCY_PENALTY.get(target, 1.0)
 
-        # Success rate: use target node baseline, with slight penalty for
-        # overload
+        # Success rate: use target node baseline, with slight penalty for overload
         base_success = NODE_SUCCESS_BASELINE.get(target, 0.5)
-        # starts penalizing above 1.5x
-        overload_penalty = max(0, (load_factor - 1.5) * 0.05)
+        overload_penalty = max(0, (load_factor - 1.5) * 0.05)  # starts penalizing above 1.5x
         estimated_success = max(0.1, base_success - overload_penalty)
 
         redistribution_detail[target] = {
@@ -312,8 +291,7 @@ def simulate_node_failure(dead_node, dispatches, pattern_map):
 
     for pm in pattern_map:
         if pm["primary_node"] == dead_node:
-            available_fb = get_available_fallbacks(
-                dead_node, pm["fallback_nodes"])
+            available_fb = get_available_fallbacks(dead_node, pm["fallback_nodes"])
             if not available_fb:
                 critical_patterns.append({
                     "pattern_id": pm["pattern_id"],
@@ -356,8 +334,7 @@ def simulate_node_failure(dead_node, dispatches, pattern_map):
     # Critical pattern score: 100 if none, 0 if all patterns critical
     total_patterns = len(pattern_map)
     if total_patterns > 0:
-        critical_score = max(
-            0, 100 - (len(critical_patterns) / total_patterns) * 200)
+        critical_score = max(0, 100 - (len(critical_patterns) / total_patterns) * 200)
     else:
         critical_score = 100
 
@@ -472,12 +449,7 @@ def show_stats():
     print(f"{'ID':>4}  {'Timestamp':<26}  {'Node':<5}  {'Resilience':>10}")
     print("-" * 52)
     for r in rows:
-        print(
-            f"{
-                r['id']:>4}  {
-                r['timestamp']:<26}  {
-                r['node_simulated']:<5}  {
-                    r['resilience_score']:>9.1f}%")
+        print(f"{r['id']:>4}  {r['timestamp']:<26}  {r['node_simulated']:<5}  {r['resilience_score']:>9.1f}%")
 
 
 def run_once():
@@ -505,8 +477,7 @@ def run_once():
         "recommendations": [],
     }
 
-    for node, sim in sorted(
-            results.items(), key=lambda x: x[1]["resilience_score"]):
+    for node, sim in sorted(results.items(), key=lambda x: x[1]["resilience_score"]):
         summary["per_node"][node] = {
             "resilience_score": sim["resilience_score"],
             "traffic_pct": sim["traffic"]["affected_pct"],
@@ -542,14 +513,8 @@ def run_node(node_name):
     # Validate node exists in data
     known_nodes = set(d["node"] for d in dispatches if d["node"])
     if node not in known_nodes:
-        print(
-            f"ERROR: Node '{node}' not found in dispatch data.",
-            file=sys.stderr)
-        print(
-            f"Available nodes: {
-                ', '.join(
-                    sorted(known_nodes))}",
-            file=sys.stderr)
+        print(f"ERROR: Node '{node}' not found in dispatch data.", file=sys.stderr)
+        print(f"Available nodes: {', '.join(sorted(known_nodes))}", file=sys.stderr)
         sys.exit(1)
 
     sim = simulate_node_failure(node, dispatches, pattern_map)
@@ -565,15 +530,12 @@ def run_node(node_name):
     t = sim["traffic"]
     print(f"--- Traffic Impact ---")
     print(f"  Total dispatches:    {t['total_dispatches']}")
-    print(
-        f"  Affected dispatches: {
-            t['affected_dispatches']} ({
-            t['affected_pct']}%)")
+    print(f"  Affected dispatches: {t['affected_dispatches']} ({t['affected_pct']}%)")
     print(f"  Orphaned (no route): {t['orphaned_dispatches']}")
 
     cs = sim["current_stats"]
     print(f"\n--- Current Node Stats ---")
-    print(f"  Success rate:   {cs['success_rate'] * 100:.1f}%")
+    print(f"  Success rate:   {cs['success_rate']*100:.1f}%")
     print(f"  Avg latency:    {cs['avg_latency_ms']:.0f} ms")
 
     print(f"\n--- Redistribution Plan ---")
@@ -581,10 +543,8 @@ def run_node(node_name):
         for target, detail in sim["redistribution"].items():
             print(f"  -> {target}: +{detail['extra_dispatches']} dispatches "
                   f"(+{detail['load_increase_pct']}% load)")
-            print(
-                f"     Est. latency: {
-                    detail['estimated_latency_ms']:.0f} ms | " f"Est. success: {
-                    detail['estimated_success_rate'] * 100:.1f}%")
+            print(f"     Est. latency: {detail['estimated_latency_ms']:.0f} ms | "
+                  f"Est. success: {detail['estimated_success_rate']*100:.1f}%")
     else:
         print("  No redistribution needed (no traffic on this node)")
 
@@ -593,8 +553,7 @@ def run_node(node_name):
     if crit:
         print(f"  CRITICAL ({len(crit)} patterns with NO fallback):")
         for cp in crit:
-            print(
-                f"    - {cp['pattern_id']} ({cp['total_calls']} calls): {cp['reason']}")
+            print(f"    - {cp['pattern_id']} ({cp['total_calls']} calls): {cp['reason']}")
     else:
         print(f"  No critical single-point dependencies")
     print(f"  Degraded patterns: {sim['patterns']['degraded_count']}")
@@ -611,15 +570,13 @@ def run_node(node_name):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Node Failover Simulator — Measure cluster resilience to node failures")
+        description="Node Failover Simulator — Measure cluster resilience to node failures"
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--once", action="store_true",
                        help="Simulate all nodes, output JSON summary")
-    group.add_argument(
-        "--node",
-        type=str,
-        metavar="NODE",
-        help="Detailed simulation for a specific node (M1, M2, M3, OL1)")
+    group.add_argument("--node", type=str, metavar="NODE",
+                       help="Detailed simulation for a specific node (M1, M2, M3, OL1)")
     group.add_argument("--stats", action="store_true",
                        help="Show history of past simulations")
     args = parser.parse_args()

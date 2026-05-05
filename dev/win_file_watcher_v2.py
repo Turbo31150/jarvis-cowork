@@ -2,15 +2,7 @@
 """win_file_watcher_v2.py — File watcher v2. Enhanced os.scandir with recursive, event queue, pattern matching.
 Usage: python dev/win_file_watcher_v2.py --watch DIR --once
 """
-import argparse
-import json
-import os
-import sqlite3
-import subprocess
-import time
-import hashlib
-import fnmatch
-import re
+import argparse, json, os, sqlite3, subprocess, time, hashlib, fnmatch, re
 from datetime import datetime
 from pathlib import Path
 from collections import deque
@@ -85,9 +77,7 @@ def scan_directory(directory, recursive=True, patterns=None):
                         elif entry.is_file(follow_symlinks=False):
                             # Pattern filtering
                             if patterns:
-                                matched = any(
-                                    fnmatch.fnmatch(
-                                        entry.name, p) for p in patterns)
+                                matched = any(fnmatch.fnmatch(entry.name, p) for p in patterns)
                                 if not matched:
                                     continue
 
@@ -129,12 +119,10 @@ def do_watch(directory, patterns=None):
     target = Path(directory)
     if not target.exists():
         db.close()
-        return {"ts": datetime.now().isoformat(),
-                "error": f"Directory not found: {directory}"}
+        return {"ts": datetime.now().isoformat(), "error": f"Directory not found: {directory}"}
 
     pattern_list = patterns.split(",") if patterns else None
-    files, dirs, total_size = scan_directory(
-        target, recursive=True, patterns=pattern_list)
+    files, dirs, total_size = scan_directory(target, recursive=True, patterns=pattern_list)
 
     # Create snapshot
     snapshot_id = db.execute(
@@ -164,10 +152,7 @@ def do_watch(directory, patterns=None):
                 "SELECT filepath, size, mtime FROM file_entries WHERE snapshot_id=?", (prev_id,)
             ).fetchall()
         }
-        curr_files = {
-            f["path"]: {
-                "size": f["size"],
-                "mtime": f["mtime"]} for f in files}
+        curr_files = {f["path"]: {"size": f["size"], "mtime": f["mtime"]} for f in files}
 
         # New files
         for path in curr_files:
@@ -198,11 +183,8 @@ def do_watch(directory, patterns=None):
                     })
                     db.execute(
                         "INSERT INTO events (ts, event_type, filepath, old_size, new_size) VALUES (?,?,?,?,?)",
-                        (time.time(),
-                         "modified",
-                         path,
-                         prev_files[path]["size"],
-                            curr_files[path]["size"]))
+                        (time.time(), "modified", path, prev_files[path]["size"], curr_files[path]["size"])
+                    )
 
     db.commit()
     db.close()
@@ -295,32 +277,13 @@ def do_history():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="File watcher v2 — Recursive directory monitoring with pattern matching")
-    parser.add_argument(
-        "--watch",
-        metavar="DIR",
-        help="Watch a directory for changes")
-    parser.add_argument(
-        "--patterns",
-        metavar="PATS",
-        help="Comma-separated file patterns (e.g., '*.py,*.json')")
-    parser.add_argument(
-        "--events",
-        action="store_true",
-        help="Show recent file events")
-    parser.add_argument(
-        "--actions",
-        action="store_true",
-        help="Show action history")
-    parser.add_argument(
-        "--history",
-        action="store_true",
-        help="Show snapshot history")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
+    parser = argparse.ArgumentParser(description="File watcher v2 — Recursive directory monitoring with pattern matching")
+    parser.add_argument("--watch", metavar="DIR", help="Watch a directory for changes")
+    parser.add_argument("--patterns", metavar="PATS", help="Comma-separated file patterns (e.g., '*.py,*.json')")
+    parser.add_argument("--events", action="store_true", help="Show recent file events")
+    parser.add_argument("--actions", action="store_true", help="Show action history")
+    parser.add_argument("--history", action="store_true", help="Show snapshot history")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
     args = parser.parse_args()
 
     if args.watch:

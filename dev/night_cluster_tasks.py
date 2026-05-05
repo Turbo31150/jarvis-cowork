@@ -34,7 +34,7 @@ NODES = {
             "prefix": "", "max_tokens": 2048, "timeout": 60},
     "M3": {"url": "http://192.168.1.113:1234/api/v1/chat", "model": "deepseek/deepseek-r1-0528-qwen3-8b",
             "prefix": "", "max_tokens": 1024, "timeout": 120},
-    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen2.5:1.5b",
+    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b",
             "ollama": True, "max_tokens": 1024, "timeout": 30},
 }
 
@@ -76,7 +76,7 @@ def query_lmstudio(node_name, prompt, timeout=None):
         return None, str(e)
 
 
-def query_ollama(prompt, model="qwen2.5:1.5b", timeout=30):
+def query_ollama(prompt, model="qwen3:1.7b", timeout=30):
     """Query Ollama."""
     body = json.dumps({
         "model": model,

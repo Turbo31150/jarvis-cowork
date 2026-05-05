@@ -10,6 +10,7 @@ Usage:
     python dev/jarvis_tts_cache_manager.py --benchmark
 """
 import argparse
+from _paths import TURBO_DIR, DATA_DIR
 import json
 import os
 import sqlite3
@@ -20,8 +21,8 @@ from pathlib import Path
 DEV = Path(__file__).parent
 DB_PATH = DEV / "data" / "tts_cache_manager.db"
 TTS_CACHE_DIRS = [
-    Path("/home/turbo/data/tts_cache"),
-    Path("/home/turbo/cache/tts"),
+    TURBO_DIR / "data/tts_cache",
+    TURBO_DIR / "cache/tts",
     Path.home() / "AppData" / "Local" / "Temp" / "tts_cache",
 ]
 MAX_CACHE_MB = 500
@@ -106,17 +107,9 @@ def do_stats():
         if c.get("exists"):
             db.execute(
                 "INSERT INTO cache_stats (ts, total_files, total_size_mb, oldest_days, cache_dir) VALUES (?,?,?,?,?)",
-                (time.time(),
-                 c.get(
-                    "files",
-                    0),
-                    c.get(
-                    "size_mb",
-                    0),
-                    c.get(
-                    "oldest_days",
-                    0),
-                    c["dir"]))
+                (time.time(), c.get("files", 0), c.get("size_mb", 0),
+                 c.get("oldest_days", 0), c["dir"])
+            )
 
     db.commit()
     db.close()
@@ -169,20 +162,10 @@ def do_prune():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS TTS Cache Manager")
-    parser.add_argument(
-        "--once",
-        "--stats",
-        action="store_true",
-        help="Show stats")
+    parser.add_argument("--once", "--stats", action="store_true", help="Show stats")
     parser.add_argument("--prune", action="store_true", help="Prune old files")
-    parser.add_argument(
-        "--preload",
-        action="store_true",
-        help="Preload common phrases")
-    parser.add_argument(
-        "--benchmark",
-        action="store_true",
-        help="Benchmark latency")
+    parser.add_argument("--preload", action="store_true", help="Preload common phrases")
+    parser.add_argument("--benchmark", action="store_true", help="Benchmark latency")
     args = parser.parse_args()
 
     if args.prune:

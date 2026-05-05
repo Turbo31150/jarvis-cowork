@@ -9,8 +9,6 @@ Usage:
     python cowork/dev/night_work_loop.py --loop     # loop every 30min
     python cowork/dev/night_work_loop.py --results  # show saved results
 """
-import argparse
-from _paths import TURBO_DIR as TURBO
 import io
 import json
 import os
@@ -24,6 +22,8 @@ from pathlib import Path
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
+from _paths import TURBO_DIR as TURBO
+import argparse
 DB_PATH = TURBO / "data" / "etoile.db"
 
 # ── Task Bank ────────────────────────────────────────────────
@@ -43,8 +43,7 @@ TASK_BANK = [
     # ── Code Generation (15) ──
     ("M1", "CODE", "Ecris une classe Python CircuitBreaker avec etats CLOSED/OPEN/HALF_OPEN, compteur d'echecs, et timeout de reset. Code complet."),
     ("M1", "CODE", "Ecris un decorateur Python @retry(max_attempts=3, backoff=2) avec exponential backoff. Code complet."),
-    ("M1", "CODE",
-     "Ecris une fonction Python async qui fait un health check de 4 URLs en parallele avec asyncio.gather et retourne un dict {url: status}. Code complet."),
+    ("M1", "CODE", "Ecris une fonction Python async qui fait un health check de 4 URLs en parallele avec asyncio.gather et retourne un dict {url: status}. Code complet."),
     ("M1", "CODE", "Ecris un script Python qui analyse un fichier SQLite et genere un rapport: nb tables, nb rows par table, taille, et integrite. Code complet."),
     ("M1", "CODE", "Ecris une classe Python TokenBucket pour rate limiting avec refill rate et burst capacity. Code complet."),
     ("M1", "CODE", "Ecris un script Python qui monitore nvidia-smi et alerte si temperature GPU > 80C. Output CSV. Code complet."),
@@ -202,8 +201,7 @@ def run_batch(db, batch_num=1):
             return i, node, cat, prompt, None, time.time() - t0, str(e)[:150]
 
     with ThreadPoolExecutor(max_workers=3) as pool:
-        futs = [pool.submit(execute, i, n, c, p)
-                for i, (n, c, p) in enumerate(batch)]
+        futs = [pool.submit(execute, i, n, c, p) for i, (n, c, p) in enumerate(batch)]
         for f in as_completed(futs):
             i, node, cat, prompt, resp, elapsed, err = f.result()
             status = "OK" if resp and not err else "FAIL"
@@ -236,9 +234,8 @@ def show_results():
     for ts, node, cat, elapsed, status in rows:
         print(f"    {ts} | {node}/{cat} | {elapsed:.1f}s | {status}")
     total = db.execute("SELECT COUNT(*) FROM cluster_night_work").fetchone()[0]
-    ok = db.execute(
-        "SELECT COUNT(*) FROM cluster_night_work WHERE error IS NULL").fetchone()[0]
-    print(f"\n  Total: {total} tasks | {ok} OK ({ok * 100 // max(total, 1)}%)")
+    ok = db.execute("SELECT COUNT(*) FROM cluster_night_work WHERE error IS NULL").fetchone()[0]
+    print(f"\n  Total: {total} tasks | {ok} OK ({ok*100//max(total,1)}%)")
     db.close()
 
 
@@ -249,10 +246,8 @@ def main():
 
     db = init_db()
 
-    max_cycles = int(sys.argv[sys.argv.index(
-        "--cycles") + 1]) if "--cycles" in sys.argv else 0
-    pause = int(sys.argv[sys.argv.index("--pause") + 1]
-                ) if "--pause" in sys.argv else 10
+    max_cycles = int(sys.argv[sys.argv.index("--cycles") + 1]) if "--cycles" in sys.argv else 0
+    pause = int(sys.argv[sys.argv.index("--pause") + 1]) if "--pause" in sys.argv else 10
 
     if "--loop" in sys.argv:
         limit = max_cycles if max_cycles > 0 else 999999
@@ -267,14 +262,12 @@ def main():
                 total_tasks += n
                 batch_num += 1
                 rate = total_ok * 100 // max(total_tasks, 1)
-                print(
-                    f"\n  Cumul: {total_ok}/{total_tasks} OK ({rate}%) — cycle {batch_num}/{limit} dans {pause}s...")
+                print(f"\n  Cumul: {total_ok}/{total_tasks} OK ({rate}%) — cycle {batch_num}/{limit} dans {pause}s...")
                 time.sleep(pause)
             except KeyboardInterrupt:
                 print(f"\n\nArret. Total: {total_ok}/{total_tasks} taches OK")
                 break
-        print(
-            f"\n=== TERMINE: {total_ok}/{total_tasks} taches en {batch_num - 1} cycles ===")
+        print(f"\n=== TERMINE: {total_ok}/{total_tasks} taches en {batch_num-1} cycles ===")
     else:
         run_batch(db)
 

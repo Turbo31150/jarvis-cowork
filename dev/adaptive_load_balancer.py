@@ -28,40 +28,25 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 GAPS_DB = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import ETOILE_DB
 
 # Node capacity limits
 NODE_CAPACITY = {
-    "M1": {"max_parallel": 3, "weight": 1.8},
+    "M1":  {"max_parallel": 3, "weight": 1.8},
     "OL1": {"max_parallel": 3, "weight": 1.3},  # OLLAMA_NUM_PARALLEL=3
-    "M2": {"max_parallel": 1, "weight": 1.0},
-    "M3": {"max_parallel": 1, "weight": 0.8},
+    "M2":  {"max_parallel": 1, "weight": 1.0},
+    "M3":  {"max_parallel": 1, "weight": 0.8},
 }
 
 NODES = {
-    "M1": {
-        "url": "http://127.0.0.1:1234/api/v1/chat",
-        "model": "qwen3-8b",
-        "ollama": False,
-        "prefix": "/nothink\n",
-        "timeout": 30},
-    "OL1": {
-        "url": "http://127.0.0.1:11434/api/chat",
-        "model": "qwen3:1.7b",
-        "ollama": True,
-        "timeout": 20},
-    "M2": {
-        "url": "http://192.168.1.26:1234/api/v1/chat",
-        "model": "deepseek-r1-0528-qwen3-8b",
-        "ollama": False,
-        "max_tokens": 2048,
-        "timeout": 60},
-    "M3": {
-        "url": "http://192.168.1.113:1234/api/v1/chat",
-        "model": "deepseek-r1-0528-qwen3-8b",
-        "ollama": False,
-        "max_tokens": 2048,
-        "timeout": 60},
+    "M1":  {"url": "http://127.0.0.1:1234/api/v1/chat", "model": "qwen3-8b",
+            "ollama": False, "prefix": "/nothink\n", "timeout": 30},
+    "OL1": {"url": "http://127.0.0.1:11434/api/chat", "model": "qwen3:1.7b",
+            "ollama": True, "timeout": 20},
+    "M2":  {"url": "http://192.168.1.26:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
+            "ollama": False, "max_tokens": 2048, "timeout": 60},
+    "M3":  {"url": "http://192.168.1.113:1234/api/v1/chat", "model": "deepseek-r1-0528-qwen3-8b",
+            "ollama": False, "max_tokens": 2048, "timeout": 60},
 }
 
 
@@ -97,12 +82,8 @@ def get_load_state(db):
         if row:
             loads[node] = dict(row)
         else:
-            loads[node] = {
-                "node": node,
-                "current_load": 0,
-                "total_dispatched": 0,
-                "total_completed": 0,
-                "avg_response_ms": 0}
+            loads[node] = {"node": node, "current_load": 0, "total_dispatched": 0,
+                           "total_completed": 0, "avg_response_ms": 0}
     return loads
 
 
@@ -110,8 +91,7 @@ def get_reliability(db):
     """Get reliability scores if available."""
     scores = {}
     try:
-        rows = db.execute(
-            "SELECT node, composite FROM node_reliability").fetchall()
+        rows = db.execute("SELECT node, composite FROM node_reliability").fetchall()
         for r in rows:
             scores[r["node"]] = r["composite"]
     except Exception:
@@ -177,8 +157,7 @@ def record_dispatch_end(db, node, latency_ms):
     now = datetime.now().isoformat()
 
     # Get current avg for EMA update
-    row = db.execute(
-        "SELECT avg_response_ms FROM node_load WHERE node=?", (node,)).fetchone()
+    row = db.execute("SELECT avg_response_ms FROM node_load WHERE node=?", (node,)).fetchone()
     old_avg = row["avg_response_ms"] if row else latency_ms
     alpha = 0.3
     new_avg = old_avg * (1 - alpha) + latency_ms * alpha
@@ -220,9 +199,8 @@ def dispatch_balanced(task_type, prompt):
                 "stream": False, "store": False,
             }).encode()
 
-        req = urllib.request.Request(
-            cfg["url"], data=body, headers={
-                "Content-Type": "application/json"})
+        req = urllib.request.Request(cfg["url"], data=body,
+                                     headers={"Content-Type": "application/json"})
         resp = urllib.request.urlopen(req, timeout=cfg.get("timeout", 30))
         data = json.loads(resp.read())
         elapsed = int((time.time() - start) * 1000)
@@ -242,23 +220,13 @@ def dispatch_balanced(task_type, prompt):
 
         record_dispatch_end(db, node, elapsed)
         db.close()
-        return {
-            "success": True,
-            "node": node,
-            "text": text,
-            "latency_ms": elapsed,
-            "routing_info": info}
+        return {"success": True, "node": node, "text": text, "latency_ms": elapsed, "routing_info": info}
 
     except Exception as e:
         elapsed = int((time.time() - start) * 1000)
         record_dispatch_end(db, node, elapsed)
         db.close()
-        return {
-            "success": False,
-            "node": node,
-            "error": str(e)[
-                :200],
-            "latency_ms": elapsed}
+        return {"success": False, "node": node, "error": str(e)[:200], "latency_ms": elapsed}
 
 
 def show_load(db):
@@ -279,8 +247,7 @@ def show_load(db):
         bar_len = int(cur / mx * 10) if mx > 0 else 0
         bar = "#" * bar_len + "." * (10 - bar_len)
 
-        print(
-            f"  {node:4} [{bar}] {cur}/{mx} ({total} total, avg={avg:.0f}ms, rel={rel:.0f})")
+        print(f"  {node:4} [{bar}] {cur}/{mx} ({total} total, avg={avg:.0f}ms, rel={rel:.0f})")
 
 
 def main():
@@ -333,8 +300,7 @@ def main():
 
         # Reset loads
         for n in NODE_CAPACITY:
-            db.execute(
-                "UPDATE node_load SET current_load = 0 WHERE node = ?", (n,))
+            db.execute("UPDATE node_load SET current_load = 0 WHERE node = ?", (n,))
         db.commit()
         db.close()
 

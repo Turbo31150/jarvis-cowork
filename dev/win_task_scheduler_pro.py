@@ -2,14 +2,7 @@
 """win_task_scheduler_pro.py — Task scheduler pro. Uses schtasks /query /fo csv. List/add/remove tasks.
 Usage: python dev/win_task_scheduler_pro.py --list --once
 """
-import argparse
-import json
-import os
-import sqlite3
-import subprocess
-import time
-import csv
-import io
+import argparse, json, os, sqlite3, subprocess, time, csv, io
 from datetime import datetime
 from pathlib import Path
 
@@ -72,20 +65,14 @@ def query_schtasks():
         tasks = []
         for row in reader:
             # Headers may vary by locale
-            task_name = (row.get("TaskName") or row.get("Nom de la t\u00e2che") or row.get(
-                list(row.keys())[0] if row.keys() else "", "")).strip('"').strip()
-            next_run = (row.get("Next Run Time") or row.get(
-                "Prochaine ex\u00e9cution") or "").strip('"').strip()
-            status = (row.get("Status") or row.get("Statut")
-                      or row.get("\u00c9tat") or "").strip('"').strip()
-            last_run = (row.get("Last Run Time") or row.get(
-                "Derni\u00e8re ex\u00e9cution") or "").strip('"').strip()
-            last_result = (row.get("Last Result") or row.get(
-                "Dernier r\u00e9sultat") or "").strip('"').strip()
-            author = (row.get("Author") or row.get(
-                "Auteur") or "").strip('"').strip()
-            schedule_type = (row.get("Schedule Type") or row.get(
-                "Type de planification") or "").strip('"').strip()
+            task_name = (row.get("TaskName") or row.get("Nom de la t\u00e2che") or
+                        row.get(list(row.keys())[0] if row.keys() else "", "")).strip('"').strip()
+            next_run = (row.get("Next Run Time") or row.get("Prochaine ex\u00e9cution") or "").strip('"').strip()
+            status = (row.get("Status") or row.get("Statut") or row.get("\u00c9tat") or "").strip('"').strip()
+            last_run = (row.get("Last Run Time") or row.get("Derni\u00e8re ex\u00e9cution") or "").strip('"').strip()
+            last_result = (row.get("Last Result") or row.get("Dernier r\u00e9sultat") or "").strip('"').strip()
+            author = (row.get("Author") or row.get("Auteur") or "").strip('"').strip()
+            schedule_type = (row.get("Schedule Type") or row.get("Type de planification") or "").strip('"').strip()
 
             if task_name:
                 tasks.append({
@@ -114,48 +101,17 @@ def do_list():
     for t in tasks[:200]:
         db.execute(
             "INSERT INTO tasks (ts, task_name, next_run, status, last_run, last_result, author, schedule_type) VALUES (?,?,?,?,?,?,?,?)",
-            (time.time(),
-             t["task_name"],
-                t.get(
-                "next_run",
-                ""),
-                t.get(
-                "status",
-                ""),
-                t.get(
-                "last_run",
-                ""),
-                t.get(
-                "last_result",
-                    ""),
-                t.get(
-                "author",
-                ""),
-                t.get(
-                "schedule_type",
-                "")))
+            (time.time(), t["task_name"], t.get("next_run", ""), t.get("status", ""),
+             t.get("last_run", ""), t.get("last_result", ""), t.get("author", ""),
+             t.get("schedule_type", ""))
+        )
     db.commit()
 
     # Filter JARVIS tasks
     jarvis_tasks = [t for t in tasks if "jarvis" in t["task_name"].lower()]
-    ready = [
-        t for t in tasks if t.get(
-            "status",
-            "").lower() in (
-            "ready",
-            "pr\u00eat")]
-    running = [
-        t for t in tasks if t.get(
-            "status",
-            "").lower() in (
-            "running",
-            "en cours")]
-    disabled = [
-        t for t in tasks if t.get(
-            "status",
-            "").lower() in (
-            "disabled",
-            "d\u00e9sactiv\u00e9")]
+    ready = [t for t in tasks if t.get("status", "").lower() in ("ready", "pr\u00eat")]
+    running = [t for t in tasks if t.get("status", "").lower() in ("running", "en cours")]
+    disabled = [t for t in tasks if t.get("status", "").lower() in ("disabled", "d\u00e9sactiv\u00e9")]
 
     db.close()
     return {
@@ -205,12 +161,8 @@ def do_add(task_name=None, command=None, schedule=None):
         )
         db.execute(
             "INSERT INTO actions_log (ts, action, task_name, success, details) VALUES (?,?,?,?,?)",
-            (time.time(),
-             "add",
-             task_name,
-             int(success),
-                proc.stdout +
-                proc.stderr))
+            (time.time(), "add", task_name, int(success), proc.stdout + proc.stderr)
+        )
         db.commit()
         db.close()
 
@@ -225,10 +177,7 @@ def do_add(task_name=None, command=None, schedule=None):
         }
     except Exception as e:
         db.close()
-        return {
-            "ts": datetime.now().isoformat(),
-            "action": "add",
-            "error": str(e)}
+        return {"ts": datetime.now().isoformat(), "action": "add", "error": str(e)}
 
 
 def do_remove(task_name=None):
@@ -243,10 +192,7 @@ def do_remove(task_name=None):
             task_name = row[0]
         else:
             db.close()
-            return {
-                "ts": datetime.now().isoformat(),
-                "action": "remove",
-                "status": "no_task_to_remove"}
+            return {"ts": datetime.now().isoformat(), "action": "remove", "status": "no_task_to_remove"}
 
     try:
         proc = subprocess.run(
@@ -254,16 +200,11 @@ def do_remove(task_name=None):
             shell=True, capture_output=True, text=True, timeout=15
         )
         success = proc.returncode == 0
-        db.execute(
-            "UPDATE managed_tasks SET active=0 WHERE task_name=?", (task_name,))
+        db.execute("UPDATE managed_tasks SET active=0 WHERE task_name=?", (task_name,))
         db.execute(
             "INSERT INTO actions_log (ts, action, task_name, success, details) VALUES (?,?,?,?,?)",
-            (time.time(),
-             "remove",
-             task_name,
-             int(success),
-                proc.stdout +
-                proc.stderr))
+            (time.time(), "remove", task_name, int(success), proc.stdout + proc.stderr)
+        )
         db.commit()
         db.close()
         return {
@@ -274,19 +215,14 @@ def do_remove(task_name=None):
         }
     except Exception as e:
         db.close()
-        return {
-            "ts": datetime.now().isoformat(),
-            "action": "remove",
-            "error": str(e)}
+        return {"ts": datetime.now().isoformat(), "action": "remove", "error": str(e)}
 
 
 def do_status():
     """Show task scheduler status."""
     db = init_db()
-    managed = db.execute(
-        "SELECT COUNT(*) FROM managed_tasks WHERE active=1").fetchone()[0]
-    total_actions = db.execute(
-        "SELECT COUNT(*) FROM actions_log").fetchone()[0]
+    managed = db.execute("SELECT COUNT(*) FROM managed_tasks WHERE active=1").fetchone()[0]
+    total_actions = db.execute("SELECT COUNT(*) FROM actions_log").fetchone()[0]
     recent_actions = db.execute(
         "SELECT action, task_name, success, ts FROM actions_log ORDER BY ts DESC LIMIT 5"
     ).fetchall()
@@ -307,41 +243,15 @@ def do_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Task scheduler pro — Windows scheduled tasks management")
-    parser.add_argument(
-        "--list",
-        action="store_true",
-        help="List all scheduled tasks")
-    parser.add_argument(
-        "--add",
-        action="store_true",
-        help="Add a new scheduled task")
-    parser.add_argument(
-        "--remove",
-        action="store_true",
-        help="Remove a scheduled task")
-    parser.add_argument(
-        "--status",
-        action="store_true",
-        help="Show scheduler status")
-    parser.add_argument(
-        "--task-name",
-        metavar="NAME",
-        help="Task name for add/remove")
-    parser.add_argument(
-        "--command",
-        metavar="CMD",
-        help="Command for new task")
-    parser.add_argument(
-        "--schedule",
-        metavar="SCHED",
-        default="DAILY",
-        help="Schedule type (DAILY/HOURLY/WEEKLY)")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
+    parser = argparse.ArgumentParser(description="Task scheduler pro — Windows scheduled tasks management")
+    parser.add_argument("--list", action="store_true", help="List all scheduled tasks")
+    parser.add_argument("--add", action="store_true", help="Add a new scheduled task")
+    parser.add_argument("--remove", action="store_true", help="Remove a scheduled task")
+    parser.add_argument("--status", action="store_true", help="Show scheduler status")
+    parser.add_argument("--task-name", metavar="NAME", help="Task name for add/remove")
+    parser.add_argument("--command", metavar="CMD", help="Command for new task")
+    parser.add_argument("--schedule", metavar="SCHED", default="DAILY", help="Schedule type (DAILY/HOURLY/WEEKLY)")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
     args = parser.parse_args()
 
     if args.list:

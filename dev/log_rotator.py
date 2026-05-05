@@ -6,7 +6,7 @@ Batch 7.2 – Rotation et compression des logs.
 Fonctionnalités :
 * Parcourt plusieurs répertoires de logs :
   - ``~/.openclaw/agents/main/logs/``
-  - ``/home/turbo/data/``
+  - ``F:/BUREAU/turbo/data/``
   - ``~/.openclaw/workspace/dev/`` (le dossier courant du script).
 * Compresse les fichiers ``*.log`` et ``*.json`` dont la taille > 10 MiB en ``.gz`` (gzip).
 * Supprime les archives ``*.gz`` plus vieilles que 30 jours.
@@ -20,6 +20,7 @@ Le script utilise uniquement la bibliothèque standard : ``os``, ``pathlib``, 
 """
 
 import argparse
+from _paths import TURBO_DIR, DATA_DIR
 import gzip
 import os
 import shutil
@@ -32,7 +33,7 @@ from pathlib import Path
 HOME = Path.home()
 LOG_DIRS = [
     HOME / ".openclaw" / "agents" / "main" / "logs",
-    Path(r"/home/turbo/data"),
+    DATA_DIR,
     HOME / ".openclaw" / "workspace" / "dev",
 ]
 
@@ -42,7 +43,6 @@ MAX_AGE_DAYS = 30
 # ------------------------------------------------------------
 # Helpers – taille lisible
 # ------------------------------------------------------------
-
 
 def human_bytes(num: int) -> str:
     for unit in ["B", "KB", "MiB", "GiB", "TiB"]:
@@ -54,7 +54,6 @@ def human_bytes(num: int) -> str:
 # ------------------------------------------------------------
 # Récupération des fichiers de logs (raw) dépassant le seuil
 # ------------------------------------------------------------
-
 
 def find_large_logs() -> list[Path]:
     large = []
@@ -73,7 +72,6 @@ def find_large_logs() -> list[Path]:
 # ------------------------------------------------------------
 # Compression d'un fichier en .gz
 # ------------------------------------------------------------
-
 
 def compress_file(src: Path) -> tuple[int, int]:
     """Compresses *src* to *src*.gz, deletes the original.
@@ -94,7 +92,6 @@ def compress_file(src: Path) -> tuple[int, int]:
 # ------------------------------------------------------------
 # Nettoyage des archives .gz trop vieilles
 # ------------------------------------------------------------
-
 
 def clean_old_archives() -> int:
     """Supprime les *.gz plus vieux que *MAX_AGE_DAYS*.
@@ -121,7 +118,6 @@ def clean_old_archives() -> int:
 # Statistiques – taille actuelle des logs (raw + gz)
 # ------------------------------------------------------------
 
-
 def compute_stats() -> tuple[int, int, int]:
     raw_total = 0
     gz_total = 0
@@ -143,7 +139,6 @@ def compute_stats() -> tuple[int, int, int]:
 # CLI actions
 # ------------------------------------------------------------
 
-
 def rotate_once():
     # Compression
     large_files = find_large_logs()
@@ -163,11 +158,8 @@ def rotate_once():
     print(f"  Original size compressed: {human_bytes(total_orig)}")
     print(f"  Size after compression: {human_bytes(total_comp)}")
     print(f"  Space freed by compression: {human_bytes(freed_by_compression)}")
-    print(
-        f"  Archives deleted (> {MAX_AGE_DAYS} days): {
-            human_bytes(freed_cleanup)} freed")
+    print(f"  Archives deleted (> {MAX_AGE_DAYS} days): {human_bytes(freed_cleanup)} freed")
     print(f"  TOTAL space freed: {human_bytes(total_freed)}")
-
 
 def show_stats():
     raw, gz, total = compute_stats()
@@ -176,30 +168,16 @@ def show_stats():
     print(f"  Taille des archives .gz : {human_bytes(gz)}")
     print(f"  Taille combinée : {human_bytes(total)}")
 
-
 def clean_only():
     freed = clean_old_archives()
-    print(
-        f"[log_rotator] Nettoyage – archives supprimées : {
-            human_bytes(freed)} libérées")
-
+    print(f"[log_rotator] Nettoyage – archives supprimées : {human_bytes(freed)} libérées")
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Rotation et compression des logs.")
+    parser = argparse.ArgumentParser(description="Rotation et compression des logs.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--once",
-        action="store_true",
-        help="Effectuer rotation + nettoyage")
-    group.add_argument(
-        "--stats",
-        action="store_true",
-        help="Afficher taille actuelle des logs")
-    group.add_argument(
-        "--clean",
-        action="store_true",
-        help="Supprimer uniquement les archives anciennes (>30j)")
+    group.add_argument("--once", action="store_true", help="Effectuer rotation + nettoyage")
+    group.add_argument("--stats", action="store_true", help="Afficher taille actuelle des logs")
+    group.add_argument("--clean", action="store_true", help="Supprimer uniquement les archives anciennes (>30j)")
     args = parser.parse_args()
 
     if args.once:
@@ -208,7 +186,6 @@ def main():
         show_stats()
     elif args.clean:
         clean_only()
-
 
 if __name__ == "__main__":
     main()

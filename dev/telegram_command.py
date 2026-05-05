@@ -34,15 +34,11 @@ def extract_commands(history, limit=20):
         elif isinstance(msg, str):
             text = msg
         if text.strip().startswith("/"):
-            commands.append(
-                {
-                    "command": text.strip(), "timestamp": msg.get(
-                        "timestamp", msg.get(
-                            "date", "")) if isinstance(
-                        msg, dict) else "", "from": msg.get(
-                        "from", msg.get(
-                            "user", "")) if isinstance(
-                                msg, dict) else "", })
+            commands.append({
+                "command": text.strip(),
+                "timestamp": msg.get("timestamp", msg.get("date", "")) if isinstance(msg, dict) else "",
+                "from": msg.get("from", msg.get("user", "")) if isinstance(msg, dict) else "",
+            })
 
     return commands[:limit]
 
@@ -65,18 +61,14 @@ def run_once():
             "total_commands_found": len(commands),
             "commands": commands,
             "raw_message_count": len(data) if isinstance(data, list)
-            else len(data.get("messages", data.get("history", []))),
+                else len(data.get("messages", data.get("history", []))),
         }
     print(json.dumps(output, indent=2, ensure_ascii=False))
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Check Telegram for recent commands")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
+    parser = argparse.ArgumentParser(description="Check Telegram for recent commands")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
     args = parser.parse_args()
 
     if args.once:

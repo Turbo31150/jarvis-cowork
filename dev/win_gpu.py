@@ -15,16 +15,11 @@ def query_nvidia_smi():
         "--format=csv,noheader,nounits",
     ]
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=10)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if result.returncode != 0:
             return {"error": f"nvidia-smi failed: {result.stderr.strip()}"}
     except FileNotFoundError:
-        return {
-            "error": "nvidia-smi not found — NVIDIA drivers not installed or not in PATH"}
+        return {"error": "nvidia-smi not found — NVIDIA drivers not installed or not in PATH"}
     except subprocess.TimeoutExpired:
         return {"error": "nvidia-smi timed out (10s)"}
 
@@ -48,8 +43,7 @@ def query_nvidia_smi():
             }
             if gpu["vram_total_mb"] and gpu["vram_used_mb"] is not None:
                 gpu["vram_free_mb"] = gpu["vram_total_mb"] - gpu["vram_used_mb"]
-                gpu["vram_used_pct"] = round(
-                    gpu["vram_used_mb"] / gpu["vram_total_mb"] * 100, 1)
+                gpu["vram_used_pct"] = round(gpu["vram_used_mb"] / gpu["vram_total_mb"] * 100, 1)
             gpus.append(gpu)
         except (ValueError, IndexError):
             continue
@@ -67,12 +61,8 @@ def run_once():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="GPU monitoring via nvidia-smi (JSON output)")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
+    parser = argparse.ArgumentParser(description="GPU monitoring via nvidia-smi (JSON output)")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
     args = parser.parse_args()
 
     if args.once:

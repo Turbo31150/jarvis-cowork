@@ -1,0 +1,10 @@
+{
+  "mission_id": "prod_cluster_audit_001",
+  "classification": "ops",
+  "priority": "P0",
+  "contexte": {
+    "analysis_goal": "audit complet cluster M1+M2+OL1 statut services GPU VRAM conteneurs",
+    "target": "all_nodes",
+    "autonomous": true
+  }
+}

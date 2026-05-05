@@ -34,8 +34,10 @@ def get_benchmark_tables(db_path: Path) -> list:
     tables = [row[0] for row in cursor.fetchall()]
     conn.close()
 
-    benchmark_tables = [t for t in tables if "benchmark" in t.lower(
-    ) or "dispatch" in t.lower() or "score" in t.lower()]
+    benchmark_tables = [
+        t for t in tables
+        if "benchmark" in t.lower() or "dispatch" in t.lower() or "score" in t.lower()
+    ]
     return benchmark_tables
 
 
@@ -58,13 +60,7 @@ def fetch_benchmark_data(db_path: Path, days: int = 30) -> dict:
             date_col = None
             for col in columns:
                 cl = col.lower()
-                if cl in (
-                    "timestamp",
-                    "created_at",
-                    "date",
-                    "run_date",
-                    "created",
-                        "ts"):
+                if cl in ("timestamp", "created_at", "date", "run_date", "created", "ts"):
                     date_col = col
                     break
 
@@ -73,10 +69,11 @@ def fetch_benchmark_data(db_path: Path, days: int = 30) -> dict:
                 cutoff = (datetime.now() - timedelta(days=days)).isoformat()
                 try:
                     cursor = conn.execute(
-                        f"SELECT * FROM {table} WHERE {date_col} >= ? ORDER BY {date_col}", (cutoff,), )
+                        f"SELECT * FROM {table} WHERE {date_col} >= ? ORDER BY {date_col}",
+                        (cutoff,),
+                    )
                 except sqlite3.OperationalError:
-                    cursor = conn.execute(
-                        f"SELECT * FROM {table} ORDER BY rowid")
+                    cursor = conn.execute(f"SELECT * FROM {table} ORDER BY rowid")
             else:
                 cursor = conn.execute(f"SELECT * FROM {table} ORDER BY rowid")
 
@@ -110,8 +107,8 @@ def compute_trends(data: dict) -> list:
         for col in columns:
             cl = col.lower()
             if any(kw in cl for kw in ("score", "latency", "time", "quality",
-                                       "success", "rate", "tok", "speed",
-                                       "accuracy", "result")):
+                                        "success", "rate", "tok", "speed",
+                                        "accuracy", "result")):
                 # Check if values are actually numeric
                 values = [r.get(col) for r in rows if r.get(col) is not None]
                 numeric_values = []
@@ -137,8 +134,7 @@ def compute_trends(data: dict) -> list:
             second_half = values[n // 2:]
 
             avg_first = sum(first_half) / len(first_half) if first_half else 0
-            avg_second = sum(second_half) / \
-                len(second_half) if second_half else 0
+            avg_second = sum(second_half) / len(second_half) if second_half else 0
 
             if avg_first == 0:
                 pct_change = 0
@@ -197,24 +193,10 @@ def main():
     parser = argparse.ArgumentParser(
         description="Analyze benchmark trends from etoile.db"
     )
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Analyze without side effects")
-    parser.add_argument(
-        "--days",
-        type=int,
-        default=30,
-        help="Look back N days (default: 30)")
-    parser.add_argument(
-        "--db",
-        type=str,
-        default=None,
-        help="Path to etoile.db")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Analyze without side effects")
+    parser.add_argument("--days", type=int, default=30, help="Look back N days (default: 30)")
+    parser.add_argument("--db", type=str, default=None, help="Path to etoile.db")
     parser.add_argument("--json", action="store_true", help="Output raw JSON")
     args = parser.parse_args()
 
@@ -230,11 +212,7 @@ def main():
 
     # Fetch data
     data = fetch_benchmark_data(db_path, days=args.days)
-    tables_found = [
-        t for t,
-        d in data["tables"].items() if d.get(
-            "count",
-            0) > 0]
+    tables_found = [t for t, d in data["tables"].items() if d.get("count", 0) > 0]
 
     # Compute trends
     trends = compute_trends(data)
@@ -304,11 +282,7 @@ def main():
             print(f"ANOMALIES DETECTED: {total_anomalies} total")
             for t in trends:
                 if t["anomalies"] > 0:
-                    print(
-                        f"  {
-                            t['table']}.{
-                            t['metric']}: {
-                            t['anomalies']} anomalies")
+                    print(f"  {t['table']}.{t['metric']}: {t['anomalies']} anomalies")
             print()
 
     result = {

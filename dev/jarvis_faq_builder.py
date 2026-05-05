@@ -11,6 +11,7 @@ Usage:
     python dev/jarvis_faq_builder.py --stats
 """
 import argparse
+from _paths import TURBO_DIR
 import json
 import os
 import sqlite3
@@ -46,9 +47,9 @@ def build_faq():
         defaults = [
             ("Comment verifier le cluster?", "python dev/ia_workload_balancer.py --once", "cluster"),
             ("Comment voir les GPU?", "nvidia-smi ou python dev/win_thermal_monitor.py --once", "hardware"),
-            ("Comment lancer JARVIS?", "cd /home/turbo && uv run python main.py", "jarvis"),
+            ("Comment lancer JARVIS?", "cd F:/BUREAU/turbo && uv run python main.py", "jarvis"),
             ("Comment tester un script?", "python dev/SCRIPT.py --help && python dev/SCRIPT.py --once", "dev"),
-            ("Quel modele utiliser pour le code?", "gpt-oss:120b (100/100) ou M1 qwen3-8b (98.4)", "ia"),
+            ("Quel modele utiliser pour le code?", "M1 qwen3-8b (champion local) ou M2 deepseek-r1 (reasoning)", "ia"),
             ("Comment voir la sante systeme?", "python dev/jarvis_health_aggregator.py --once", "system"),
             ("Comment backup les DB?", "python dev/jarvis_backup_manager.py --backup", "maintenance"),
             ("Comment voir les commandes vocales?", "Voir docs/COMMANDES_VOCALES.md (2341 commandes)", "voice"),
@@ -56,13 +57,8 @@ def build_faq():
             ("Quels sont les ports utilises?", "M1:1234, OL1:11434, Proxy:18800, API:9742, Dashboard:8080", "network"),
         ]
         for q, a, cat in defaults:
-            db.execute(
-                "INSERT INTO faqs (question, answer, category, frequency, ts) VALUES (?,?,?,?,?)",
-                (q,
-                 a,
-                 cat,
-                 1,
-                 time.time()))
+            db.execute("INSERT INTO faqs (question, answer, category, frequency, ts) VALUES (?,?,?,?,?)",
+                       (q, a, cat, 1, time.time()))
         db.commit()
 
     # Scan dev/data/*.db for common patterns
@@ -71,8 +67,7 @@ def build_faq():
 
     total = db.execute("SELECT COUNT(*) FROM faqs").fetchone()[0]
     cats = {}
-    for row in db.execute(
-            "SELECT category, COUNT(*) FROM faqs GROUP BY category").fetchall():
+    for row in db.execute("SELECT category, COUNT(*) FROM faqs GROUP BY category").fetchall():
         cats[row[0]] = row[1]
 
     db.close()
@@ -90,8 +85,7 @@ def search_faq(query):
     query_lower = query.lower()
     words = query_lower.split()
 
-    rows = db.execute(
-        "SELECT id, question, answer, category, frequency FROM faqs").fetchall()
+    rows = db.execute("SELECT id, question, answer, category, frequency FROM faqs").fetchall()
     results = []
     for row in rows:
         q_lower = row[1].lower()
@@ -104,11 +98,8 @@ def search_faq(query):
 
     results.sort(key=lambda x: (-x["relevance"], -x["frequency"]))
 
-    db.execute(
-        "INSERT INTO searches (query, results_count, ts) VALUES (?,?,?)",
-        (query,
-         len(results),
-         time.time()))
+    db.execute("INSERT INTO searches (query, results_count, ts) VALUES (?,?,?)",
+               (query, len(results), time.time()))
     db.commit()
     db.close()
 
@@ -139,11 +130,7 @@ def do_stats():
 
 def main():
     parser = argparse.ArgumentParser(description="FAQ Builder JARVIS")
-    parser.add_argument(
-        "--once",
-        "--build",
-        action="store_true",
-        help="Build FAQ")
+    parser.add_argument("--once", "--build", action="store_true", help="Build FAQ")
     parser.add_argument("--search", metavar="QUERY", help="Search FAQ")
     parser.add_argument("--add", action="store_true", help="Add FAQ entry")
     parser.add_argument("--stats", action="store_true", help="FAQ stats")

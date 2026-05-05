@@ -25,6 +25,7 @@ import shutil
 from datetime import datetime
 from collections import defaultdict, Counter
 from pathlib import Path
+from auto_discovery import discover_patterns
 from path_resolver import resolve_db_with_table, resolve_openclaw_dev_dir, resolve_project_root
 
 BASE = Path(__file__).parent
@@ -132,6 +133,8 @@ def _auto_migrate_db():
 
 # Run migration on import
 try:
+    print("🚀 [Engine] Initializing JARVIS OMEGA...")
+    discover_patterns()
     _auto_migrate_db()
 except Exception as _mig_err:
     print(f"[cowork_engine] Migration warning: {_mig_err}", file=sys.stderr)

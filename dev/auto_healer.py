@@ -12,7 +12,7 @@ Redémarrage :
 - OL1 : `ollama serve`
 - LM Studio (local) : `lms.exe`
 
-Alertes Telegram via bot token TELEGRAM_TOKEN_REDACTED, chat_id 2010747443.
+Alertes Telegram via bot token token from .env.
 
 Usage :
     auto_healer.py --once      # vérifie et répare une fois
@@ -26,16 +26,16 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-# Ensure Unicode output works on Windows consoles (cp1252 cannot encode
-# all chars)
+# Ensure Unicode output works on Windows consoles (cp1252 cannot encode all chars)
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 
 NODES = {
     "M1": {"host": "127.0.0.1", "port": 1234, "restart_cmd": None},
@@ -43,7 +43,6 @@ NODES = {
     "OL1": {"host": "127.0.0.1", "port": 11434, "restart_cmd": ["ollama", "serve"]},
     "LMStudio": {"host": "127.0.0.1", "port": 1234, "restart_cmd": ["lms.exe"]},
 }
-
 
 def send_telegram(msg: str) -> None:
     """Envoie un message texte via l'API Bot Telegram."""
@@ -59,7 +58,6 @@ def send_telegram(msg: str) -> None:
     except Exception as e:
         print(f"[auto_healer] Erreur d'envoi Telegram: {e}", file=sys.stderr)
 
-
 def is_node_up(host: str, port: int, timeout: float = 2.0) -> bool:
     """Teste la connectivité TCP du nœud."""
     try:
@@ -67,7 +65,6 @@ def is_node_up(host: str, port: int, timeout: float = 2.0) -> bool:
             return True
     except Exception:
         return False
-
 
 def restart_node(name: str, cmd: list) -> bool:
     """Lance la commande de redémarrage du nœud.
@@ -77,18 +74,11 @@ def restart_node(name: str, cmd: list) -> bool:
         return False
     try:
         # Utilise subprocess.Popen afin que le processus reste en arrière‑plan.
-        subprocess.Popen(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            shell=False)
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         return True
     except Exception as e:
-        print(
-            f"[auto_healer] Erreur lors du redémarrage de {name}: {e}",
-            file=sys.stderr)
+        print(f"[auto_healer] Erreur lors du redémarrage de {name}: {e}", file=sys.stderr)
         return False
-
 
 def check_and_heal() -> None:
     for name, cfg in NODES.items():
@@ -100,7 +90,7 @@ def check_and_heal() -> None:
         print(f"[auto_healer] {name} DOWN – tentative de redémarrage...")
         restarted = False
         if cfg.get("restart_cmd"):
-            restarted = restart_node(name, cfg["restart_cmd"])
+            restarted = restart_node(name, cfg["restart_cmd"]) 
         if restarted:
             msg = f"🔧 {name} était hors ligne, redémarrage lancé avec succès."
         else:
@@ -114,18 +104,11 @@ def check_and_heal() -> None:
         else:
             send_telegram(f"❌ {name} reste indisponible après redémarrage.")
 
-
 def main():
     parser = argparse.ArgumentParser(description="Auto‑healer du cluster IA.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--once",
-        action="store_true",
-        help="Vérifier et réparer une fois.")
-    group.add_argument(
-        "--loop",
-        action="store_true",
-        help="Boucler toutes les 5 min.")
+    group.add_argument("--once", action="store_true", help="Vérifier et réparer une fois.")
+    group.add_argument("--loop", action="store_true", help="Boucler toutes les 5 min.")
     args = parser.parse_args()
 
     if args.once:
@@ -138,7 +121,6 @@ def main():
                 time.sleep(300)  # 5 minutes
         except KeyboardInterrupt:
             print("[auto_healer] Arrêt du mode boucle.")
-
 
 if __name__ == "__main__":
     main()

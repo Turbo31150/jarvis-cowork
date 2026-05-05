@@ -22,33 +22,7 @@ Usage:
 Stdlib-only. No external dependencies.
 """
 
-from multi_strategy_scanner import (
-    precompute_indicators,
-    run_single_strategy,
-    fetch_klines,
-    assess_coin_quality,
-    fetch_top_coins,
-    init_db as init_scanner_db,
-    ema,
-    sma,
-    rsi,
-    stochastic,
-    atr,
-    macd,
-    bollinger,
-    vwap_calc,
-    adx_calc,
-    obv_calc)
-import argparse
-import json
-import math
-import os
-import random
-import sqlite3
-import sys
-import time
-import urllib.request
-import urllib.parse
+import argparse, json, math, os, random, sqlite3, sys, time, urllib.request, urllib.parse
 from datetime import datetime
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -63,6 +37,11 @@ LOG_FILE = DATA_DIR / "evolution_loop.log"
 
 # Import engine from multi_strategy_scanner
 sys.path.insert(0, str(TURBO_ROOT / "scripts"))
+from multi_strategy_scanner import (
+    precompute_indicators, run_single_strategy, fetch_klines,
+    assess_coin_quality, fetch_top_coins, init_db as init_scanner_db,
+    ema, sma, rsi, stochastic, atr, macd, bollinger, vwap_calc, adx_calc, obv_calc
+)
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
@@ -142,7 +121,6 @@ def log_event(db, event, detail=""):
 def _alerts_enabled():
     return not (TURBO_ROOT / "data" / ".trading_alerts_off").exists()
 
-
 def send_telegram(text):
     if not _alerts_enabled():
         return
@@ -156,10 +134,10 @@ def send_telegram(text):
         urllib.request.urlopen(req, timeout=10)
     except Exception:
         try:
-            data2 = urllib.parse.urlencode(
-                {"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
+            data2 = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
             req2 = urllib.request.Request(
-                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data2)
+                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", data2
+            )
             urllib.request.urlopen(req2, timeout=10)
         except Exception:
             pass
@@ -171,23 +149,23 @@ def send_telegram(text):
 
 # Parameter ranges for mutation
 PARAM_RANGES = {
-    "ema_s": (2, 20, "int"),
-    "ema_l": (8, 60, "int"),
-    "rsi_len": (5, 21, "int"),
-    "rsi_ob": (55, 85, "int"),
-    "rsi_os": (15, 45, "int"),
-    "tp": (0.3, 4.0, "float"),
-    "sl": (0.3, 3.0, "float"),
+    "ema_s":     (2, 20, "int"),
+    "ema_l":     (8, 60, "int"),
+    "rsi_len":   (5, 21, "int"),
+    "rsi_ob":    (55, 85, "int"),
+    "rsi_os":    (15, 45, "int"),
+    "tp":        (0.3, 4.0, "float"),
+    "sl":        (0.3, 3.0, "float"),
     "stoch_len": (5, 30, "int"),
-    "stoch_hi": (60, 95, "int"),
-    "stoch_lo": (5, 40, "int"),
-    "adx_min": (10, 40, "int"),
-    "vol_mult": (1.0, 4.0, "float"),
+    "stoch_hi":  (60, 95, "int"),
+    "stoch_lo":  (5, 40, "int"),
+    "adx_min":   (10, 40, "int"),
+    "vol_mult":  (1.0, 4.0, "float"),
     "bb_period": (10, 30, "int"),
-    "bb_std": (1.0, 3.5, "float"),
+    "bb_std":    (1.0, 3.5, "float"),
     "macd_fast": (3, 15, "int"),
     "macd_slow": (15, 35, "int"),
-    "macd_sig": (3, 12, "int"),
+    "macd_sig":  (3, 12, "int"),
     "trail_atr": (0.3, 2.5, "float"),
 }
 
@@ -209,9 +187,7 @@ def random_dna():
 
     # Ensure ema_s < ema_l
     if dna["ema_s"] >= dna["ema_l"]:
-        dna["ema_s"], dna["ema_l"] = min(
-            dna["ema_s"], dna["ema_l"]), max(
-            dna["ema_s"], dna["ema_l"]) + 2
+        dna["ema_s"], dna["ema_l"] = min(dna["ema_s"], dna["ema_l"]), max(dna["ema_s"], dna["ema_l"]) + 2
 
     # Ensure rsi_os < rsi_ob
     if dna["rsi_os"] >= dna["rsi_ob"]:
@@ -233,23 +209,20 @@ def random_dna():
     return dna
 
 
-VALID_EMA_PERIODS = [3, 5, 8, 10, 12, 13, 15, 20, 21, 26, 30, 34, 40, 50]
+VALID_EMA_PERIODS = [3,5,8,10,12,13,15,20,21,26,30,34,40,50]
 VALID_RSI_PERIODS = [7, 10, 14]
 VALID_STOCH_PERIODS = [9, 14, 21]
-VALID_MACD_CONFIGS = [(8, 17, 9), (12, 26, 9), (5, 13, 5)]
-
+VALID_MACD_CONFIGS = [(8,17,9),(12,26,9),(5,13,5)]
 
 def _nearest(val, valid):
     return min(valid, key=lambda x: abs(x - val))
-
 
 def dna_to_strategy(dna, sid, name, group="GEN"):
     """Convert DNA dict to strategy dict for the engine. Clamps to pre-computed values."""
     ema_s = _nearest(dna["ema_s"], VALID_EMA_PERIODS)
     ema_l = _nearest(dna["ema_l"], [p for p in VALID_EMA_PERIODS if p > ema_s])
     if ema_l <= ema_s:
-        ema_l = VALID_EMA_PERIODS[VALID_EMA_PERIODS.index(
-            ema_s) + 1] if ema_s in VALID_EMA_PERIODS and VALID_EMA_PERIODS.index(ema_s) + 1 < len(VALID_EMA_PERIODS) else ema_s + 5
+        ema_l = VALID_EMA_PERIODS[VALID_EMA_PERIODS.index(ema_s) + 1] if ema_s in VALID_EMA_PERIODS and VALID_EMA_PERIODS.index(ema_s) + 1 < len(VALID_EMA_PERIODS) else ema_s + 5
 
     params = {
         "ema_s": ema_s, "ema_l": ema_l,
@@ -263,13 +236,8 @@ def dna_to_strategy(dna, sid, name, group="GEN"):
     }
     if dna.get("use_macd"):
         # Snap to nearest valid MACD config
-        target = (
-            dna.get(
-                "macd_fast", 12), dna.get(
-                "macd_slow", 26), dna.get(
-                "macd_sig", 9))
-        best_cfg = min(VALID_MACD_CONFIGS, key=lambda c: abs(
-            c[0] - target[0]) + abs(c[1] - target[1]))
+        target = (dna.get("macd_fast", 12), dna.get("macd_slow", 26), dna.get("macd_sig", 9))
+        best_cfg = min(VALID_MACD_CONFIGS, key=lambda c: abs(c[0]-target[0])+abs(c[1]-target[1]))
         params["use_macd"] = True
         params["macd_fast"] = best_cfg[0]
         params["macd_slow"] = best_cfg[1]
@@ -310,11 +278,7 @@ def mutate(dna, rate=MUTATION_RATE):
                 child[param] = max(lo, min(hi, dna.get(param, lo) + delta))
             else:
                 delta = random.uniform(-0.3, 0.3)
-                child[param] = max(
-                    lo, min(
-                        hi, round(
-                            dna.get(
-                                param, lo) + delta, 2)))
+                child[param] = max(lo, min(hi, round(dna.get(param, lo) + delta, 2)))
 
     # Mutate feature flags (10% chance each)
     for f in FEATURE_FLAGS:
@@ -374,9 +338,7 @@ def seed_from_existing():
         for param in PARAM_RANGES:
             if param not in dna:
                 dna[param] = PARAM_RANGES[param][0]
-        seeds.append({"dna": dna,
-                      "origin": f"R1:{s['name']}",
-                      "group": s["group"]})
+        seeds.append({"dna": dna, "origin": f"R1:{s['name']}", "group": s["group"]})
 
     # Import from strategy_optimizer R2 strategies
     try:
@@ -389,9 +351,7 @@ def seed_from_existing():
             for param in PARAM_RANGES:
                 if param not in dna:
                     dna[param] = PARAM_RANGES[param][0]
-            seeds.append({"dna": dna,
-                          "origin": f"R2:{s['name']}",
-                          "group": s["group"]})
+            seeds.append({"dna": dna, "origin": f"R2:{s['name']}", "group": s["group"]})
     except Exception:
         pass
 
@@ -406,7 +366,7 @@ def build_initial_population(target_size):
     seeds = seed_from_existing()
     for s in seeds:
         pop.append({"dna": s["dna"], "lineage": s["origin"], "fitness": 0,
-                    "evals": 0, "avg_wr": 0, "avg_pnl": 0})
+                     "evals": 0, "avg_wr": 0, "avg_pnl": 0})
 
     print(f"  Seeds imported: {len(pop)} (R1+R2)")
 
@@ -414,18 +374,14 @@ def build_initial_population(target_size):
     while len(pop) < target_size:
         parent = random.choice(seeds)
         child_dna = mutate(parent["dna"], rate=0.4)
-        pop.append({"dna": child_dna,
-                    "lineage": f"MUT:{parent['origin'][:20]}",
-                    "fitness": 0,
-                    "evals": 0,
-                    "avg_wr": 0,
-                    "avg_pnl": 0})
+        pop.append({"dna": child_dna, "lineage": f"MUT:{parent['origin'][:20]}",
+                     "fitness": 0, "evals": 0, "avg_wr": 0, "avg_pnl": 0})
 
     # 3. Some pure random explorers (10%)
     n_random = max(10, target_size // 10)
     for _ in range(n_random):
         pop.append({"dna": random_dna(), "lineage": "RANDOM",
-                    "fitness": 0, "evals": 0, "avg_wr": 0, "avg_pnl": 0})
+                     "fitness": 0, "evals": 0, "avg_wr": 0, "avg_pnl": 0})
 
     return pop[:target_size]
 
@@ -450,17 +406,14 @@ def compute_fitness(trades):
     # Sharpe proxy: avg_pnl / std_pnl
     pnls = [t["pnl"] for t in closed]
     mean_pnl = sum(pnls) / len(pnls)
-    std_pnl = math.sqrt(sum((p - mean_pnl)**2 for p in pnls) /
-                        len(pnls)) if len(pnls) > 1 else 1
+    std_pnl = math.sqrt(sum((p - mean_pnl)**2 for p in pnls) / len(pnls)) if len(pnls) > 1 else 1
     sharpe = mean_pnl / std_pnl if std_pnl > 0 else 0
 
     # Direction stats
     longs = [t for t in closed if t["dir"] == "LONG"]
     shorts = [t for t in closed if t["dir"] == "SHORT"]
-    long_wr = len([t for t in longs if t["result"] == "TP"]) / \
-        len(longs) * 100 if longs else 0
-    short_wr = len([t for t in shorts if t["result"] == "TP"]
-                   ) / len(shorts) * 100 if shorts else 0
+    long_wr = len([t for t in longs if t["result"] == "TP"]) / len(longs) * 100 if longs else 0
+    short_wr = len([t for t in shorts if t["result"] == "TP"]) / len(shorts) * 100 if shorts else 0
 
     # Composite fitness
     wr_norm = min(wr / 100, 1.0)
@@ -514,11 +467,9 @@ def evaluate_population(population, coins_data, gen_num):
                     best_coin = sym
 
         if coin_fitnesses:
-            avg_fitness = sum(f["fitness"]
-                              for f in coin_fitnesses) / len(coin_fitnesses)
+            avg_fitness = sum(f["fitness"] for f in coin_fitnesses) / len(coin_fitnesses)
             avg_wr = sum(f["wr"] for f in coin_fitnesses) / len(coin_fitnesses)
-            avg_pnl = sum(f["pnl"]
-                          for f in coin_fitnesses) / len(coin_fitnesses)
+            avg_pnl = sum(f["pnl"] for f in coin_fitnesses) / len(coin_fitnesses)
             total_trades = sum(f["trades"] for f in coin_fitnesses)
         else:
             avg_fitness = -1
@@ -591,7 +542,7 @@ def evolve_population(population, gen_num):
     for i in range(n_random):
         if i < len(next_gen):
             # Replace worst slots
-            next_gen[-(i + 1)] = {
+            next_gen[-(i+1)] = {
                 "dna": random_dna(), "lineage": f"RANDOM:G{gen_num}",
                 "fitness": 0, "evals": 0, "avg_wr": 0, "avg_pnl": 0
             }
@@ -656,47 +607,22 @@ def fetch_and_cache_coins(symbols):
 #  PERSISTENCE — Save/Load population
 # ═══════════════════════════════════════════════════════════════════════
 
-def save_generation(
-        db,
-        gen_num,
-        population,
-        elapsed,
-        mutations,
-        crossovers,
-        coins_tested):
+def save_generation(db, gen_num, population, elapsed, mutations, crossovers, coins_tested):
     """Save generation results to DB."""
     ranked = sorted(population, key=lambda x: x["fitness"], reverse=True)
     best = ranked[0] if ranked else None
-    avg_fit = sum(s["fitness"] for s in population) / \
-        len(population) if population else 0
+    avg_fit = sum(s["fitness"] for s in population) / len(population) if population else 0
 
-    db.execute(
-        """INSERT INTO generations
+    db.execute("""INSERT INTO generations
         (timestamp, generation, pop_size, coins_tested, avg_fitness, best_fitness,
          best_strategy, best_wr, best_pnl, mutations, crossovers, elapsed_sec)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-        (datetime.now().isoformat(),
-         gen_num,
-         len(population),
-         coins_tested,
-         round(
-            avg_fit,
-            4),
-            best["fitness"] if best else 0,
-            json.dumps(
-            best["dna"])[
-                :200] if best else "",
-            best.get(
-            "avg_wr",
-            0) if best else 0,
-            best.get(
-            "avg_pnl",
-            0) if best else 0,
-            mutations,
-            crossovers,
-            round(
-            elapsed,
-            1)))
+        (datetime.now().isoformat(), gen_num, len(population), coins_tested,
+         round(avg_fit, 4), best["fitness"] if best else 0,
+         json.dumps(best["dna"])[:200] if best else "",
+         best.get("avg_wr", 0) if best else 0,
+         best.get("avg_pnl", 0) if best else 0,
+         mutations, crossovers, round(elapsed, 1)))
 
     # Save top strategies
     for idx, s in enumerate(ranked[:100]):
@@ -704,12 +630,12 @@ def save_generation(
             (gen_born, gen_last_seen, name, dna, fitness, total_evals,
              avg_wr, avg_pnl, best_coin, best_pnl_coin, alive, lineage)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                   (gen_num, gen_num, f"G{gen_num}_R{idx}",
-                    json.dumps(s["dna"]), s["fitness"], s.get("evals", 1),
-                    s.get("avg_wr", 0), s.get("avg_pnl", 0),
-                       s.get("best_coin", ""), s.get("best_coin_pnl", 0),
-                       1 if idx < len(ranked) * SURVIVOR_PCT else 0,
-                       s.get("lineage", "")))
+            (gen_num, gen_num, f"G{gen_num}_R{idx}",
+             json.dumps(s["dna"]), s["fitness"], s.get("evals", 1),
+             s.get("avg_wr", 0), s.get("avg_pnl", 0),
+             s.get("best_coin", ""), s.get("best_coin_pnl", 0),
+             1 if idx < len(ranked) * SURVIVOR_PCT else 0,
+             s.get("lineage", "")))
 
     db.commit()
 
@@ -744,39 +670,29 @@ def load_last_population(db, target_size):
 def print_gen_summary(gen_num, population, coins_tested, elapsed):
     """Print generation summary."""
     ranked = sorted(population, key=lambda x: x["fitness"], reverse=True)
-    avg_fit = sum(s["fitness"] for s in population) / \
-        len(population) if population else 0
-    avg_wr = sum(s.get("avg_wr", 0) for s in population) / \
-        len(population) if population else 0
-    avg_pnl = sum(s.get("avg_pnl", 0) for s in population) / \
-        len(population) if population else 0
+    avg_fit = sum(s["fitness"] for s in population) / len(population) if population else 0
+    avg_wr = sum(s.get("avg_wr", 0) for s in population) / len(population) if population else 0
+    avg_pnl = sum(s.get("avg_pnl", 0) for s in population) / len(population) if population else 0
     positive = sum(1 for s in population if s.get("avg_pnl", 0) > 0)
 
     top5 = ranked[:5]
     ts = datetime.now().strftime("%H:%M:%S")
 
-    print(f"\n{'=' * 75}")
+    print(f"\n{'='*75}")
     print(f"  GEN #{gen_num} — {ts} — {elapsed:.0f}s — {coins_tested} coins")
-    print(f"{'=' * 75}")
-    print(
-        f"  Pop: {
-            len(population)} | Avg Fitness: {
-            avg_fit:.4f} | Avg WR: {
-                avg_wr:.1f}% | Avg PnL: {
-                    avg_pnl:+.3f}%")
-    print(
-        f"  Profitable: {positive}/{len(population)} ({positive / len(population) * 100:.0f}%)")
+    print(f"{'='*75}")
+    print(f"  Pop: {len(population)} | Avg Fitness: {avg_fit:.4f} | Avg WR: {avg_wr:.1f}% | Avg PnL: {avg_pnl:+.3f}%")
+    print(f"  Profitable: {positive}/{len(population)} ({positive/len(population)*100:.0f}%)")
     print()
     print(f"  TOP 5:")
     for i, s in enumerate(top5):
         features = [f for f in FEATURE_FLAGS if s["dna"].get(f)]
-        feat_str = "+".join(f.replace("use_", "")
-                            for f in features[:3]) or "base"
-        print(f"    #{i + 1} Fit:{s['fitness']:.4f} WR:{s.get('avg_wr', 0):.1f}% "
-              f"PnL:{s.get('avg_pnl', 0):+.3f}% | "
+        feat_str = "+".join(f.replace("use_","") for f in features[:3]) or "base"
+        print(f"    #{i+1} Fit:{s['fitness']:.4f} WR:{s.get('avg_wr',0):.1f}% "
+              f"PnL:{s.get('avg_pnl',0):+.3f}% | "
               f"EMA {s['dna']['ema_s']}/{s['dna']['ema_l']} RSI {s['dna']['rsi_len']} "
               f"TP:{s['dna']['tp']} SL:{s['dna']['sl']} | {feat_str}")
-    print(f"{'=' * 75}")
+    print(f"{'='*75}")
 
 
 def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
@@ -785,8 +701,7 @@ def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
     db = init_evolution_db()
 
     # Check for resume
-    last_gen = db.execute(
-        "SELECT MAX(generation) FROM generations").fetchone()[0] or 0
+    last_gen = db.execute("SELECT MAX(generation) FROM generations").fetchone()[0] or 0
     start_gen = last_gen + 1
 
     # Build or resume population
@@ -796,8 +711,7 @@ def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
         if len(population) < pop_size:
             # Fill remaining with mutations of best
             while len(population) < pop_size:
-                parent = random.choice(
-                    population[:max(1, len(population) // 3)])
+                parent = random.choice(population[:max(1, len(population)//3)])
                 population.append({
                     "dna": mutate(parent["dna"]),
                     "lineage": f"FILL:G{start_gen}",
@@ -805,8 +719,7 @@ def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
                 })
         print(f"  Resumed with {len(population)} strategies")
     else:
-        print(
-            f"[INIT] Building initial population of {pop_size} strategies...")
+        print(f"[INIT] Building initial population of {pop_size} strategies...")
         population = build_initial_population(pop_size)
         print(f"  Population ready: {len(population)} strategies")
 
@@ -827,8 +740,7 @@ def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
 
         # 1. Select coins
         symbols = select_coins_for_gen(gen)
-        print(
-            f"  Coins: {len(symbols)} — {', '.join(symbols[:5])}{'...' if len(symbols) > 5 else ''}")
+        print(f"  Coins: {len(symbols)} — {', '.join(symbols[:5])}{'...' if len(symbols)>5 else ''}")
 
         # 2. Fetch data
         print(f"  Fetching {len(symbols)} coins...")
@@ -841,10 +753,7 @@ def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
             continue
 
         # 3. Evaluate
-        print(
-            f"  Evaluating {
-                len(population)} strategies on {
-                len(coins_data)} coins...")
+        print(f"  Evaluating {len(population)} strategies on {len(coins_data)} coins...")
         population = evaluate_population(population, coins_data, gen)
 
         elapsed = time.time() - t0
@@ -861,10 +770,8 @@ def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
 
         # 6. Evolve for next gen
         if gen < end_gen - 1:
-            population, mutations_count, crossovers_count = evolve_population(
-                population, gen)
-            print(
-                f"  Evolution: {mutations_count} mutations, {crossovers_count} crossovers")
+            population, mutations_count, crossovers_count = evolve_population(population, gen)
+            print(f"  Evolution: {mutations_count} mutations, {crossovers_count} crossovers")
 
         # 7. Telegram summary every 5 gens
         if gen % 5 == 0 or single:
@@ -874,28 +781,20 @@ def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
                    f"Pop: {len(population)} | Coins: {len(coins_data)}\n"
                    f"Avg Fitness: {avg_fit:.4f}\n")
             if best:
-                msg += (f"Best: WR {best.get('avg_wr', 0):.1f}% PnL {best.get('avg_pnl', 0):+.3f}%\n"
+                msg += (f"Best: WR {best.get('avg_wr',0):.1f}% PnL {best.get('avg_pnl',0):+.3f}%\n"
                         f"EMA {best['dna']['ema_s']}/{best['dna']['ema_l']} "
                         f"TP:{best['dna']['tp']} SL:{best['dna']['sl']}")
             send_telegram(msg)
 
-        gen_avg_fit = sum(s["fitness"] for s in population) / \
-            len(population) if population else 0
-        log_event(
-            db,
-            f"GEN_{gen}_DONE",
-            f"fit={
-                gen_avg_fit:.4f} best_wr={
-                ranked[0].get(
-                    'avg_wr',
-                    0):.1f}% " f"elapsed={
-                    elapsed:.0f}s")
+        gen_avg_fit = sum(s["fitness"] for s in population) / len(population) if population else 0
+        log_event(db, f"GEN_{gen}_DONE",
+                  f"fit={gen_avg_fit:.4f} best_wr={ranked[0].get('avg_wr',0):.1f}% "
+                  f"elapsed={elapsed:.0f}s")
 
         # Wait between generations (if continuous)
         if not single and gen < end_gen - 1:
             wait = SCAN_INTERVAL_MIN * 60
-            print(
-                f"\n  Waiting {SCAN_INTERVAL_MIN}min before next generation...")
+            print(f"\n  Waiting {SCAN_INTERVAL_MIN}min before next generation...")
             time.sleep(wait)
 
     # Final summary
@@ -909,22 +808,13 @@ def run_evolution(pop_size=DEFAULT_POP_SIZE, max_gens=MAX_GENERATIONS,
     print("=" * 75)
     for r in best_ever:
         dna = json.loads(r["dna"])
-        print(
-            f"  {
-                r['name']:<20} Fit:{
-                r['fitness']:.4f} WR:{
-                r['avg_wr']:.1f}% " f"PnL:{
-                    r['avg_pnl']:+.3f}% | EMA {
-                        dna['ema_s']}/{
-                            dna['ema_l']} " f"TP:{
-                                dna['tp']} SL:{
-                                    dna['sl']} | {
-                                        r['lineage']}")
+        print(f"  {r['name']:<20} Fit:{r['fitness']:.4f} WR:{r['avg_wr']:.1f}% "
+              f"PnL:{r['avg_pnl']:+.3f}% | EMA {dna['ema_s']}/{dna['ema_l']} "
+              f"TP:{dna['tp']} SL:{dna['sl']} | {r['lineage']}")
 
-    send_telegram(
-        f"<b>EVOLUTION COMPLETE</b>\n" f"Best: WR {
-            best_ever[0]['avg_wr']:.1f}% PnL {
-            best_ever[0]['avg_pnl']:+.3f}%" if best_ever else "No results")
+    send_telegram(f"<b>EVOLUTION COMPLETE</b>\n"
+                  f"Best: WR {best_ever[0]['avg_wr']:.1f}% PnL {best_ever[0]['avg_pnl']:+.3f}%"
+                  if best_ever else "No results")
 
     db_final.close()
 
@@ -938,13 +828,10 @@ def show_status():
     db = sqlite3.connect(str(EVOLUTION_DB), timeout=10)
     db.row_factory = sqlite3.Row
 
-    last_gen = db.execute(
-        "SELECT * FROM generations ORDER BY id DESC LIMIT 1").fetchone()
+    last_gen = db.execute("SELECT * FROM generations ORDER BY id DESC LIMIT 1").fetchone()
     total_gens = db.execute("SELECT COUNT(*) FROM generations").fetchone()[0]
-    total_strats = db.execute(
-        "SELECT COUNT(*) FROM strategies WHERE alive=1").fetchone()[0]
-    best = db.execute(
-        "SELECT * FROM strategies ORDER BY fitness DESC LIMIT 5").fetchall()
+    total_strats = db.execute("SELECT COUNT(*) FROM strategies WHERE alive=1").fetchone()[0]
+    best = db.execute("SELECT * FROM strategies ORDER BY fitness DESC LIMIT 5").fetchall()
 
     print("=" * 75)
     print("  EVOLUTION STATUS")
@@ -952,12 +839,8 @@ def show_status():
 
     if last_gen:
         print(f"  Generations: {total_gens}")
-        print(
-            f"  Last gen: #{last_gen['generation']} ({last_gen['timestamp'][:19]})")
-        print(
-            f"  Pop size: {
-                last_gen['pop_size']} | Coins: {
-                last_gen['coins_tested']}")
+        print(f"  Last gen: #{last_gen['generation']} ({last_gen['timestamp'][:19]})")
+        print(f"  Pop size: {last_gen['pop_size']} | Coins: {last_gen['coins_tested']}")
         print(f"  Avg fitness: {last_gen['avg_fitness']:.4f}")
         print(f"  Best fitness: {last_gen['best_fitness']:.4f}")
         print(f"  Active strategies: {total_strats}")
@@ -967,27 +850,17 @@ def show_status():
         for r in best:
             dna = json.loads(r["dna"])
             features = [f for f in FEATURE_FLAGS if dna.get(f)]
-            feat_str = "+".join(f.replace("use_", "")
-                                for f in features[:3]) or "base"
-            print(
-                f"    {
-                    r['name']:<20} Fit:{
-                    r['fitness']:.4f} WR:{
-                    r['avg_wr']:.1f}% " f"PnL:{
-                    r['avg_pnl']:+.3f}% | " f"EMA {
-                        dna['ema_s']}/{
-                            dna['ema_l']} TP:{
-                                dna['tp']} SL:{
-                                    dna['sl']} | {feat_str}")
+            feat_str = "+".join(f.replace("use_","") for f in features[:3]) or "base"
+            print(f"    {r['name']:<20} Fit:{r['fitness']:.4f} WR:{r['avg_wr']:.1f}% "
+                  f"PnL:{r['avg_pnl']:+.3f}% | "
+                  f"EMA {dna['ema_s']}/{dna['ema_l']} TP:{dna['tp']} SL:{dna['sl']} | {feat_str}")
 
     # Recent events
-    events = db.execute(
-        "SELECT * FROM evolution_log ORDER BY id DESC LIMIT 5").fetchall()
+    events = db.execute("SELECT * FROM evolution_log ORDER BY id DESC LIMIT 5").fetchall()
     if events:
         print(f"\n  RECENT EVENTS:")
         for e in events:
-            print(
-                f"    [{e['timestamp'][:19]}] {e['event']}: {e['detail'][:60]}")
+            print(f"    [{e['timestamp'][:19]}] {e['event']}: {e['detail'][:60]}")
 
     print("=" * 75)
     db.close()
@@ -996,27 +869,17 @@ def show_status():
 def main():
     global COINS_PER_GEN, SCAN_INTERVAL_MIN
 
-    parser = argparse.ArgumentParser(
-        description="Strategy Evolution Loop — Autonomous")
+    parser = argparse.ArgumentParser(description="Strategy Evolution Loop — Autonomous")
     parser.add_argument("--pop", type=int, default=DEFAULT_POP_SIZE,
                         help=f"Population size (default {DEFAULT_POP_SIZE})")
     parser.add_argument("--generations", type=int, default=MAX_GENERATIONS,
                         help=f"Max generations (default {MAX_GENERATIONS})")
     parser.add_argument("--coins", type=int, default=COINS_PER_GEN,
                         help=f"Coins per generation (default {COINS_PER_GEN})")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=SCAN_INTERVAL_MIN,
-        help=f"Minutes between gens (default {SCAN_INTERVAL_MIN})")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run single generation")
-    parser.add_argument(
-        "--status",
-        action="store_true",
-        help="Show current status")
+    parser.add_argument("--interval", type=int, default=SCAN_INTERVAL_MIN,
+                        help=f"Minutes between gens (default {SCAN_INTERVAL_MIN})")
+    parser.add_argument("--once", action="store_true", help="Run single generation")
+    parser.add_argument("--status", action="store_true", help="Show current status")
     args = parser.parse_args()
 
     if args.status:
@@ -1034,9 +897,7 @@ def main():
     print("  STRATEGY EVOLUTION LOOP — JARVIS AUTONOMOUS")
     print("=" * 75)
     print(f"  Population:    {args.pop}")
-    print(
-        f"  Generations:   {
-            '1 (single)' if args.once else args.generations}")
+    print(f"  Generations:   {'1 (single)' if args.once else args.generations}")
     print(f"  Coins/gen:     {COINS_PER_GEN}")
     print(f"  Interval:      {SCAN_INTERVAL_MIN}min")
     print(f"  DB:            {EVOLUTION_DB}")

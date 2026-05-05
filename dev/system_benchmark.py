@@ -41,8 +41,7 @@ from pathlib import Path
 # Configuration des références de performance (benchmark values)
 # ---------------------------------------------------------------------------
 CPU_PRIME_LIMIT = 20000          # recherche de nombres premiers jusqu'à ce nombre
-# secondes attendues pour la référence (score 100)
-CPU_REF_TIME = 2.0
+CPU_REF_TIME = 2.0               # secondes attendues pour la référence (score 100)
 
 RAM_ALLOC_MB = 200               # taille à allouer en mégaoctets
 RAM_REF_TIME = 0.5               # secondes attendues pour la référence
@@ -58,7 +57,6 @@ DB_PATH = Path(__file__).with_name("benchmark.db")
 # ---------------------------------------------------------------------------
 # SQLite helpers
 # ---------------------------------------------------------------------------
-
 
 def init_db(conn: sqlite3.Connection):
     cur = conn.cursor()
@@ -82,28 +80,19 @@ def init_db(conn: sqlite3.Connection):
     )
     conn.commit()
 
-
 def insert_run(conn: sqlite3.Connection, data: dict):
     cur = conn.cursor()
     cur.execute(
         """INSERT INTO runs (ts, cpu_time, cpu_score, ram_time, ram_score, "
         "disk_write_speed, disk_read_speed, disk_score, net_speed, net_score, overall_score) "
         "VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-        (data["ts"],
-         data["cpu_time"],
-         data["cpu_score"],
-         data["ram_time"],
-         data["ram_score"],
-         data["disk_write_speed"],
-         data["disk_read_speed"],
-         data["disk_score"],
-         data["net_speed"],
-         data["net_score"],
-         data["overall_score"],
-         ),
+        (
+            data["ts"], data["cpu_time"], data["cpu_score"], data["ram_time"], data["ram_score"],
+            data["disk_write_speed"], data["disk_read_speed"], data["disk_score"],
+            data["net_speed"], data["net_score"], data["overall_score"],
+        ),
     )
     conn.commit()
-
 
 def fetch_all(conn: sqlite3.Connection):
     cur = conn.cursor()
@@ -113,7 +102,6 @@ def fetch_all(conn: sqlite3.Connection):
 # ---------------------------------------------------------------------------
 # Benchmark primitives
 # ---------------------------------------------------------------------------
-
 
 def benchmark_cpu() -> tuple[float, int]:
     """Calculate primes up to CPU_PRIME_LIMIT and return execution time + score."""
@@ -130,11 +118,9 @@ def benchmark_cpu() -> tuple[float, int]:
         if is_prime:
             primes.append(n)
     elapsed = time.time() - start
-    # Simple linear scoring: faster than ref => 100, slower proportionally
-    # down to 0
+    # Simple linear scoring: faster than ref => 100, slower proportionally down to 0
     score = max(0, int(100 * (CPU_REF_TIME / elapsed)))
     return elapsed, score
-
 
 def benchmark_ram() -> tuple[float, int]:
     """Allocate a large list, fill it, then release – measure time and score."""
@@ -147,7 +133,6 @@ def benchmark_ram() -> tuple[float, int]:
     elapsed = time.time() - start
     score = max(0, int(100 * (RAM_REF_TIME / elapsed)))
     return elapsed, score
-
 
 def benchmark_disk() -> tuple[float, float, float, int]:
     """Write and read a temporary file; return write speed, read speed and score."""
@@ -175,7 +160,6 @@ def benchmark_disk() -> tuple[float, float, float, int]:
     score = max(0, int(100 * (avg_speed / DISK_REF_SPEED)))
     return write_speed, read_speed, avg_speed, score
 
-
 def benchmark_network() -> tuple[float, int]:
     """Download a small file and compute download speed (MiB/s)."""
     start = time.time()
@@ -195,7 +179,6 @@ def benchmark_network() -> tuple[float, int]:
 # Overall orchestration
 # ---------------------------------------------------------------------------
 
-
 def run_benchmark():
     ts = datetime.utcnow().isoformat() + "Z"
     print("[system_benchmark] Démarrage du benchmark…")
@@ -204,8 +187,7 @@ def run_benchmark():
     ram_t, ram_s = benchmark_ram()
     print(f"RAM : {ram_t:.2f}s -> score {ram_s}")
     dw, dr, avg, disk_s = benchmark_disk()
-    print(
-        f"DISK : write {dw:.1f} MiB/s, read {dr:.1f} MiB/s -> score {disk_s}")
+    print(f"DISK : write {dw:.1f} MiB/s, read {dr:.1f} MiB/s -> score {disk_s}")
     net_speed, net_s = benchmark_network()
     print(f"NETWORK : {net_speed:.2f} MiB/s -> score {net_s}")
     # Overall simple average of the five scores
@@ -230,7 +212,6 @@ def run_benchmark():
     conn.close()
     print("[system_benchmark] Benchmark enregistré.")
 
-
 def show_history():
     conn = sqlite3.connect(str(DB_PATH))
     init_db(conn)
@@ -240,16 +221,10 @@ def show_history():
         print("[system_benchmark] Aucun résultat enregistré.")
         return
     for row in rows:
-        (rid, ts, cpu_t, cpu_s, ram_t, ram_s, dw,
-         dr, disk_s, net_sp, net_s, overall) = row
-        print(
-            f"{ts} – CPU {cpu_s} (t={
-                cpu_t:.2f}s), RAM {ram_s} (t={
-                ram_t:.2f}s), " f"DISK {disk_s} (W={
-                dw:.1f} MiB/s R={
-                    dr:.1f} MiB/s), NET {net_s} (t={
-                        net_sp:.2f} MiB/s), " f"OVERALL {overall}")
-
+        (rid, ts, cpu_t, cpu_s, ram_t, ram_s, dw, dr, disk_s, net_sp, net_s, overall) = row
+        print(f"{ts} – CPU {cpu_s} (t={cpu_t:.2f}s), RAM {ram_s} (t={ram_t:.2f}s), "
+              f"DISK {disk_s} (W={dw:.1f} MiB/s R={dr:.1f} MiB/s), NET {net_s} (t={net_sp:.2f} MiB/s), "
+              f"OVERALL {overall}")
 
 def compare_best():
     conn = sqlite3.connect(str(DB_PATH))
@@ -276,22 +251,12 @@ def compare_best():
 # CLI entry point
 # ---------------------------------------------------------------------------
 
-
 def main():
     parser = argparse.ArgumentParser(description="Benchmark système complet.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--run",
-        action="store_true",
-        help="Exécuter le benchmark complet")
-    group.add_argument(
-        "--history",
-        action="store_true",
-        help="Afficher l'historique des benchmarks")
-    group.add_argument(
-        "--compare",
-        action="store_true",
-        help="Comparer les meilleurs scores")
+    group.add_argument("--run", action="store_true", help="Exécuter le benchmark complet")
+    group.add_argument("--history", action="store_true", help="Afficher l'historique des benchmarks")
+    group.add_argument("--compare", action="store_true", help="Comparer les meilleurs scores")
     args = parser.parse_args()
 
     if args.run:
@@ -300,7 +265,6 @@ def main():
         show_history()
     elif args.compare:
         compare_best()
-
 
 if __name__ == "__main__":
     main()

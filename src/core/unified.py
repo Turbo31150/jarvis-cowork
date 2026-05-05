@@ -43,18 +43,26 @@ class UnifiedMemoryStore:
         try:
             conn = self.connect("etoile")
             cursor = conn.execute(
-                "SELECT agent_id, pattern_type, description FROM cowork_patterns"
+                "SELECT agent_id, pattern_type, description, keywords, priority, strategy FROM cowork_patterns"
             )
             rows = cursor.fetchall()
             conn.close()
             return [
-                {"agent_id": r[0], "pattern_type": r[1], "description": r[2]}
+                {
+                    "agent_id": r[0],
+                    "pattern_id": r[0],
+                    "pattern_type": r[1],
+                    "description": r[2],
+                    "keywords": r[3] or "",
+                    "priority": r[4] or 3,
+                    "strategy": r[5] or "single",
+                }
                 for r in rows
             ]
         except Exception:
             return []
 
-    def get_scripts_for_pattern(self, pattern_id: str) -> list[str]:
+    def get_scripts_for_pattern(self, pattern_id: str) -> list[dict]:
         try:
             conn = self.connect("etoile")
             cursor = conn.execute(
@@ -63,7 +71,7 @@ class UnifiedMemoryStore:
             )
             rows = cursor.fetchall()
             conn.close()
-            return [r[0] for r in rows]
+            return [{"script_name": r[0]} for r in rows]
         except Exception:
             return []
 

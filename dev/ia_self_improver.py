@@ -19,6 +19,7 @@ Usage :
 """
 
 import argparse
+from _paths import TURBO_DIR, TELEGRAM_TOKEN, TELEGRAM_CHAT
 import json
 import os
 import sqlite3
@@ -26,14 +27,12 @@ import sys
 import time
 import urllib.request
 
-TURBO_ROOT = "/home/turbo"
+TURBO_ROOT = str(TURBO_DIR)
 PROXY_URL = "http://127.0.0.1:18800"
 DB_PATH = os.path.join(TURBO_ROOT, "data", "etoile.db")
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT = "2010747443"
-REPORT_FILE = os.path.join(
-    os.path.dirname(__file__),
-    "SELF_IMPROVE_REPORT.json")
+# TELEGRAM_TOKEN loaded from _paths (.env)
+# TELEGRAM_CHAT loaded from _paths (.env)
+REPORT_FILE = os.path.join(os.path.dirname(__file__), "SELF_IMPROVE_REPORT.json")
 
 
 def get_cluster_metrics():
@@ -172,9 +171,7 @@ def notify_telegram(report):
 
     lines = [
         f"{emoji} *Self-Improve Report* — Score: {score}/100",
-        f"Noeuds: {
-            report['cluster_metrics']['nodes_online']}/{
-            report['cluster_metrics']['nodes_total']}",
+        f"Noeuds: {report['cluster_metrics']['nodes_online']}/{report['cluster_metrics']['nodes_total']}",
     ]
     if criticals:
         lines.append(f"🔴 {len(criticals)} critiques")
@@ -185,8 +182,7 @@ def notify_telegram(report):
 
     msg = "\n".join(lines)
     try:
-        body = json.dumps(
-            {"chat_id": TELEGRAM_CHAT, "text": msg, "parse_mode": "Markdown"}).encode()
+        body = json.dumps({"chat_id": TELEGRAM_CHAT, "text": msg, "parse_mode": "Markdown"}).encode()
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
             data=body, headers={"Content-Type": "application/json"},
@@ -206,17 +202,7 @@ def run_analysis():
 
     print("[2] Collecte metriques DB...")
     db = get_db_metrics()
-    print(
-        f"  Benchmarks: {
-            db.get(
-                'recent_benchmarks',
-                0)} | Health: {
-            db.get(
-                'health_records',
-                0)} | Consensus: {
-            db.get(
-                'consensus_count',
-                0)}")
+    print(f"  Benchmarks: {db.get('recent_benchmarks', 0)} | Health: {db.get('health_records', 0)} | Consensus: {db.get('consensus_count', 0)}")
 
     print("[3] Analyse performance...")
     recommendations = analyze_performance(metrics)
@@ -234,18 +220,9 @@ def run_analysis():
 
 def main():
     parser = argparse.ArgumentParser(description="IA Self-Improver")
-    parser.add_argument(
-        "--analyze",
-        action="store_true",
-        help="Analyse les metriques")
-    parser.add_argument(
-        "--report",
-        action="store_true",
-        help="Genere et envoie un rapport")
-    parser.add_argument(
-        "--loop",
-        action="store_true",
-        help="Boucle continue (15 min)")
+    parser.add_argument("--analyze", action="store_true", help="Analyse les metriques")
+    parser.add_argument("--report", action="store_true", help="Genere et envoie un rapport")
+    parser.add_argument("--loop", action="store_true", help="Boucle continue (15 min)")
     args = parser.parse_args()
 
     if args.loop:

@@ -31,10 +31,10 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 GAPS_DB = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 
 # Healing thresholds
 THRESHOLDS = {
@@ -268,8 +268,7 @@ def healing_cycle(dry_run=False):
         actions.append({**issue, "result": result})
 
         prefix = "[DRY]" if dry_run else "[FIX]"
-        print(
-            f"  {prefix} {issue['trigger']:20} {issue['target']:10} -> {result['detail']}")
+        print(f"  {prefix} {issue['trigger']:20} {issue['target']:10} -> {result['detail']}")
 
     grade_after = get_grade() if not dry_run else grade_before
 
@@ -321,11 +320,7 @@ def main():
     parser = argparse.ArgumentParser(description="Proactive Healer")
     parser.add_argument("--once", action="store_true", help="Single cycle")
     parser.add_argument("--watch", action="store_true", help="Continuous")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=10,
-        help="Interval (min)")
+    parser.add_argument("--interval", type=int, default=10, help="Interval (min)")
     parser.add_argument("--history", action="store_true", help="Show history")
     parser.add_argument("--dry-run", action="store_true", help="Dry run")
     args = parser.parse_args()
@@ -345,12 +340,8 @@ def main():
         ts = datetime.now().strftime("%H:%M:%S")
         print(f"[{ts}] Proactive healing {'(dry-run)' if args.dry_run else ''}...")
         summary = healing_cycle(dry_run=args.dry_run)
-        print(
-            f"\n  Issues: {
-                summary['issues_found']} | Actions: {
-                summary['actions_applied']}")
-        print(
-            f"  Grade: {summary['grade_before']:.1f} -> {summary['grade_after']:.1f}")
+        print(f"\n  Issues: {summary['issues_found']} | Actions: {summary['actions_applied']}")
+        print(f"  Grade: {summary['grade_before']:.1f} -> {summary['grade_after']:.1f}")
         return
 
     if args.watch:

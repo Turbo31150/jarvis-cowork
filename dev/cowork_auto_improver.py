@@ -30,7 +30,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR / "data"
 DB_PATH = DATA_DIR / "cowork_gaps.db"
-ETOILE_DB = Path(r"/home/turbo/etoile.db")
+from _paths import ETOILE_DB
 PYTHON = sys.executable
 
 
@@ -106,22 +106,14 @@ def gather_recommendations():
     if data:
         for sug in data.get("suggestions", []):
             for pat in sug.get("patterns_to_move", []):
-                improvements.append(
-                    {
-                        "type": "load_balance",
-                        "source": "load_balancer",
-                        "target": pat["pattern"],
-                        "action": f"rebalance:{
-                            sug['from']}->{
-                            sug['to']}",
-                        "details": f"Move {
-                            pat['pattern']} from {
-                            sug['from']} ({
-                            sug['from_load']}%) to {
-                                sug['to']} ({
-                                    sug['to_load']}%)",
-                        "priority": "medium",
-                    })
+                improvements.append({
+                    "type": "load_balance",
+                    "source": "load_balancer",
+                    "target": pat["pattern"],
+                    "action": f"rebalance:{sug['from']}->{sug['to']}",
+                    "details": f"Move {pat['pattern']} from {sug['from']} ({sug['from_load']}%) to {sug['to']} ({sug['to_load']}%)",
+                    "priority": "medium",
+                })
 
     # 3. Latency optimizations
     data = run_analyzer("dispatch_latency_optimizer")
@@ -185,8 +177,7 @@ def apply_improvements(improvements, dry_run=False):
 
         if not dry_run:
             # Apply routing changes to etoile.db
-            if imp["type"] == "routing" and imp["action"].startswith(
-                    "prefer_node:"):
+            if imp["type"] == "routing" and imp["action"].startswith("prefer_node:"):
                 node = imp["action"].split(":")[1]
                 _apply_routing(imp["target"], node)
                 applied += 1
@@ -274,15 +265,9 @@ def generate_report(improvements):
 
 def main():
     parser = argparse.ArgumentParser(description="COWORK Auto-Improver")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Analyze and apply")
+    parser.add_argument("--once", action="store_true", help="Analyze and apply")
     parser.add_argument("--dry-run", action="store_true", help="Show only")
-    parser.add_argument(
-        "--report",
-        action="store_true",
-        help="Generate report")
+    parser.add_argument("--report", action="store_true", help="Generate report")
     parser.add_argument("--stats", action="store_true", help="Show history")
     args = parser.parse_args()
 
@@ -303,8 +288,7 @@ def main():
         result = {"history": [dict(r) for r in rows]}
     else:
         improvements = gather_recommendations()
-        apply_result = apply_improvements(
-            improvements, dry_run=args.dry_run or args.report)
+        apply_result = apply_improvements(improvements, dry_run=args.dry_run or args.report)
         report = generate_report(improvements)
 
         result = {

@@ -26,12 +26,12 @@ from datetime import datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-ETOILE_DB = Path("/home/turbo/data/etoile.db")
+from _paths import ETOILE_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 DATA_DIR = SCRIPT_DIR / "data"
 GAPS_DB = DATA_DIR / "cowork_gaps.db"
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 
 # Minimum dispatches needed to draw conclusions
 MIN_SAMPLES = 1
@@ -78,8 +78,7 @@ def analyze_routing(edb):
         quality = r["avg_q"] or 0
 
         # Composite: 40% quality + 30% success + 20% speed + 10% volume
-        composite = quality * 0.4 + success_rate * 0.3 + \
-            speed_score * 0.2 + min(r["total"] / 20, 1) * 0.1
+        composite = quality * 0.4 + success_rate * 0.3 + speed_score * 0.2 + min(r["total"] / 20, 1) * 0.1
 
         routing[t].append({
             "node": r["node"],
@@ -198,8 +197,7 @@ def apply_learning(edb, gaps_db):
         """, (datetime.now().isoformat(), t["type"], t["node"],
               t["optimal_timeout_s"], t["p50_ms"], t["p95_ms"],
               t["p95_ms"], 1))
-        applied.append(
-            f"timeout {t['type']}/{t['node']} = {t['optimal_timeout_s']}s")
+        applied.append(f"timeout {t['type']}/{t['node']} = {t['optimal_timeout_s']}s")
     gaps_db.commit()
 
     # Store routing recommendations
@@ -225,8 +223,7 @@ def apply_learning(edb, gaps_db):
                 fallback["node"] if fallback else None,
                 fallback["composite_score"] if fallback else None,
             ))
-            applied.append(
-                f"route {t} -> {best['node']} ({best['composite_score']:.2f})")
+            applied.append(f"route {t} -> {best['node']} ({best['composite_score']:.2f})")
     gaps_db.commit()
 
     return applied
@@ -249,14 +246,8 @@ def send_telegram(text):
 def main():
     parser = argparse.ArgumentParser(description="Dispatch Learner")
     parser.add_argument("--once", action="store_true", help="Analyze + report")
-    parser.add_argument(
-        "--learn",
-        action="store_true",
-        help="Full learning cycle")
-    parser.add_argument(
-        "--routing",
-        action="store_true",
-        help="Show routing table")
+    parser.add_argument("--learn", action="store_true", help="Full learning cycle")
+    parser.add_argument("--routing", action="store_true", help="Show routing table")
     parser.add_argument("--trends", action="store_true", help="Show trends")
     args = parser.parse_args()
 
@@ -275,15 +266,14 @@ def main():
         edb.close()
         return
 
-    total = edb.execute(
-        "SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
+    total = edb.execute("SELECT COUNT(*) FROM agent_dispatch_log").fetchone()[0]
     print(f"Dispatch data: {total} records")
 
     if args.routing:
         routing = analyze_routing(edb)
         print("\n=== Optimal Routing Table ===")
-        for t, nodes in sorted(routing.items()):
-            print(f"\n  {t}:")
+        for t, nodes in sorted(routing.items(), key=lambda x: (x[0] or "")):
+            print(f"\n  {t or 'unknown'}:")
             for n in nodes:
                 print(f"    {n['node']:6} score={n['composite_score']:.3f} "
                       f"ok={n['success_rate']}% q={n['avg_quality']:.2f} "
@@ -313,30 +303,24 @@ def main():
         report = {
             "timestamp": datetime.now().isoformat(),
             "total_dispatches": total,
-            "routing": {
-                t: nodes[0] if nodes else None for t,
-                nodes in routing.items()},
+            "routing": {t: nodes[0] if nodes else None for t, nodes in routing.items()},
             "trends": trends,
             "timeout_adjustments": len(timeouts),
         }
         print(json.dumps(report, indent=2))
 
         # Telegram summary
-        lines = [
-            f"<b>Dispatch Learning</b> <code>{
-                datetime.now().strftime('%H:%M')}</code>",
-            f"Data: {total} dispatches"]
+        lines = [f"<b>Dispatch Learning</b> <code>{datetime.now().strftime('%H:%M')}</code>",
+                 f"Data: {total} dispatches"]
         if routing:
             lines.append("")
-            for t, nodes in sorted(routing.items()):
+            for t, nodes in sorted(routing.items(), key=lambda x: (x[0] or "")):
                 if nodes:
-                    lines.append(
-                        f"  {t} -> {nodes[0]['node']} (q={nodes[0]['avg_quality']:.2f})")
+                    lines.append(f"  {t or 'unknown'} -> {nodes[0]['node']} (q={nodes[0]['avg_quality']:.2f})")
         if trends:
             lines.append("")
             for t in trends[:3]:
-                lines.append(
-                    f"  {'++' if t['direction'] == 'improving' else '--'} {t['type']}/{t['node']}")
+                lines.append(f"  {'++' if t['direction']=='improving' else '--'} {t['type']}/{t['node']}")
         send_telegram("\n".join(lines))
         edb.close()
         return
@@ -348,21 +332,15 @@ def main():
         # 1. Analyze routing
         routing = analyze_routing(edb)
         print(f"\n1. Routing: {len(routing)} task types analyzed")
-        for t, nodes in sorted(routing.items()):
+        for t, nodes in sorted(routing.items(), key=lambda x: (x[0] or "")):
             if nodes:
-                print(
-                    f"   {t} -> {nodes[0]['node']} (score={nodes[0]['composite_score']:.3f})")
+                print(f"   {t or 'unknown'} -> {nodes[0]['node']} (score={nodes[0]['composite_score']:.3f})")
 
         # 2. Check trends
         trends = analyze_trends(edb)
         print(f"\n2. Trends: {len(trends)} significant changes")
         for t in trends:
-            print(
-                f"   {
-                    t['direction']}: {
-                    t['type']}/{
-                    t['node']} q={
-                    t['quality_change_pct']:+.1f}%")
+            print(f"   {t['direction']}: {t['type']}/{t['node']} q={t['quality_change_pct']:+.1f}%")
 
         # 3. Compute timeouts
         timeouts = compute_optimal_timeouts(edb)
@@ -378,15 +356,9 @@ def main():
         edb.close()
 
         # Telegram
-        lines = [
-            f"<b>Learning Cycle</b> <code>{
-                datetime.now().strftime('%H:%M')}</code>",
-            f"Routes: {
-                len(routing)} | Trends: {
-                len(trends)} | Timeouts: {
-                    len(timeouts)}",
-            f"Applied: {
-                len(applied)} optimizations"]
+        lines = [f"<b>Learning Cycle</b> <code>{datetime.now().strftime('%H:%M')}</code>",
+                 f"Routes: {len(routing)} | Trends: {len(trends)} | Timeouts: {len(timeouts)}",
+                 f"Applied: {len(applied)} optimizations"]
         send_telegram("\n".join(lines))
         return
 

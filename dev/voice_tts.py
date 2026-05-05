@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 """JARVIS Voice TTS — text-to-speech via edge-tts."""
-import argparse
-import asyncio
-import subprocess
-import sys
-import tempfile
-import os
+import argparse, asyncio, subprocess, sys, tempfile, os
 
 VOICE = "fr-FR-DeniseNeural"
-
 
 async def speak_edge_tts(text: str, voice: str = VOICE):
     try:
@@ -25,7 +19,6 @@ async def speak_edge_tts(text: str, voice: str = VOICE):
     except ImportError:
         return False
 
-
 def speak_pyttsx3(text: str):
     try:
         import pyttsx3
@@ -37,13 +30,9 @@ def speak_pyttsx3(text: str):
     except ImportError:
         return False
 
-
 def main():
     parser = argparse.ArgumentParser(description="JARVIS TTS")
-    parser.add_argument(
-        "text",
-        nargs="?",
-        default="Systeme JARVIS operationnel")
+    parser.add_argument("text", nargs="?", default="Systeme JARVIS operationnel")
     parser.add_argument("--voice", default=VOICE)
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
@@ -53,7 +42,6 @@ def main():
             print(f"TTS unavailable. Text: {args.text}")
             sys.exit(1)
     print(f"Spoke: {args.text[:60]}...")
-
 
 if __name__ == "__main__":
     main()

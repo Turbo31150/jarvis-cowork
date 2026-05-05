@@ -1,38 +1,15 @@
 #!/usr/bin/env python3
 """JARVIS Config Manager — view and update configuration."""
-import argparse
-import json
-import os
+import argparse, json, os
 
-CONFIG_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
-    "data",
-    "jarvis_config.json")
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "jarvis_config.json")
 
 DEFAULT_CONFIG = {
     "cluster": {
-        "m1": {
-            "host": "127.0.0.1",
-            "port": 1234,
-            "model": "qwen3-8b",
-            "weight": 1.9},
-        "ol1": {
-            "host": "127.0.0.1",
-            "port": 11434,
-            "model": "qwen2.5:1.5b",
-            "weight": 1.4},
-        "m2": {
-            "host": "192.168.1.26",
-                    "port": 1234,
-                    "model": "deepseek-r1-0528-qwen3-8b",
-                    "weight": 1.4},
-        "m3": {
-            "host": "192.168.1.113",
-            "port": 1234,
-            "model": "deepseek-r1-0528-qwen3-8b",
-            "weight": 1.1},
+        "m1": {"host": "127.0.0.1", "port": 1234, "model": "qwen3-8b", "weight": 1.9},
+        "ol1": {"host": "127.0.0.1", "port": 11434, "model": "qwen3:1.7b", "weight": 1.4},
+        "m2": {"host": "192.168.1.26", "port": 1234, "model": "deepseek-r1-0528-qwen3-8b", "weight": 1.4},
+        "m3": {"host": "192.168.1.113", "port": 1234, "model": "deepseek-r1-0528-qwen3-8b", "weight": 1.1},
     },
     "services": {
         "ws_port": 9742,
@@ -48,8 +25,8 @@ DEFAULT_CONFIG = {
         "sl_pct": 0.25,
         "size_usdt": 10,
         "min_score": 70,
-    }}
-
+    }
+}
 
 def load_config() -> dict:
     if os.path.exists(CONFIG_PATH):
@@ -57,30 +34,16 @@ def load_config() -> dict:
             return json.load(f)
     return DEFAULT_CONFIG.copy()
 
-
 def save_config(config: dict):
     os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2)
 
-
 def main():
     parser = argparse.ArgumentParser(description="JARVIS config manager")
-    parser.add_argument(
-        "--show",
-        action="store_true",
-        help="Show current config")
-    parser.add_argument(
-        "--set",
-        nargs=2,
-        metavar=(
-            "KEY",
-            "VALUE"),
-        help="Set config key (dot notation)")
-    parser.add_argument(
-        "--reset",
-        action="store_true",
-        help="Reset to defaults")
+    parser.add_argument("--show", action="store_true", help="Show current config")
+    parser.add_argument("--set", nargs=2, metavar=("KEY", "VALUE"), help="Set config key (dot notation)")
+    parser.add_argument("--reset", action="store_true", help="Reset to defaults")
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
 
@@ -104,7 +67,6 @@ def main():
         print(f"Set {key} = {value}")
     else:
         print(json.dumps(config, indent=2))
-
 
 if __name__ == "__main__":
     main()

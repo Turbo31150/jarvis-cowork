@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """Production health monitor — combines health + automation status into dashboard JSON."""
 
@@ -7,36 +6,13 @@ import json
 import time
 import urllib.request
 import urllib.error
-from pathlib import Path
-import sys
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-try:
-    from core.unified.services import get_service_registry
-    _services = get_service_registry()
-except Exception:
-    _services = None
-
-BASE = _services.base_url("jarvis_ws") if _services else "http://127.0.0.1:9742"
+BASE = "http://127.0.0.1:9742"
 
 ENDPOINTS = {
     "health": "/api/health/full",
     "automation": "/api/automation/status",
 }
-
-
-def has_nested_error(payload):
-    """Return True when a response payload contains any nested error field."""
-    if isinstance(payload, dict):
-        if payload.get("error") not in (None, ""):
-            return True
-        return any(has_nested_error(value) for value in payload.values())
-    if isinstance(payload, list):
-        return any(has_nested_error(item) for item in payload)
-    return False
 
 
 def fetch(url, timeout=10):
@@ -58,11 +34,10 @@ def run_once():
         t0 = time.perf_counter()
         data = fetch(f"{BASE}{path}")
         elapsed = round(time.perf_counter() - t0, 3)
-        ok = not has_nested_error(data)
         results[name] = {
             "data": data,
             "latency_s": elapsed,
-            "ok": ok,
+            "ok": "error" not in data,
         }
 
     health_ok = results.get("health", {}).get("ok", False)
@@ -82,12 +57,8 @@ def run_once():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Production health monitor dashboard")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
+    parser = argparse.ArgumentParser(description="Production health monitor dashboard")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
     args = parser.parse_args()
 
     if args.once:

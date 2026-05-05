@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """deployment_manager.py
 
@@ -17,37 +16,27 @@ import subprocess
 import sys
 from datetime import datetime
 from typing import List, Optional
+from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
-
+# TELEGRAM_TOKEN loaded from _paths (.env)
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 
 def telegram_send(msg: str):
-    import urllib.parse
-    import urllib.request
+    import urllib.parse, urllib.request
     try:
-        data = urllib.parse.urlencode(
-            {"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
+        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": msg}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        urllib.request.urlopen(
-            urllib.request.Request(
-                url, data=data), timeout=10)
+        urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=10)
     except Exception:
         pass
 
-
 def run_cmd(cmd: List[str], timeout: int = 30) -> str:
     try:
-        return subprocess.check_output(
-            cmd,
-            text=True,
-            stderr=subprocess.STDOUT,
-            timeout=timeout).strip()
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT, timeout=timeout).strip()
     except subprocess.CalledProcessError as e:
         return f"ERROR: {e.output.strip() if e.output else str(e)}"
     except Exception as e:
         return f"ERROR: {e}"
-
 
 def git(*args) -> str:
     return run_cmd(["git"] + list(args))
@@ -55,19 +44,13 @@ def git(*args) -> str:
 # ---------------------------------------------------------------------------
 # Status
 # ---------------------------------------------------------------------------
-
-
 def show_status():
     branch = git("branch", "--show-current")
     status = git("status", "--porcelain")
     remote = git("remote", "-v")
 
     dirty_files = [l for l in status.splitlines() if l.strip()]
-    ahead_behind = git(
-        "rev-list",
-        "--left-right",
-        "--count",
-        f"origin/{branch}...HEAD") if branch else ""
+    ahead_behind = git("rev-list", "--left-right", "--count", f"origin/{branch}...HEAD") if branch else ""
 
     print(f"=== Déploiement JARVIS ===")
     print(f"Branche : {branch or 'N/A'}")
@@ -93,8 +76,6 @@ def show_status():
 # ---------------------------------------------------------------------------
 # Deploy
 # ---------------------------------------------------------------------------
-
-
 def deploy(message: Optional[str] = None):
     # Check if git repo
     check = git("status")
@@ -115,8 +96,7 @@ def deploy(message: Optional[str] = None):
     git("add", "-A")
 
     # Commit
-    msg = message or f"JARVIS auto-deploy {
-        datetime.now().strftime('%Y-%m-%d %H:%M')}"
+    msg = message or f"JARVIS auto-deploy {datetime.now().strftime('%Y-%m-%d %H:%M')}"
     result = git("commit", "-m", msg)
     if result.startswith("ERROR"):
         print(f"[deployment_manager] Erreur commit : {result}")
@@ -134,15 +114,11 @@ def deploy(message: Optional[str] = None):
         print(f"[deployment_manager] Erreur push : {push_result}")
     else:
         print(f"[deployment_manager] Push OK → origin/{branch}")
-        telegram_send(
-            f"🚀 Deploy JARVIS — {
-                len(dirty)} fichier(s) → {branch}\n{msg}")
+        telegram_send(f"🚀 Deploy JARVIS — {len(dirty)} fichier(s) → {branch}\n{msg}")
 
 # ---------------------------------------------------------------------------
 # History
 # ---------------------------------------------------------------------------
-
-
 def show_history():
     log = git("log", "--oneline", "-10", "--format=%h %s (%cr)")
     if log.startswith("ERROR"):
@@ -155,8 +131,6 @@ def show_history():
 # ---------------------------------------------------------------------------
 # Rollback
 # ---------------------------------------------------------------------------
-
-
 def rollback(n: int = 1):
     branch = git("branch", "--show-current")
     print(f"[deployment_manager] Rollback de {n} commit(s) sur {branch}...")
@@ -167,35 +141,16 @@ def rollback(n: int = 1):
         print(f"[deployment_manager] Rollback OK ({n} commits)")
         telegram_send(f"⏪ Rollback JARVIS — {n} commit(s) annulé(s)")
 
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Gestionnaire de déploiement JARVIS.")
+    parser = argparse.ArgumentParser(description="Gestionnaire de déploiement JARVIS.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--deploy",
-        nargs="?",
-        const=None,
-        metavar="MSG",
-        help="Commit + push")
+    group.add_argument("--deploy", nargs="?", const=None, metavar="MSG", help="Commit + push")
     group.add_argument("--status", action="store_true", help="État du repo")
-    group.add_argument(
-        "--rollback",
-        nargs="?",
-        const=1,
-        type=int,
-        metavar="N",
-        help="Rollback N commits")
-    group.add_argument(
-        "--history",
-        action="store_true",
-        help="Derniers commits")
+    group.add_argument("--rollback", nargs="?", const=1, type=int, metavar="N", help="Rollback N commits")
+    group.add_argument("--history", action="store_true", help="Derniers commits")
     args = parser.parse_args()
 
-    if args.deploy is not None or (
-        hasattr(
-            args,
-            'deploy') and args.deploy is None and not args.status and not args.rollback and not args.history):
+    if args.deploy is not None or (hasattr(args, 'deploy') and args.deploy is None and not args.status and not args.rollback and not args.history):
         deploy(args.deploy)
     elif args.status:
         show_status()
@@ -203,7 +158,6 @@ def main():
         rollback(args.rollback)
     elif args.history:
         show_history()
-
 
 if __name__ == "__main__":
     main()

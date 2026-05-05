@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """jarvis_memory_optimizer.py — Optimise la memoire JARVIS.
 
@@ -11,6 +10,7 @@ Usage:
     python dev/jarvis_memory_optimizer.py --prune 90
 """
 import argparse
+from _paths import TURBO_DIR, ETOILE_DB, JARVIS_DB, SNIPER_DB
 import json
 import os
 import sqlite3
@@ -23,10 +23,10 @@ DB_PATH = DEV / "data" / "memory_optimizer.db"
 
 # Databases to optimize
 DATABASES = [
-    {"name": "etoile", "path": "/home/turbo/data/etoile.db"},
-    {"name": "jarvis", "path": "/home/turbo/data/jarvis.db"},
-    {"name": "sniper", "path": "/home/turbo/data/sniper.db"},
-    {"name": "finetuning", "path": "/home/turbo/finetuning/data/finetuning.db"},
+    {"name": "etoile", "path": str(ETOILE_DB)},
+    {"name": "jarvis", "path": str(JARVIS_DB)},
+    {"name": "sniper", "path": str(SNIPER_DB)},
+    {"name": "finetuning", "path": str(TURBO_DIR / "finetuning" / "data" / "finetuning.db")},
 ]
 
 # Tables with timestamp columns that can be pruned
@@ -56,8 +56,7 @@ def analyze_db(db_info):
     size = path.stat().st_size
     try:
         db = sqlite3.connect(str(path))
-        tables = db.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+        tables = db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         total_rows = 0
         table_info = []
         for t in tables:
@@ -72,19 +71,11 @@ def analyze_db(db_info):
 
         db.close()
         return {
-            "name": db_info["name"],
-            "exists": True,
-            "size_mb": round(
-                size / 1024 / 1024,
-                2),
-            "tables": len(tables),
-            "total_rows": total_rows,
+            "name": db_info["name"], "exists": True,
+            "size_mb": round(size / 1024 / 1024, 2),
+            "tables": len(tables), "total_rows": total_rows,
             "fragmentation_pct": fragmentation,
-            "top_tables": sorted(
-                table_info,
-                key=lambda x: x["rows"],
-                reverse=True)[
-                :5],
+            "top_tables": sorted(table_info, key=lambda x: x["rows"], reverse=True)[:5],
         }
     except Exception as e:
         return {"name": db_info["name"], "exists": True, "error": str(e)[:100]}
@@ -110,11 +101,7 @@ def compact_db(db_info):
             "saved_kb": round(saved / 1024, 1),
         }
     except Exception as e:
-        return {
-            "name": db_info["name"],
-            "status": "error",
-            "error": str(e)[
-                :100]}
+        return {"name": db_info["name"], "status": "error", "error": str(e)[:100]}
 
 
 def prune_old_data(max_age_days):
@@ -131,12 +118,9 @@ def prune_old_data(max_age_days):
             db = sqlite3.connect(db_info["path"])
             for table, ts_col in tables:
                 try:
-                    before = db.execute(
-                        f"SELECT COUNT(*) FROM [{table}]").fetchone()[0]
-                    db.execute(
-                        f"DELETE FROM [{table}] WHERE [{ts_col}] < ?", (cutoff,))
-                    after = db.execute(
-                        f"SELECT COUNT(*) FROM [{table}]").fetchone()[0]
+                    before = db.execute(f"SELECT COUNT(*) FROM [{table}]").fetchone()[0]
+                    db.execute(f"DELETE FROM [{table}] WHERE [{ts_col}] < ?", (cutoff,))
+                    after = db.execute(f"SELECT COUNT(*) FROM [{table}]").fetchone()[0]
                     pruned = before - after
                     if pruned > 0:
                         results.append({
@@ -174,21 +158,10 @@ def do_analyze():
 
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Memory Optimizer")
-    parser.add_argument(
-        "--once",
-        "--analyze",
-        action="store_true",
-        help="Analyze databases")
-    parser.add_argument(
-        "--compact",
-        action="store_true",
-        help="VACUUM all databases")
-    parser.add_argument("--prune", metavar="AGE", type=int,
-                        help="Prune data older than N days")
-    parser.add_argument(
-        "--stats",
-        action="store_true",
-        help="Show optimization history")
+    parser.add_argument("--once", "--analyze", action="store_true", help="Analyze databases")
+    parser.add_argument("--compact", action="store_true", help="VACUUM all databases")
+    parser.add_argument("--prune", metavar="AGE", type=int, help="Prune data older than N days")
+    parser.add_argument("--stats", action="store_true", help="Show optimization history")
     args = parser.parse_args()
 
     if args.compact:
@@ -196,8 +169,7 @@ def main():
         print(json.dumps(results, ensure_ascii=False, indent=2))
     elif args.prune:
         results = prune_old_data(args.prune)
-        print(json.dumps({"pruned_tables": results,
-              "max_age_days": args.prune}, indent=2))
+        print(json.dumps({"pruned_tables": results, "max_age_days": args.prune}, indent=2))
     else:
         result = do_analyze()
         print(json.dumps(result, ensure_ascii=False, indent=2))

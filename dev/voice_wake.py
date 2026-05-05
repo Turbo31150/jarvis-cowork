@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 """JARVIS Wake Word Detector — listens for 'Jarvis' wake word."""
-import argparse
-import subprocess
-import sys
-import time
-
+import argparse, subprocess, sys, time
 
 def listen_loop(wake_word: str = "jarvis", callback_url: str = None):
     print(f"Listening for wake word: '{wake_word}'...")
@@ -25,8 +21,7 @@ def listen_loop(wake_word: str = "jarvis", callback_url: str = None):
     }}
     '''
     try:
-        r = subprocess.run(["powershell", "-c", ps_script],
-                           capture_output=True, text=True, timeout=300)
+        r = subprocess.run(["powershell", "-c", ps_script], capture_output=True, text=True, timeout=300)
         if r.stdout.strip():
             print(f"Wake word detected! Full: {r.stdout.strip()}")
             if callback_url:
@@ -37,20 +32,11 @@ def listen_loop(wake_word: str = "jarvis", callback_url: str = None):
         print("Listen timeout")
     return False
 
-
 def main():
     parser = argparse.ArgumentParser(description="JARVIS wake word detector")
-    parser.add_argument(
-        "--word",
-        default="jarvis",
-        help="Wake word to listen for")
-    parser.add_argument(
-        "--callback",
-        help="URL to call when wake word detected")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Listen once and exit")
+    parser.add_argument("--word", default="jarvis", help="Wake word to listen for")
+    parser.add_argument("--callback", help="URL to call when wake word detected")
+    parser.add_argument("--once", action="store_true", help="Listen once and exit")
     args = parser.parse_args()
 
     if args.once:
@@ -59,7 +45,6 @@ def main():
         while True:
             if listen_loop(args.word, args.callback):
                 time.sleep(1)
-
 
 if __name__ == "__main__":
     main()

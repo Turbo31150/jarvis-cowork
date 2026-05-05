@@ -59,30 +59,18 @@ def run_once():
         "total_prompts": len(TEST_PROMPTS),
         "successes": len(successes),
         "failures": len(results) - len(successes),
-        "avg_latency_s": round(
-            sum(latencies) / len(latencies),
-            3) if latencies else 0,
-        "min_latency_s": round(
-            min(latencies),
-            3) if latencies else 0,
-        "max_latency_s": round(
-            max(latencies),
-            3) if latencies else 0,
-        "avg_quality": round(
-            sum(qualities) / len(qualities),
-            2) if qualities else None,
+        "avg_latency_s": round(sum(latencies) / len(latencies), 3) if latencies else 0,
+        "min_latency_s": round(min(latencies), 3) if latencies else 0,
+        "max_latency_s": round(max(latencies), 3) if latencies else 0,
+        "avg_quality": round(sum(qualities) / len(qualities), 2) if qualities else None,
         "results": results,
     }
     print(json.dumps(benchmark, indent=2, ensure_ascii=False))
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Benchmark dispatch engine latency/quality")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
+    parser = argparse.ArgumentParser(description="Benchmark dispatch engine latency/quality")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
     args = parser.parse_args()
 
     if args.once:

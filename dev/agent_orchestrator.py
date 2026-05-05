@@ -3,7 +3,7 @@
 Agent Orchestrator — Orchestrateur d'agents IA autonomes sur cluster distribue.
 
 Pipeline: tache -> decomposition -> dispatch agents -> collecte -> fusion -> livraison
-Agents: Coder (gpt-oss:120b), Reviewer (devstral-2:123b), Tester (M1 qwen3-8b), Monitor (OL1 qwen3:1.7b)
+Agents: Coder (M1 qwen3-8b), Reviewer (M2 deepseek-r1), Tester (M1 qwen3-8b), Monitor (OL1 qwen3:1.7b)
 
 Stdlib uniquement. Sortie JSON.
 """
@@ -53,7 +53,7 @@ CLUSTER_ENDPOINTS = {
         "type": "lmstudio",
         "url": "http://192.168.1.26:1234/api/v1/chat",
         "health_url": "http://192.168.1.26:1234/api/v1/models",
-        "description": "LM Studio - deepseek-coder-v2 (3 GPU 24GB)"
+        "description": "LM Studio - deepseek-r1-0528-qwen3-8b (3 GPU 24GB)"
     },
     "M3": {
         "host": "192.168.1.113",
@@ -61,7 +61,7 @@ CLUSTER_ENDPOINTS = {
         "type": "lmstudio",
         "url": "http://192.168.1.113:1234/api/v1/chat",
         "health_url": "http://192.168.1.113:1234/api/v1/models",
-        "description": "LM Studio - mistral-7b (1 GPU 8GB)"
+        "description": "LM Studio - deepseek-r1 (1 GPU 8GB)"
     }
 }
 
@@ -69,21 +69,19 @@ CLUSTER_ENDPOINTS = {
 BUILT_IN_AGENTS = {
     "Coder": {
         "role": "Generateur de code principal",
-        "model": "gpt-oss:120b-cloud",
-        "node": "OL1",
+        "model": "qwen3-8b",
+        "node": "M1",
         "priority": 1,
-        "weight": 1.9,
+        "weight": 1.8,
         "capabilities": ["code_generation", "refactoring", "architecture"],
-        "ollama_model": "gpt-oss:120b-cloud"
     },
     "Reviewer": {
         "role": "Revue de code et audit qualite",
-        "model": "devstral-2:123b-cloud",
-        "node": "OL1",
+        "model": "deepseek-r1-0528-qwen3-8b",
+        "node": "M2",
         "priority": 2,
         "weight": 1.5,
         "capabilities": ["code_review", "security_audit", "best_practices"],
-        "ollama_model": "devstral-2:123b-cloud"
     },
     "Tester": {
         "role": "Generation et validation de tests",
@@ -299,8 +297,7 @@ def query_lmstudio(node, model, prompt, timeout=HTTP_TIMEOUT):
     for item in reversed(output_list):
         if item.get("type") == "message":
             content_parts = item.get("content", [])
-            texts = [p.get("text", "")
-                     for p in content_parts if p.get("type") == "output_text"]
+            texts = [p.get("text", "") for p in content_parts if p.get("type") == "output_text"]
             return "\n".join(texts)
     # Fallback: premier element avec content
     if output_list:
@@ -310,8 +307,7 @@ def query_lmstudio(node, model, prompt, timeout=HTTP_TIMEOUT):
             if isinstance(content, str):
                 return content
             if isinstance(content, list):
-                return "\n".join(p.get("text", "")
-                                 for p in content if isinstance(p, dict))
+                return "\n".join(p.get("text", "") for p in content if isinstance(p, dict))
     return str(resp)
 
 
@@ -382,12 +378,7 @@ def check_agent_health(agent_name):
     conn.commit()
     conn.close()
 
-    _log(
-        "INFO",
-        "health_check",
-        f"Agent {agent_name} sur {node}: {
-            result['status']}",
-        result)
+    _log("INFO", "health_check", f"Agent {agent_name} sur {node}: {result['status']}", result)
     return result
 
 
@@ -519,9 +510,7 @@ def execute_subtask(subtask_id, agent_name, prompt, retries=MAX_RETRIES):
     last_error = None
     for attempt in range(1, retries + 1):
         try:
-            _log("INFO",
-                 "executor",
-                 f"Execution {agent_name} (tentative {attempt}/{retries})",
+            _log("INFO", "executor", f"Execution {agent_name} (tentative {attempt}/{retries})",
                  {"subtask_id": subtask_id})
 
             start_time = time.time()
@@ -538,10 +527,8 @@ def execute_subtask(subtask_id, agent_name, prompt, retries=MAX_RETRIES):
             conn.commit()
             conn.close()
 
-            _log(
-                "INFO", "executor", f"{agent_name} termine en {
-                    duration_ms:.0f}ms", {
-                    "subtask_id": subtask_id, "duration_ms": duration_ms})
+            _log("INFO", "executor", f"{agent_name} termine en {duration_ms:.0f}ms",
+                 {"subtask_id": subtask_id, "duration_ms": duration_ms})
 
             return {
                 "subtask_id": subtask_id,
@@ -605,8 +592,7 @@ def deploy_task(description, priority="normal"):
 
     # Recuperer le scaling courant
     conn = get_db()
-    row = conn.execute(
-        "SELECT value FROM config WHERE key = 'max_concurrent'").fetchone()
+    row = conn.execute("SELECT value FROM config WHERE key = 'max_concurrent'").fetchone()
     max_concurrent = int(row["value"]) if row else 3
     conn.close()
 
@@ -643,10 +629,7 @@ def deploy_task(description, priority="normal"):
     def _worker(st_data):
         semaphore.acquire()
         try:
-            r = execute_subtask(
-                st_data["id"],
-                st_data["agent"],
-                st_data["prompt"])
+            r = execute_subtask(st_data["id"], st_data["agent"], st_data["prompt"])
             with results_lock:
                 results.append(r)
                 # Mettre a jour le compteur
@@ -709,8 +692,7 @@ def deploy_task(description, priority="normal"):
         final_status = "failed"
 
     merged["summary"]["status"] = final_status
-    merged["summary"]["total_duration_ms"] = round(
-        merged["summary"]["total_duration_ms"], 1)
+    merged["summary"]["total_duration_ms"] = round(merged["summary"]["total_duration_ms"], 1)
 
     # Enregistrer le resultat
     conn = get_db()
@@ -721,11 +703,7 @@ def deploy_task(description, priority="normal"):
     conn.commit()
     conn.close()
 
-    _log(
-        "INFO",
-        "pipeline",
-        f"Tache {task_id} terminee: {final_status}",
-        merged["summary"])
+    _log("INFO", "pipeline", f"Tache {task_id} terminee: {final_status}", merged["summary"])
     return merged
 
 
@@ -836,8 +814,7 @@ def cmd_agents(args):
 
     # Recuperer le scaling
     conn = get_db()
-    row = conn.execute(
-        "SELECT value FROM config WHERE key = 'max_concurrent'").fetchone()
+    row = conn.execute("SELECT value FROM config WHERE key = 'max_concurrent'").fetchone()
     max_concurrent = int(row["value"]) if row else 3
     conn.close()
 
@@ -896,11 +873,12 @@ Exemples:
   python agent_orchestrator.py --agents
 
 Agents integres:
-  Coder    gpt-oss:120b  (OL1 cloud)   — Generation de code
-  Reviewer devstral-2     (OL1 cloud)   — Revue de code
+  Coder    qwen3-8b       (M1 local)    — Generation de code
+  Reviewer deepseek-r1    (M2 local)    — Revue de code
   Tester   qwen3-8b       (M1 local)    — Tests
   Monitor  qwen3:1.7b     (OL1 local)   — Surveillance
-        """)
+        """
+    )
 
     # Arguments mutuellement exclusifs pour les commandes principales
     group = parser.add_mutually_exclusive_group(required=True)
@@ -916,15 +894,9 @@ Agents integres:
                        help="Lister les agents et leur etat de sante")
 
     # Options additionnelles
-    parser.add_argument(
-        "--priority",
-        choices=[
-            "critical",
-            "high",
-            "normal",
-            "low"],
-        default="normal",
-        help="Priorite de la tache (defaut: normal)")
+    parser.add_argument("--priority", choices=["critical", "high", "normal", "low"],
+                        default="normal",
+                        help="Priorite de la tache (defaut: normal)")
     parser.add_argument("--limit", type=int, default=50,
                         help="Nombre de logs a afficher (defaut: 50)")
 

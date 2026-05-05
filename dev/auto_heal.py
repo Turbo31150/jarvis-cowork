@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Auto-heal: check critical ports and restart missing services."""
+from _paths import TURBO_DIR
 import argparse
 import json
 import socket
@@ -12,7 +13,7 @@ SERVICES = {
         "port": 9742, "host": "127.0.0.1",
         "restart_cmd": ["python", "-m", "uvicorn", "python_ws.server:app",
                         "--host", "127.0.0.1", "--port", "9742"],
-        "cwd": "/home/turbo/jarvis-linux",
+        "cwd": str(TURBO_DIR),
     },
     "LMStudio": {
         "port": 1234, "host": "127.0.0.1",
@@ -81,19 +82,9 @@ def heal_cycle(do_restart: bool = True) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Auto-heal JARVIS services")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=60,
-        help="Loop interval (sec)")
-    parser.add_argument(
-        "--check-only",
-        action="store_true",
-        help="No restart attempts")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
+    parser.add_argument("--interval", type=int, default=60, help="Loop interval (sec)")
+    parser.add_argument("--check-only", action="store_true", help="No restart attempts")
     args = parser.parse_args()
 
     while True:

@@ -13,8 +13,7 @@ import time
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "night_ops.db"
-TURBO = Path("/home/turbo")
-
+from _paths import TURBO_DIR as TURBO
 
 def init_db():
     db = sqlite3.connect(str(DB_PATH))
@@ -27,12 +26,10 @@ def init_db():
     db.commit()
     return db
 
-
 def is_night_hours():
     """Check if it's currently night hours (23h-7h)."""
     hour = int(time.strftime('%H'))
     return hour >= 23 or hour < 7
-
 
 def op_vacuum_databases(db):
     """VACUUM all JARVIS databases."""
@@ -48,7 +45,7 @@ def op_vacuum_databases(db):
             size_after = dbpath.stat().st_size
             saved = size_before - size_after
             if saved > 0:
-                details.append(f"{dbpath.name}: -{saved // 1024}KB")
+                details.append(f"{dbpath.name}: -{saved//1024}KB")
             dbs_vacuumed += 1
         except Exception as e:
             details.append(f"{dbpath.name}: FAIL {e}")
@@ -58,7 +55,6 @@ def op_vacuum_databases(db):
         (time.time(), "vacuum_databases", "ok", duration, json.dumps(details[:20])))
     db.commit()
     return dbs_vacuumed, details
-
 
 def op_clean_temp_files(db):
     """Clean temporary and cache files."""
@@ -85,8 +81,7 @@ def op_clean_temp_files(db):
         if size_mb > 50:
             # Truncate to last 10000 lines
             try:
-                lines = log.read_text(
-                    encoding="utf-8", errors="replace").splitlines()
+                lines = log.read_text(encoding="utf-8", errors="replace").splitlines()
                 if len(lines) > 10000:
                     log.write_text("\n".join(lines[-10000:]), encoding="utf-8")
                     cleaned += 1
@@ -99,7 +94,6 @@ def op_clean_temp_files(db):
         (time.time(), "clean_temp", "ok", duration, f"{cleaned} files cleaned"))
     db.commit()
     return cleaned
-
 
 def op_git_maintenance(db):
     """Git repository maintenance."""
@@ -130,7 +124,6 @@ def op_git_maintenance(db):
     db.commit()
     return results
 
-
 def op_generate_morning_report(db):
     """Generate a morning report for Turbo."""
     # Collect overnight stats
@@ -155,13 +148,11 @@ def op_generate_morning_report(db):
     db.commit()
     return report
 
-
 def send_morning_telegram(report):
     """Send morning report to Telegram."""
     try:
         edb = sqlite3.connect(str(TURBO / "data" / "etoile.db"))
-        row = edb.execute(
-            "SELECT value FROM memories WHERE key='telegram_bot_token'").fetchone()
+        row = edb.execute("SELECT value FROM memories WHERE key='telegram_bot_token'").fetchone()
         token = row[0] if row else ""
         edb.close()
     except Exception:
@@ -170,8 +161,7 @@ def send_morning_telegram(report):
         return
     msg = f"🌅 *JARVIS Night Ops Report*\n{report[:3000]}"
     try:
-        body = json.dumps({"chat_id": "2010747443", "text": msg,
-                          "parse_mode": "Markdown"}).encode()
+        body = json.dumps({"chat_id": "2010747443", "text": msg, "parse_mode": "Markdown"}).encode()
         import urllib.request
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{token}/sendMessage",
@@ -179,7 +169,6 @@ def send_morning_telegram(report):
         urllib.request.urlopen(req, timeout=10)
     except Exception:
         pass
-
 
 def run_night_ops(db, notify=False):
     """Run all night operations."""
@@ -203,30 +192,19 @@ def run_night_ops(db, notify=False):
         send_morning_telegram(report)
         print("  Morning report sent to Telegram")
 
-
 def main():
     parser = argparse.ArgumentParser(description="JARVIS Night Operations")
     parser.add_argument("--once", action="store_true")
-    parser.add_argument(
-        "--notify",
-        action="store_true",
-        help="Send Telegram report")
+    parser.add_argument("--notify", action="store_true", help="Send Telegram report")
     parser.add_argument("--loop", action="store_true")
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Run even outside night hours")
-    parser.add_argument(
-        "--report",
-        action="store_true",
-        help="Show last report")
+    parser.add_argument("--force", action="store_true", help="Run even outside night hours")
+    parser.add_argument("--report", action="store_true", help="Show last report")
     args = parser.parse_args()
 
     db = init_db()
 
     if args.report:
-        row = db.execute(
-            "SELECT content FROM reports ORDER BY ts DESC LIMIT 1").fetchone()
+        row = db.execute("SELECT content FROM reports ORDER BY ts DESC LIMIT 1").fetchone()
         print(row[0] if row else "No reports yet")
         return
 
@@ -234,9 +212,7 @@ def main():
         if is_night_hours() or args.force:
             run_night_ops(db, args.notify)
         else:
-            print(
-                f"Pas en heures de nuit ({
-                    time.strftime('%H:%M')}). Utiliser --force pour forcer.")
+            print(f"Pas en heures de nuit ({time.strftime('%H:%M')}). Utiliser --force pour forcer.")
 
     if args.loop:
         print("Night Ops en attente...")
@@ -249,7 +225,6 @@ def main():
                     time.sleep(600)  # Check every 10 min during day
             except KeyboardInterrupt:
                 break
-
 
 if __name__ == "__main__":
     main()

@@ -34,8 +34,6 @@ CLUSTER_URL_OL1 = "http://127.0.0.1:11434/api/chat"
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
-
-
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(str(DB_PATH))
@@ -65,8 +63,6 @@ def init_db():
 # ---------------------------------------------------------------------------
 # Cluster communication
 # ---------------------------------------------------------------------------
-
-
 def ask_m1(prompt: str, max_tokens: int = 4096) -> str:
     """Interroge M1 qwen3-8b pour generation de code."""
     import urllib.request
@@ -79,9 +75,8 @@ def ask_m1(prompt: str, max_tokens: int = 4096) -> str:
             "stream": False,
             "store": False,
         }).encode()
-        req = urllib.request.Request(
-            CLUSTER_URL_M1, data=data, headers={
-                "Content-Type": "application/json"})
+        req = urllib.request.Request(CLUSTER_URL_M1, data=data,
+                                     headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=120) as resp:
             result = json.loads(resp.read().decode())
             for block in reversed(result.get("output", [])):
@@ -93,7 +88,6 @@ def ask_m1(prompt: str, max_tokens: int = 4096) -> str:
     except Exception as e:
         return f"ERROR: {e}"
 
-
 def ask_ol1_fast(prompt: str) -> str:
     """Interroge OL1 qwen3:1.7b pour questions rapides."""
     import urllib.request
@@ -103,9 +97,8 @@ def ask_ol1_fast(prompt: str) -> str:
             "messages": [{"role": "user", "content": prompt}],
             "stream": False,
         }).encode()
-        req = urllib.request.Request(
-            CLUSTER_URL_OL1, data=data, headers={
-                "Content-Type": "application/json"})
+        req = urllib.request.Request(CLUSTER_URL_OL1, data=data,
+                                     headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as resp:
             result = json.loads(resp.read().decode())
             return result.get("message", {}).get("content", "")
@@ -115,8 +108,6 @@ def ask_ol1_fast(prompt: str) -> str:
 # ---------------------------------------------------------------------------
 # COWORK Queue parser
 # ---------------------------------------------------------------------------
-
-
 def parse_cowork_queue() -> list:
     """Parse COWORK_QUEUE.md pour extraire les taches."""
     if not COWORK.exists():
@@ -149,19 +140,16 @@ def parse_cowork_queue() -> list:
             elif line.startswith("- **Fonction**:"):
                 current_task["description"] = line.split(":", 1)[1].strip()
             elif line.startswith("- **Features**:"):
-                current_task["features"] = [f.strip()
-                                            for f in line.split(":", 1)[1].split(",")]
+                current_task["features"] = [f.strip() for f in line.split(":", 1)[1].split(",")]
 
     if current_task:
         tasks.append(current_task)
 
     return tasks
 
-
 def get_existing_scripts() -> set:
     """Retourne les noms des scripts existants."""
     return {f.name for f in DEV.glob("*.py") if not f.name.startswith("__")}
-
 
 def get_pending_tasks() -> list:
     """Retourne les taches COWORK non encore implementees."""
@@ -172,8 +160,6 @@ def get_pending_tasks() -> list:
 # ---------------------------------------------------------------------------
 # Code generation
 # ---------------------------------------------------------------------------
-
-
 def generate_script(task: dict) -> dict:
     """Genere un script Python via le cluster."""
     prompt = f"""Genere un script Python complet et fonctionnel pour JARVIS.
@@ -216,7 +202,6 @@ Genere UNIQUEMENT le code Python, rien d'autre."""
         "lines": len(code.split("\n")),
     }
 
-
 def test_script(filepath: Path) -> dict:
     """Teste un script avec --help."""
     try:
@@ -239,8 +224,6 @@ def test_script(filepath: Path) -> dict:
 # ---------------------------------------------------------------------------
 # Dev cycle
 # ---------------------------------------------------------------------------
-
-
 def run_cycle(db, max_tasks: int = 3) -> dict:
     """Execute un cycle de developpement."""
     start = time.time()
@@ -292,15 +275,8 @@ def run_cycle(db, max_tasks: int = 3) -> dict:
     # Record cycle
     db.execute(
         "INSERT INTO dev_cycles (ts, cycle_type, tasks_processed, tasks_succeeded, tasks_failed, duration_s, details) VALUES (?,?,?,?,?,?,?)",
-        (time.time(),
-         "generate",
-         processed,
-         succeeded,
-         failed,
-         round(
-            duration,
-            1),
-            json.dumps(details)))
+        (time.time(), "generate", processed, succeeded, failed, round(duration, 1), json.dumps(details))
+    )
 
     # Record metrics
     existing = get_existing_scripts()
@@ -313,7 +289,7 @@ def run_cycle(db, max_tasks: int = 3) -> dict:
             code = f.read_text(encoding="utf-8", errors="ignore")
             total_lines += len(code.split("\n"))
             total_funcs += code.count("\ndef ") + code.count("\nasync def ")
-        except BaseException:
+        except:
             pass
 
     db.execute(
@@ -334,17 +310,13 @@ def run_cycle(db, max_tasks: int = 3) -> dict:
         "total_lines": total_lines,
     }
 
-
 def get_status(db) -> dict:
     """Statut du developpement."""
     existing = get_existing_scripts()
     pending = get_pending_tasks()
-    cycles = db.execute(
-        "SELECT COUNT(*), SUM(tasks_succeeded), SUM(tasks_failed) FROM dev_cycles").fetchone()
-    last_cycle = db.execute(
-        "SELECT ts, tasks_processed, tasks_succeeded FROM dev_cycles ORDER BY ts DESC LIMIT 1").fetchone()
-    last_metrics = db.execute(
-        "SELECT total_scripts, total_lines, total_functions, health_score FROM code_metrics ORDER BY ts DESC LIMIT 1").fetchone()
+    cycles = db.execute("SELECT COUNT(*), SUM(tasks_succeeded), SUM(tasks_failed) FROM dev_cycles").fetchone()
+    last_cycle = db.execute("SELECT ts, tasks_processed, tasks_succeeded FROM dev_cycles ORDER BY ts DESC LIMIT 1").fetchone()
+    last_metrics = db.execute("SELECT total_scripts, total_lines, total_functions, health_score FROM code_metrics ORDER BY ts DESC LIMIT 1").fetchone()
 
     return {
         "scripts_existing": len(existing),
@@ -366,7 +338,6 @@ def get_status(db) -> dict:
         } if last_metrics else None,
     }
 
-
 def get_history(db) -> dict:
     """Historique de developpement."""
     tasks = db.execute(
@@ -376,24 +347,12 @@ def get_history(db) -> dict:
         "SELECT ts, cycle_type, tasks_processed, tasks_succeeded, duration_s FROM dev_cycles ORDER BY ts DESC LIMIT 10"
     ).fetchall()
 
-    return {"recent_tasks": [{"name": n,
-                              "status": s,
-                              "when": datetime.fromtimestamp(t).isoformat() if t else None,
-                              "node": nd} for n,
-                             s,
-                             t,
-                             nd in tasks],
-            "recent_cycles": [{"when": datetime.fromtimestamp(t).isoformat(),
-                               "type": ct,
-                               "processed": p,
-                               "succeeded": s,
-                               "duration": d} for t,
-                              ct,
-                              p,
-                              s,
-                              d in cycles],
-            }
-
+    return {
+        "recent_tasks": [{"name": n, "status": s, "when": datetime.fromtimestamp(t).isoformat() if t else None, "node": nd}
+                          for n, s, t, nd in tasks],
+        "recent_cycles": [{"when": datetime.fromtimestamp(t).isoformat(), "type": ct, "processed": p, "succeeded": s, "duration": d}
+                           for t, ct, p, s, d in cycles],
+    }
 
 def plan_new(db, description: str) -> dict:
     """Planifie un nouveau script."""
@@ -406,27 +365,15 @@ Reponds en JSON: {{"filename": "nom.py", "cli": "--once / --help", "features": [
     spec = ask_ol1_fast(prompt)
     try:
         spec_data = json.loads(spec)
-    except BaseException:
-        spec_data = {
-            "filename": description.replace(
-                " ",
-                "_").lower()[
-                :30] + ".py",
-            "cli": "--once / --help",
-            "features": [description]}
+    except:
+        spec_data = {"filename": description.replace(" ", "_").lower()[:30] + ".py",
+                     "cli": "--once / --help", "features": [description]}
 
     db.execute(
         "INSERT INTO dev_tasks (ts_created, name, description, filename, status, source) VALUES (?,?,?,?,?,?)",
-        (time.time(),
-         spec_data.get(
-            "filename",
-            "new.py"),
-            description,
-            spec_data.get(
-            "filename",
-            "new.py"),
-            "planned",
-            "manual"))
+        (time.time(), spec_data.get("filename", "new.py"), description,
+         spec_data.get("filename", "new.py"), "planned", "manual")
+    )
     db.commit()
 
     return {"planned": True, "spec": spec_data, "description": description}
@@ -434,30 +381,16 @@ Reponds en JSON: {{"filename": "nom.py", "cli": "--once / --help", "features": [
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
-
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="JARVIS Continuous Coder — Developpement autonome non-stop")
+    parser = argparse.ArgumentParser(description="JARVIS Continuous Coder — Developpement autonome non-stop")
     parser.add_argument("--once", action="store_true", help="Un cycle de dev")
-    parser.add_argument(
-        "--loop",
-        action="store_true",
-        help="Boucle continue (Ctrl+C pour arreter)")
+    parser.add_argument("--loop", action="store_true", help="Boucle continue (Ctrl+C pour arreter)")
     parser.add_argument("--status", action="store_true", help="Statut du dev")
     parser.add_argument("--queue", action="store_true", help="Queue COWORK")
     parser.add_argument("--plan", type=str, help="Planifier un nouveau script")
     parser.add_argument("--history", action="store_true", help="Historique")
-    parser.add_argument(
-        "--max",
-        type=int,
-        default=3,
-        help="Max taches par cycle")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=3600,
-        help="Intervalle boucle (sec)")
+    parser.add_argument("--max", type=int, default=3, help="Max taches par cycle")
+    parser.add_argument("--interval", type=int, default=3600, help="Intervalle boucle (sec)")
     args = parser.parse_args()
 
     db = init_db()
@@ -480,10 +413,7 @@ def main():
         result = run_cycle(db, args.max)
         print(json.dumps(result, indent=2, ensure_ascii=False))
     elif args.loop:
-        print(
-            f"Boucle continue demarree (intervalle: {
-                args.interval}s, max: {
-                args.max}/cycle)")
+        print(f"Boucle continue demarree (intervalle: {args.interval}s, max: {args.max}/cycle)")
         try:
             while True:
                 result = run_cycle(db, args.max)
@@ -498,7 +428,6 @@ def main():
         print(json.dumps(get_status(db), indent=2, ensure_ascii=False))
 
     db.close()
-
 
 if __name__ == "__main__":
     main()

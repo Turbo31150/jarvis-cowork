@@ -94,12 +94,8 @@ def run_once():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Audit dispatch engine stats for anomalies")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
+    parser = argparse.ArgumentParser(description="Audit dispatch engine stats for anomalies")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
     args = parser.parse_args()
 
     if args.once:

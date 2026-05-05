@@ -9,7 +9,6 @@ Usage:
     python whisperflow_guardian.py --loop     # Continuous monitoring (60s interval)
     python whisperflow_guardian.py --restart  # Force restart WhisperFlow
 """
-from _paths import TURBO_DIR, TELEGRAM_TOKEN, TELEGRAM_CHAT
 import argparse
 import json
 import os
@@ -20,6 +19,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from _paths import TURBO_DIR, TELEGRAM_TOKEN, TELEGRAM_CHAT
 
 WS_PORT = 9742
 WHISPERFLOW_DIR = TURBO_DIR / "whisperflow"
@@ -92,17 +92,14 @@ def status_check():
 def main():
     parser = argparse.ArgumentParser(description="WhisperFlow Guardian")
     parser.add_argument("--once", action="store_true", help="Single check")
-    parser.add_argument(
-        "--loop",
-        action="store_true",
-        help="Continuous monitoring")
+    parser.add_argument("--loop", action="store_true", help="Continuous monitoring")
     parser.add_argument("--restart", action="store_true", help="Force restart")
     parser.add_argument("--interval", type=int, default=CHECK_INTERVAL)
     args = parser.parse_args()
 
     if args.restart:
         ok = restart_whisperflow()
-        print("WhisperFlow restarted:", "OK" if ok else "FAILED")
+        print("WhisperFlow restarted:" , "OK" if ok else "FAILED")
         sys.exit(0 if ok else 1)
 
     if args.once or not args.loop:
@@ -124,12 +121,10 @@ def main():
 
                 if s["whisperflow"]:
                     consecutive_failures = 0
-                    print(
-                        f"[{ts}] WhisperFlow OK | WS: {'OK' if s['ws_backend'] else 'DOWN'}")
+                    print(f"[{ts}] WhisperFlow OK | WS: {'OK' if s['ws_backend'] else 'DOWN'}")
                 else:
                     consecutive_failures += 1
-                    print(
-                        f"[{ts}] WhisperFlow DOWN (failure #{consecutive_failures})")
+                    print(f"[{ts}] WhisperFlow DOWN (failure #{consecutive_failures})")
 
                     if not s["ws_backend"]:
                         print(f"[{ts}] WS backend also down — skipping restart")
@@ -137,12 +132,10 @@ def main():
                         ok = restart_whisperflow()
                         if ok:
                             print(f"[{ts}] WhisperFlow restarted OK")
-                            send_telegram_alert(
-                                "WhisperFlow was down and has been restarted.")
+                            send_telegram_alert("WhisperFlow was down and has been restarted.")
                         else:
                             print(f"[{ts}] WhisperFlow restart FAILED")
-                            send_telegram_alert(
-                                "WhisperFlow is down and restart failed!")
+                            send_telegram_alert("WhisperFlow is down and restart failed!")
 
                 time.sleep(args.interval)
             except KeyboardInterrupt:

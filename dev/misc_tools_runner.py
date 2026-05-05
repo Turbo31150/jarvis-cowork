@@ -70,23 +70,23 @@ DEFAULT_TIMEOUT = 120
 CATEGORY_PRIORITY = {
     "cluster": 1,
     "desktop": 2,
-    "data": 3,
-    "perf": 4,
-    "ops": 5,
-    "infra": 6,
+    "data":    3,
+    "perf":    4,
+    "ops":     5,
+    "infra":   6,
     "trading": 7,
-    "misc": 8,
+    "misc":    8,
 }
 
 CATEGORY_DESCRIPTIONS = {
-    "cluster": "Cluster management, rotation, sync, warmup, failover",
-    "desktop": "Desktop organizer, window/workspace managers, service hardening",
-    "data": "Conversation, data export, decision engine, domino, memory, models",
-    "perf": "GPU, performance profiling, process management, benchmarks, metrics",
-    "ops": "Automation, deployment, scheduling, night ops, proactive agents",
-    "infra": "API, MCP, events, logs, config, DB, tasks, services, dispatch, security",
-    "trading": "Sniper, trading intelligence, portfolio, signals, risk management",
-    "misc": "Uncategorized orphan scripts",
+    "cluster":  "Cluster management, rotation, sync, warmup, failover",
+    "desktop":  "Desktop organizer, window/workspace managers, service hardening",
+    "data":     "Conversation, data export, decision engine, domino, memory, models",
+    "perf":     "GPU, performance profiling, process management, benchmarks, metrics",
+    "ops":      "Automation, deployment, scheduling, night ops, proactive agents",
+    "infra":    "API, MCP, events, logs, config, DB, tasks, services, dispatch, security",
+    "trading":  "Sniper, trading intelligence, portfolio, signals, risk management",
+    "misc":     "Uncategorized orphan scripts",
 }
 
 # Keywords for each category (checked against the full filename stem)
@@ -398,29 +398,23 @@ def print_summary(results: List[Dict], total_time: float) -> None:
         s = cat_stats[cat]
         pct = (s["success"] / s["total"] * 100) if s["total"] > 0 else 0
         desc = CATEGORY_DESCRIPTIONS.get(cat, "")
-        print(
-            f"  {cat:10s}: {s['success']:>3}/{s['total']:<3} OK ({pct:5.1f}%)  {desc}")
+        print(f"  {cat:10s}: {s['success']:>3}/{s['total']:<3} OK ({pct:5.1f}%)  {desc}")
 
     # List failures
     failures = [
-        r for r in results if r["status"] in (
-            "failed",
-            "timeout",
-            "error",
-            "not-found",
-            "permission-denied")]
+        r for r in results
+        if r["status"] in ("failed", "timeout", "error", "not-found", "permission-denied")
+    ]
     if failures:
         print_header("FAILURES", "-")
         for r in failures:
-            print(
-                f"  [{r['status']:>17s}] {r['script']} -- {r['error'] or 'unknown'}")
+            print(f"  [{r['status']:>17s}] {r['script']} -- {r['error'] or 'unknown'}")
             if r.get("stderr_tail"):
                 first_line = r["stderr_tail"].strip().split("\n")[0][:120]
                 print(f"                     stderr: {first_line}")
 
     # Slowest scripts
-    timed = [r for r in results if r["duration"]
-             > 0 and r["status"] != "dry-run"]
+    timed = [r for r in results if r["duration"] > 0 and r["status"] != "dry-run"]
     if timed:
         print_header("SLOWEST (top 10)", "-")
         for r in sorted(timed, key=lambda x: -x["duration"])[:10]:
@@ -458,23 +452,13 @@ def run_category_sequential(
     for i, script in enumerate(scripts, 1):
         tag = f"[{i}/{count}]"
         if dry_run:
-            cmd_preview = f"python {script.name}" + \
-                (" --once" if use_once else "")
+            cmd_preview = f"python {script.name}" + (" --once" if use_once else "")
             print(f"  {tag} [DRY-RUN] {cmd_preview}")
-            results.append(
-                run_script(
-                    script,
-                    use_once=use_once,
-                    timeout=timeout,
-                    dry_run=True))
+            results.append(run_script(script, use_once=use_once, timeout=timeout, dry_run=True))
             continue
 
         print(f"  {tag} Running {script.name}...", end="", flush=True)
-        record = run_script(
-            script,
-            use_once=use_once,
-            timeout=timeout,
-            dry_run=False)
+        record = run_script(script, use_once=use_once, timeout=timeout, dry_run=False)
         results.append(record)
 
         status = record["status"]
@@ -514,23 +498,16 @@ def run_category_parallel(
 
     prio = CATEGORY_PRIORITY.get(cat_name, "?")
     desc = CATEGORY_DESCRIPTIONS.get(cat_name, "")
-    print_header(
-        f"{cat_name.upper()} ({count} scripts, parallel={max_workers}) -- priority {prio}")
+    print_header(f"{cat_name.upper()} ({count} scripts, parallel={max_workers}) -- priority {prio}")
     if desc:
         print(f"  {desc}")
     print()
 
     if dry_run:
         for i, script in enumerate(scripts, 1):
-            cmd_preview = f"python {script.name}" + \
-                (" --once" if use_once else "")
+            cmd_preview = f"python {script.name}" + (" --once" if use_once else "")
             print(f"  [{i}/{count}] [DRY-RUN] {cmd_preview}")
-            results.append(
-                run_script(
-                    script,
-                    use_once=use_once,
-                    timeout=timeout,
-                    dry_run=True))
+            results.append(run_script(script, use_once=use_once, timeout=timeout, dry_run=True))
         return results
 
     futures_map = {}
@@ -568,17 +545,9 @@ def run_category_parallel(
             elif status == "timeout":
                 print(f"  {tag} {script.name} TIMEOUT ({timeout}s)")
             elif status == "failed":
-                print(
-                    f"  {tag} {
-                        script.name} FAIL (rc={
-                        record['returncode']}, {
-                        duration:.1f}s)")
+                print(f"  {tag} {script.name} FAIL (rc={record['returncode']}, {duration:.1f}s)")
             else:
-                print(
-                    f"  {tag} {
-                        script.name} {
-                        status.upper()} ({
-                        duration:.1f}s)")
+                print(f"  {tag} {script.name} {status.upper()} ({duration:.1f}s)")
 
             if verbose and record.get("error"):
                 print(f"       -> {record['error']}")
@@ -594,9 +563,7 @@ def cmd_list(categories: Dict[str, List[Path]], wired: set) -> None:
     """List all discovered scripts by category."""
     total = sum(len(v) for v in categories.values())
     print(f"\nDiscovered {total} orphan scripts in {SCRIPT_DIR}")
-    print(
-        f"Excluded {
-            len(wired)} scripts already wired in autonomous_orchestrator\n")
+    print(f"Excluded {len(wired)} scripts already wired in autonomous_orchestrator\n")
 
     for cat in sorted(categories, key=lambda c: CATEGORY_PRIORITY.get(c, 99)):
         scripts = categories[cat]
@@ -604,8 +571,7 @@ def cmd_list(categories: Dict[str, List[Path]], wired: set) -> None:
             continue
         prio = CATEGORY_PRIORITY.get(cat, "?")
         desc = CATEGORY_DESCRIPTIONS.get(cat, "")
-        print(
-            f"[{cat.upper():>10s}] (priority {prio}, {len(scripts):>3} scripts) -- {desc}")
+        print(f"[{cat.upper():>10s}] (priority {prio}, {len(scripts):>3} scripts) -- {desc}")
         for s in scripts:
             print(f"    {s.name}")
         print()
@@ -629,8 +595,7 @@ def cmd_run(
             cat_name = cat_name.strip().lower()
             if cat_name not in CATEGORY_PRIORITY:
                 valid = ", ".join(sorted(CATEGORY_PRIORITY.keys()))
-                print(
-                    f"ERROR: Unknown category '{cat_name}'. Available: {valid}")
+                print(f"ERROR: Unknown category '{cat_name}'. Available: {valid}")
                 return 1
             run_cats[cat_name] = categories.get(cat_name, [])
     else:
@@ -644,14 +609,7 @@ def cmd_run(
     print(f"  Mode       : {mode}")
     print(f"  Timeout    : {timeout}s per script")
     print(f"  Parallel   : {parallel}")
-    print(
-        f"  Categories : {
-            ', '.join(
-                sorted(
-                    run_cats,
-                    key=lambda c: CATEGORY_PRIORITY.get(
-                        c,
-                        99)))}")
+    print(f"  Categories : {', '.join(sorted(run_cats, key=lambda c: CATEGORY_PRIORITY.get(c, 99)))}")
     print(f"  Scripts    : {total_scripts} total")
     print(f"  Python     : {sys.executable}")
 
@@ -703,12 +661,7 @@ def cmd_run(
         }
         out_path = Path(json_output)
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(
-            json.dumps(
-                report,
-                indent=2,
-                ensure_ascii=False),
-            encoding="utf-8")
+        out_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"  JSON report saved to: {out_path}\n")
 
     # Return non-zero if any failures
@@ -756,8 +709,7 @@ Examples:
         help="Run all scripts with --once flag (single execution)",
     )
     parser.add_argument(
-        "--category",
-        "-c",
+        "--category", "-c",
         type=str,
         default=None,
         help="Comma-separated categories to run (cluster,desktop,data,perf,ops,infra,trading,misc)",
@@ -822,8 +774,7 @@ Examples:
     # Require --once or --dry-run to actually do something
     if not args.once and not args.dry_run:
         parser.print_help()
-        print(
-            f"\nDiscovered {total} orphan scripts. Use --once to run or --dry-run to preview.")
+        print(f"\nDiscovered {total} orphan scripts. Use --once to run or --dry-run to preview.")
         return 0
 
     # Parse categories

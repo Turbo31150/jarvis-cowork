@@ -1,54 +1,43 @@
 #!/usr/bin/env python3
 """JARVIS Win Backup — Backup automatique fichiers importants."""
-import argparse
-import json
-import sys
-import os
-import shutil
-import zipfile
+import json, sys, os, shutil, zipfile
+from _paths import TURBO_DIR, ETOILE_DB, JARVIS_DB, SNIPER_DB, TELEGRAM_TOKEN, TELEGRAM_CHAT
 from datetime import datetime
 
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT = "2010747443"
-BACKUP_DIR = "F:/BACKUP_JARVIS"
+# TELEGRAM_TOKEN loaded from _paths (.env)
+# TELEGRAM_CHAT loaded from _paths (.env)
+BACKUP_DIR = str(TURBO_DIR / "backups_auto")
 
 TARGETS = {
     "configs": [
         "C:/Users/franc/.claude/CLAUDE.md",
-        "/home/turbo/.openclaw/openclaw.json",
-        "/home/turbo/pyproject.toml",
-        "/home/turbo/.env",
+        "C:/Users/franc/.openclaw/openclaw.json",
+        str(TURBO_DIR / "pyproject.toml"),
+        str(TURBO_DIR / ".env"),
     ],
     "databases": [
-        "F:/BUREAU/etoile.db",
-        "/home/turbo/data/jarvis.db",
-        "/home/turbo/data/sniper.db",
-        "/home/turbo/finetuning/finetuning.db",
+        str(ETOILE_DB),
+        str(JARVIS_DB),
+        str(SNIPER_DB),
+        str(TURBO_DIR / "finetuning" / "finetuning.db"),
     ],
     "scripts": [
-        "/home/turbo/.openclaw/workspace/dev/",
-        "/home/turbo/scripts/",
+        "C:/Users/franc/.openclaw/workspace/dev/",
+        str(TURBO_DIR / "scripts/"),
     ],
     "workspace": [
-        "/home/turbo/.openclaw/workspace/TOOLS.md",
-        "/home/turbo/.openclaw/workspace/COWORK_TASKS.md",
+        "C:/Users/franc/.openclaw/workspace/TOOLS.md",
+        "C:/Users/franc/.openclaw/workspace/COWORK_TASKS.md",
     ],
 }
-
 
 def send_telegram(msg):
     import urllib.request
     data = json.dumps({"chat_id": TELEGRAM_CHAT, "text": msg}).encode()
-    req = urllib.request.Request(
-        f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-        data=data,
-        headers={
-            "Content-Type": "application/json"})
-    try:
-        urllib.request.urlopen(req, timeout=10)
-    except BaseException:
-        pass
-
+    req = urllib.request.Request(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
+                                 data=data, headers={"Content-Type": "application/json"})
+    try: urllib.request.urlopen(req, timeout=10)
+    except: pass
 
 def backup_files():
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -65,9 +54,7 @@ def backup_files():
             path = path.replace("/", os.sep)
             try:
                 if os.path.isdir(path):
-                    dest = os.path.join(
-                        cat_dir, os.path.basename(
-                            path.rstrip("/\\")))
+                    dest = os.path.join(cat_dir, os.path.basename(path.rstrip("/\\")))
                     shutil.copytree(path, dest, dirs_exist_ok=True)
                     stats["dirs"] += 1
                 elif os.path.isfile(path):
@@ -98,7 +85,6 @@ def backup_files():
 
     return stats
 
-
 def cleanup_old_backups(keep=5):
     if not os.path.exists(BACKUP_DIR):
         return 0
@@ -109,7 +95,6 @@ def cleanup_old_backups(keep=5):
         os.remove(os.path.join(BACKUP_DIR, old))
         removed += 1
     return removed
-
 
 if __name__ == "__main__":
     os.makedirs(BACKUP_DIR, exist_ok=True)
@@ -128,18 +113,13 @@ if __name__ == "__main__":
             send_telegram(summary)
     elif "--loop" in sys.argv:
         import time
+import argparse
         interval = 86400  # 24h
         print(f"Backup every {interval}s... Ctrl+C to stop")
         while True:
             stats = backup_files()
             cleanup_old_backups()
-            send_telegram(
-                f"[JARVIS BACKUP] {
-                    stats['zip_mb']}MB | {
-                    stats['files']} files | {
-                    stats.get(
-                        'zip',
-                        '?')}")
+            send_telegram(f"[JARVIS BACKUP] {stats['zip_mb']}MB | {stats['files']} files | {stats.get('zip','?')}")
             time.sleep(interval)
     else:
         print("Usage: win_backup.py --once [--notify] | --loop")

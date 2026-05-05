@@ -14,7 +14,7 @@ Fonctionnalités :
   - Seuils statiques : CPU>90 %, RAM>85 %, GPU Temp>80 °C, disque libre <10 GB.
   - Déviation standard (z‑score) : |z|>2 pour chaque métrique (calculé sur l’historique stocké).
 * Alertes :
-  - Telegram (bot token `TELEGRAM_TOKEN_REDACTED`, chat 2010747443)
+  - Telegram (token/chat from .env via _paths, chat 2010747443)
   - Toast Windows via le script existant `win_notify.py` (appelé avec le texte).
 * CLI :
   --once   : collecte unique + détection.
@@ -35,8 +35,7 @@ import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# Ensure Unicode output works on Windows consoles (cp1252 cannot encode
-# all chars)
+# Ensure Unicode output works on Windows consoles (cp1252 cannot encode all chars)
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
@@ -45,8 +44,8 @@ if hasattr(sys.stderr, "reconfigure"):
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_REDACTED"
-TELEGRAM_CHAT_ID = "2010747443"
+from _paths import TELEGRAM_TOKEN, TELEGRAM_CHAT
+TELEGRAM_CHAT_ID = TELEGRAM_CHAT
 DB_PATH = Path(__file__).with_name("anomalies.db")
 
 THRESHOLDS = {
@@ -61,7 +60,6 @@ THRESHOLDS = {
 # Helpers – collecte des métriques
 # ---------------------------------------------------------------------------
 
-
 def get_cpu_percent() -> float:
     """Retourne l'utilisation CPU en pourcentage (moyenne sur 1 s)."""
     try:
@@ -72,10 +70,7 @@ def get_cpu_percent() -> float:
         # Fallback: PowerShell Get-Counter
         try:
             out = subprocess.check_output(
-                [
-                    "powershell",
-                    "-Command",
-                    "(Get-Counter '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Processor(_Total)\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\% Processor Time').CounterSamples[0].CookedValue"],
+                ["powershell", "-Command", "(Get-Counter '\\\\\\\\\\\\\\\Processor(_Total)\\\\\\\\\\\\\\\% Processor Time').CounterSamples[0].CookedValue"],
                 text=True,
             )
             return float(out.strip())
@@ -92,10 +87,7 @@ def get_ram_percent() -> float:
     except Exception:
         try:
             out = subprocess.check_output(
-                [
-                    "powershell",
-                    "-Command",
-                    "(Get-Counter '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Memory\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\% Committed Bytes In Use').CounterSamples[0].CookedValue"],
+                ["powershell", "-Command", "(Get-Counter '\\\\\\\\\\\\\\\Memory\\\\\\\\\\\\\\\% Committed Bytes In Use').CounterSamples[0].CookedValue"],
                 text=True,
             )
             return float(out.strip())
@@ -112,8 +104,7 @@ def get_gpu_temperature() -> float:
             ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"],
             text=True,
         )
-        # La sortie peut contenir plusieurs lignes (plusieurs GPU) – on prend
-        # le premier
+        # La sortie peut contenir plusieurs lignes (plusieurs GPU) – on prend le premier
         line = out.strip().splitlines()[0]
         return float(line.strip())
     except Exception:
@@ -132,7 +123,6 @@ def get_disk_free_gb(drive: str) -> float:
 # SQLite – persistence
 # ---------------------------------------------------------------------------
 
-
 def init_db(conn: sqlite3.Connection):
     cur = conn.cursor()
     cur.execute(
@@ -149,22 +139,13 @@ def init_db(conn: sqlite3.Connection):
     )
     conn.commit()
 
-
-def insert_measure(
-        conn: sqlite3.Connection,
-        ts: str,
-        cpu: float,
-        ram: float,
-        gpu_temp: float,
-        disk_c: float,
-        disk_f: float):
+def insert_measure(conn: sqlite3.Connection, ts: str, cpu: float, ram: float, gpu_temp: float, disk_c: float, disk_f: float):
     cur = conn.cursor()
     cur.execute(
         "INSERT OR REPLACE INTO measures (ts, cpu, ram, gpu_temp, disk_c, disk_f) VALUES (?,?,?,?,?,?)",
         (ts, cpu, ram, gpu_temp, disk_c, disk_f),
     )
     conn.commit()
-
 
 def fetch_all(conn: sqlite3.Connection):
     cur = conn.cursor()
@@ -174,7 +155,6 @@ def fetch_all(conn: sqlite3.Connection):
 # ---------------------------------------------------------------------------
 # Analyse – détection d’anomalies
 # ---------------------------------------------------------------------------
-
 
 def compute_stats(rows):
     """Calcule moyenne et écart‑type pour chaque colonne numérique.
@@ -193,7 +173,6 @@ def compute_stats(rows):
             stats[col] = (mean, std)
     return stats
 
-
 def detect_anomaly(current, stats):
     """Renvoie une liste de messages d’anomalie détectés.
     `current` est dict contenant les mesures actuelles.
@@ -205,31 +184,26 @@ def detect_anomaly(current, stats):
         value = current[key]
         if key.startswith("disk"):
             if value < limit:
-                alerts.append(
-                    f"{key.upper()} free < {limit} GB (actuel {value:.1f} GB)")
+                alerts.append(f"{key.upper()} free < {limit} GB (actuel {value:.1f} GB)")
         else:
             if value > limit:
-                alerts.append(
-                    f"{key.upper()} > {limit}% (actuel {value:.1f}%)")
+                alerts.append(f"{key.upper()} > {limit}% (actuel {value:.1f}%)")
     # Z‑score
     for key, (mean, std) in stats.items():
         if std == 0:
             continue
         z = (current[key] - mean) / std
         if abs(z) > 2:
-            alerts.append(
-                f"{key.upper()} z‑score {z:.2f} (>2) – valeur {current[key]:.1f}")
+            alerts.append(f"{key.upper()} z‑score {z:.2f} (>2) – valeur {current[key]:.1f}")
     return alerts
 
 # ---------------------------------------------------------------------------
 # Notifications
 # ---------------------------------------------------------------------------
 
-
 def send_telegram(text: str):
     try:
-        data = urllib.parse.urlencode(
-            {"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
+        data = urllib.parse.urlencode({"chat_id": TELEGRAM_CHAT_ID, "text": text}).encode()
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         req = urllib.request.Request(url, data=data)
         with urllib.request.urlopen(req, timeout=10):
@@ -237,22 +211,19 @@ def send_telegram(text: str):
     except Exception as e:
         print(f"[anomaly_detector] Erreur Telegram : {e}", file=sys.stderr)
 
-
 def send_toast(message: str):
     # Supposons que win_notify.py accepte le texte en argument.
     script = Path(__file__).with_name("win_notify.py")
     if not script.is_file():
         return
     try:
-        subprocess.Popen([sys.executable, str(script), message],
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.Popen([sys.executable, str(script), message], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception:
         pass
 
 # ---------------------------------------------------------------------------
 # Main workflow
 # ---------------------------------------------------------------------------
-
 
 def collect_and_store(conn: sqlite3.Connection):
     ts = datetime.utcnow().isoformat()
@@ -271,7 +242,6 @@ def collect_and_store(conn: sqlite3.Connection):
         "ts": ts,
     }
 
-
 def run_once():
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
@@ -288,7 +258,6 @@ def run_once():
         print("[anomaly_detector] Aucun problème détecté.")
     conn.close()
 
-
 def run_loop():
     print("[anomaly_detector] Démarrage en mode boucle (toutes les 2 min). Ctrl‑C pour arrêter.")
     try:
@@ -298,7 +267,6 @@ def run_loop():
     except KeyboardInterrupt:
         print("[anomaly_detector] Boucle interrompue par l'utilisateur.")
 
-
 def show_history():
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
@@ -306,32 +274,15 @@ def show_history():
     # Affiche les 20 dernières entrées
     for row in rows[-20:]:
         ts, cpu, ram, gpu, dc, df = row
-        print(
-            f"{ts} | CPU {
-                cpu:.1f}% | RAM {
-                ram:.1f}% | GPU {
-                gpu:.1f}°C | C:{
-                    dc:.1f}GB | F:{
-                        df:.1f}GB")
+        print(f"{ts} | CPU {cpu:.1f}% | RAM {ram:.1f}% | GPU {gpu:.1f}°C | C:{dc:.1f}GB | F:{df:.1f}GB")
     conn.close()
 
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Détection d'anomalies système.")
+    parser = argparse.ArgumentParser(description="Détection d'anomalies système.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--once",
-        action="store_true",
-        help="Collecte unique + détection")
-    group.add_argument(
-        "--loop",
-        action="store_true",
-        help="Boucle toutes les 2 min")
-    group.add_argument(
-        "--history",
-        action="store_true",
-        help="Afficher l'historique (dernier jour)")
+    group.add_argument("--once", action="store_true", help="Collecte unique + détection")
+    group.add_argument("--loop", action="store_true", help="Boucle toutes les 2 min")
+    group.add_argument("--history", action="store_true", help="Afficher l'historique (dernier jour)")
     args = parser.parse_args()
 
     if args.once:
@@ -340,7 +291,6 @@ def main():
         run_loop()
     elif args.history:
         show_history()
-
 
 if __name__ == "__main__":
     main()

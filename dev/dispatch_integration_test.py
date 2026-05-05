@@ -13,10 +13,11 @@ Usage:
 """
 
 import os
+from _paths import TURBO_DIR
 import sys
 
-sys.path.insert(0, "/home/turbo")
-os.chdir("/home/turbo")
+sys.path.insert(0, str(TURBO_DIR))
+os.chdir(str(TURBO_DIR))
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from src.pattern_agents import PatternAgent, PatternAgentRegistry, NODES
@@ -158,6 +159,7 @@ def test_classify_confidence():
 def test_proactive_detection():
     """Verify proactive need detection works."""
     from src.cowork_proactive import get_proactive
+import argparse
     issues = []
 
     pro = get_proactive()

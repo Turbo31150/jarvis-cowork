@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """IA Optimize: check dispatch engine stats and suggest optimizations."""
 import argparse
@@ -19,9 +18,7 @@ THRESHOLDS = {
 
 def fetch_stats(timeout: float = 10.0) -> dict:
     try:
-        req = urllib.request.Request(
-            STATS_URL, headers={
-                "Accept": "application/json"})
+        req = urllib.request.Request(STATS_URL, headers={"Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode())
     except (urllib.error.URLError, OSError, json.JSONDecodeError) as e:
@@ -37,18 +34,15 @@ def analyze_stats(data: dict) -> list:
             success = stats.get("success", stats.get("success_count", 0))
             rate = success / total if total > 0 else 0
             latency = stats.get("avg_latency", stats.get("latency_avg", 0))
-            circuit = stats.get(
-                "circuit", stats.get(
-                    "circuit_state", "closed"))
+            circuit = stats.get("circuit", stats.get("circuit_state", "closed"))
 
             if circuit in ("open", "half-open"):
                 suggestions.append(
                     f"{name}: circuit={circuit} - node degraded, check health")
             if total >= THRESHOLDS["min_dispatches"] and rate < THRESHOLDS["min_success_rate"]:
                 suggestions.append(
-                    f"{name}: success_rate={
-                        rate:.0%} < {
-                        THRESHOLDS['min_success_rate']:.0%}" f" - reduce weight or disable")
+                    f"{name}: success_rate={rate:.0%} < {THRESHOLDS['min_success_rate']:.0%}"
+                    f" - reduce weight or disable")
             if latency > THRESHOLDS["max_avg_latency"]:
                 suggestions.append(
                     f"{name}: avg_latency={latency:.1f}s > {THRESHOLDS['max_avg_latency']}s"
@@ -56,13 +50,11 @@ def analyze_stats(data: dict) -> list:
 
     routing = data.get("routing", {})
     if routing.get("fallback_count", 0) > routing.get("direct_count", 0):
-        suggestions.append(
-            "High fallback rate - primary nodes may be overloaded")
+        suggestions.append("High fallback rate - primary nodes may be overloaded")
 
     queue = data.get("queue_depth", data.get("pending", 0))
     if isinstance(queue, int) and queue > 20:
-        suggestions.append(
-            f"Queue depth={queue} - increase parallelism or add nodes")
+        suggestions.append(f"Queue depth={queue} - increase parallelism or add nodes")
 
     return suggestions
 
@@ -87,15 +79,8 @@ def optimize_cycle() -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="IA Optimize dispatch engine")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=300,
-        help="Loop interval (sec)")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
+    parser.add_argument("--interval", type=int, default=300, help="Loop interval (sec)")
     args = parser.parse_args()
 
     while True:

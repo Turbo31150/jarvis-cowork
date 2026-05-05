@@ -2,14 +2,7 @@
 """win_backup_manager.py — Backup manager. Backs up DBs + configs to dev/data/backups/. SHA256 verification.
 Usage: python dev/win_backup_manager.py --backup --once
 """
-import argparse
-import json
-import os
-import sqlite3
-import subprocess
-import time
-import hashlib
-import shutil
+import argparse, json, os, sqlite3, subprocess, time, hashlib, shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -120,8 +113,7 @@ def do_backup():
                     (backup_id, str(db_file), str(dest), size, sha)
                 )
             except Exception as e:
-                files_backed_up.append(
-                    {"source": str(db_file), "error": str(e)})
+                files_backed_up.append({"source": str(db_file), "error": str(e)})
 
     # Backup config files
     for pattern in BACKUP_TARGETS["configs"]:
@@ -144,12 +136,13 @@ def do_backup():
                     (backup_id, str(cfg_file), str(dest), size, sha)
                 )
             except Exception as e:
-                files_backed_up.append(
-                    {"source": str(cfg_file), "error": str(e)})
+                files_backed_up.append({"source": str(cfg_file), "error": str(e)})
 
     # Update backup record
-    db.execute("UPDATE backups SET files_count=?, total_size_bytes=?, status=? WHERE id=?", (len(
-        [f for f in files_backed_up if "error" not in f]), total_size, "completed", backup_id))
+    db.execute(
+        "UPDATE backups SET files_count=?, total_size_bytes=?, status=? WHERE id=?",
+        (len([f for f in files_backed_up if "error" not in f]), total_size, "completed", backup_id)
+    )
     db.commit()
     db.close()
 
@@ -244,10 +237,7 @@ def do_verify():
 
     if not backup:
         db.close()
-        return {
-            "ts": datetime.now().isoformat(),
-            "action": "verify",
-            "status": "no_backups"}
+        return {"ts": datetime.now().isoformat(), "action": "verify", "status": "no_backups"}
 
     backup_id = backup[0]
     files = db.execute(
@@ -262,8 +252,7 @@ def do_verify():
     for fid, source, backup_path, expected_sha in files:
         if not Path(backup_path).exists():
             verified_fail += 1
-            results.append(
-                {"file": os.path.basename(source), "status": "missing"})
+            results.append({"file": os.path.basename(source), "status": "missing"})
             continue
 
         actual_sha = compute_sha256(backup_path)
@@ -299,28 +288,12 @@ def do_verify():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Backup manager — DB/config backup with SHA256 verification")
-    parser.add_argument(
-        "--backup",
-        action="store_true",
-        help="Create a full backup")
-    parser.add_argument(
-        "--restore",
-        action="store_true",
-        help="List available backups for restore")
-    parser.add_argument(
-        "--schedule",
-        action="store_true",
-        help="Show/set backup schedule")
-    parser.add_argument(
-        "--verify",
-        action="store_true",
-        help="Verify latest backup integrity")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Run once and exit")
+    parser = argparse.ArgumentParser(description="Backup manager — DB/config backup with SHA256 verification")
+    parser.add_argument("--backup", action="store_true", help="Create a full backup")
+    parser.add_argument("--restore", action="store_true", help="List available backups for restore")
+    parser.add_argument("--schedule", action="store_true", help="Show/set backup schedule")
+    parser.add_argument("--verify", action="store_true", help="Verify latest backup integrity")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
     args = parser.parse_args()
 
     if args.backup:

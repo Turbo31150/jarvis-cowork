@@ -28,9 +28,7 @@ def fetch(url, timeout=10):
 
 def run_once():
     report_lines = []
-    report_lines.append(
-        f"=== PRODUCTION REPORT — {
-            time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
+    report_lines.append(f"=== PRODUCTION REPORT — {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
 
     results = {}
     for path, label in ENDPOINTS:
@@ -64,12 +62,8 @@ def run_once():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate production status text report")
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Single run then exit")
+    parser = argparse.ArgumentParser(description="Generate production status text report")
+    parser.add_argument("--once", action="store_true", help="Single run then exit")
     args = parser.parse_args()
 
     if args.once:

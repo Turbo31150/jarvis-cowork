@@ -1,0 +1,10 @@
+{
+  "mission_id": "prod_perpetual_dispatch_001", 
+  "classification": "automation",
+  "priority": "P0",
+  "contexte": {
+    "analysis_goal": "traiter les taches autonomes perpetuelles pending: production digest, codex refactors, github growth, linkedin, memory refresh, browseros, voice, prompting, system audit, telegram digest",
+    "target": "cowork_dispatcher",
+    "autonomous": true
+  }
+}

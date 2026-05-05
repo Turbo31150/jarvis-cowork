@@ -85,16 +85,13 @@ def parse_boot_events():
                     key = key.strip()
                     val = val.strip()
                     if key == "Event ID":
-                        current_event["event_id"] = int(
-                            val) if val.isdigit() else val
+                        current_event["event_id"] = int(val) if val.isdigit() else val
                     elif key == "Date":
                         current_event["date"] = val
                     elif key == "BootTime" or key == "MainPathBootTime":
-                        current_event["main_path_ms"] = int(
-                            val) if val.isdigit() else 0
+                        current_event["main_path_ms"] = int(val) if val.isdigit() else 0
                     elif key == "BootPostBootTime":
-                        current_event["post_boot_ms"] = int(
-                            val) if val.isdigit() else 0
+                        current_event["post_boot_ms"] = int(val) if val.isdigit() else 0
                     elif key == "Source" or key == "Provider Name":
                         current_event["source"] = val
             if current_event:
@@ -109,7 +106,8 @@ def parse_boot_events():
                 "Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Diagnostics-Performance/Operational'; Id=100,101,102,103,106,107,108,109,110} -MaxEvents 20 -ErrorAction SilentlyContinue | "
                 "Select-Object Id,TimeCreated,Message | "
                 "ForEach-Object { @{Id=$_.Id; Time=$_.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss'); Msg=$_.Message.Substring(0, [Math]::Min(500, $_.Message.Length))} } | "
-                "ConvertTo-Json -Depth 2")
+                "ConvertTo-Json -Depth 2"
+            )
             out = subprocess.run(
                 ["powershell", "-NoProfile", "-Command", ps_cmd],
                 capture_output=True, text=True, timeout=20
@@ -176,7 +174,8 @@ def get_slow_services():
             "  $dur = ($xml.Event.EventData.Data | Where-Object {$_.Name -eq 'TotalTime'}).'#text'; "
             "  @{Name=$name; Duration=[int]$dur; Time=$_.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss')} "
             "} | Sort-Object Duration -Descending | Select-Object -First 10 | "
-            "ConvertTo-Json -Depth 2")
+            "ConvertTo-Json -Depth 2"
+        )
         out = subprocess.run(
             ["powershell", "-NoProfile", "-Command", ps_cmd],
             capture_output=True, text=True, timeout=20
@@ -223,8 +222,7 @@ def profile_boot(db):
             )
             if out.returncode == 0:
                 boot_time_str = out.stdout.strip()
-                events.append(
-                    {"event_id": "info", "date": boot_time_str, "note": "Last boot time"})
+                events.append({"event_id": "info", "date": boot_time_str, "note": "Last boot time"})
         except Exception:
             pass
 
@@ -301,7 +299,8 @@ def disable_service(db, service_name):
         return {
             "status": "error",
             "error": "Administrator privileges required",
-            "suggestion": f"Run as admin: sc config \"{service_name}\" start=disabled"}
+            "suggestion": f"Run as admin: sc config \"{service_name}\" start=disabled"
+        }
 
     try:
         out = subprocess.run(
@@ -311,11 +310,9 @@ def disable_service(db, service_name):
         success = out.returncode == 0
         db.execute(
             "INSERT INTO actions (ts, action, service_name, success, details) VALUES (?,?,?,?,?)",
-            (time.time(),
-             "disable",
-             service_name,
-             int(success),
-                out.stdout.strip() or out.stderr.strip()))
+            (time.time(), "disable", service_name, int(success),
+             out.stdout.strip() or out.stderr.strip())
+        )
         db.commit()
         return {
             "status": "ok" if success else "error",
@@ -337,7 +334,8 @@ def compare_profiles(db):
         return {
             "status": "info",
             "message": "Need at least 2 profiles to compare. Run --profile twice.",
-            "profiles_available": len(rows)}
+            "profiles_available": len(rows)
+        }
 
     current = rows[0]
     previous = rows[1]

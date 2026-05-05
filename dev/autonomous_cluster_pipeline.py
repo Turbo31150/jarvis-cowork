@@ -9,7 +9,6 @@ Usage:
     python cowork/dev/autonomous_cluster_pipeline.py --cycles 0      # infinite
     python cowork/dev/autonomous_cluster_pipeline.py --status
 """
-import argparse
 import io
 import json
 import os
@@ -63,7 +62,7 @@ NODES = {
     },
     "OL1": {
         "url": "http://127.0.0.1:11434/api/chat",
-        "model": "qwen2.5:1.5b",
+        "model": "qwen3:1.7b",
         "timeout": 45,
         "type": "ollama",
         "role": "excluded",  # 8% success — excluded from routing
@@ -72,9 +71,7 @@ NODES = {
 
 # ── Node Health State ────────────────────────────────────────
 
-# node_name -> {"alive": bool, "last_check": float, "fails": int,
-# "latency": float}
-node_health = {}
+node_health = {}  # node_name -> {"alive": bool, "last_check": float, "fails": int, "latency": float}
 
 
 def check_node(name):
@@ -123,12 +120,7 @@ def health_check_all():
             print(f"  {name:10s} [{NODES[name]['role']:8s}] {status}")
 
     online = [n for n, h in node_health.items() if h["alive"]]
-    print(
-        f"  => {
-            len(online)}/{
-            len(NODES)} nodes online: {
-                ', '.join(online)}",
-        flush=True)
+    print(f"  => {len(online)}/{len(NODES)} nodes online: {', '.join(online)}", flush=True)
     return online
 
 
@@ -197,18 +189,11 @@ def query_node(name, prompt):
             node_health[name]["fails"] = 0
             return text, elapsed, None
         else:
-            node_health[name]["fails"] = node_health.get(
-                name, {}).get("fails", 0) + 1
+            node_health[name]["fails"] = node_health.get(name, {}).get("fails", 0) + 1
             return None, elapsed, "empty response"
     except Exception as e:
         elapsed = time.time() - t0
-        node_health.setdefault(
-            name,
-            {})["fails"] = node_health.get(
-            name,
-            {}).get(
-            "fails",
-            0) + 1
+        node_health.setdefault(name, {})["fails"] = node_health.get(name, {}).get("fails", 0) + 1
         return None, elapsed, str(e)[:120]
 
 
@@ -568,29 +553,13 @@ def run_cycle(db, cycle_num, tasks_per_cycle=8):
 
     db.execute(
         "INSERT INTO cluster_pipeline_cycles (cycle_id, timestamp, tasks_total, tasks_ok, nodes_used, avg_latency_s, total_tokens_est, duration_s) VALUES (?,?,?,?,?,?,?,?)",
-        (cycle_id,
-         ts,
-         len(tasks),
-         ok,
-         json.dumps(nodes_used),
-         round(
-             avg_lat,
-             2),
-            total_tok,
-            round(
-             duration,
-             2)))
+        (cycle_id, ts, len(tasks), ok, json.dumps(nodes_used),
+         round(avg_lat, 2), total_tok, round(duration, 2)))
     db.commit()
 
     # Print compact summary
     rate = ok * 100 // max(len(tasks), 1)
-    print(
-        f"  [{cycle_id}] {ok}/{
-            len(tasks)} OK ({rate}%) | {
-            duration:.0f}s | {total_tok}tok | Q={
-                avg_q:.2f} | {
-                    ','.join(nodes_used)}",
-        flush=True)
+    print(f"  [{cycle_id}] {ok}/{len(tasks)} OK ({rate}%) | {duration:.0f}s | {total_tok}tok | Q={avg_q:.2f} | {','.join(nodes_used)}", flush=True)
 
     return {
         "cycle_id": cycle_id, "timestamp": ts,
@@ -623,12 +592,9 @@ def send_telegram(msg):
 def show_status():
     db = sqlite3.connect(str(DB_PATH))
     # Pipeline stats
-    total = db.execute(
-        "SELECT COUNT(*) FROM cluster_pipeline_log").fetchone()[0]
-    ok = db.execute(
-        "SELECT COUNT(*) FROM cluster_pipeline_log WHERE error IS NULL").fetchone()[0]
-    cycles = db.execute(
-        "SELECT COUNT(*) FROM cluster_pipeline_cycles").fetchone()[0]
+    total = db.execute("SELECT COUNT(*) FROM cluster_pipeline_log").fetchone()[0]
+    ok = db.execute("SELECT COUNT(*) FROM cluster_pipeline_log WHERE error IS NULL").fetchone()[0]
+    cycles = db.execute("SELECT COUNT(*) FROM cluster_pipeline_cycles").fetchone()[0]
 
     print(f"\n=== CLUSTER PIPELINE STATUS ===")
     print(f"  Cycles: {cycles}")
@@ -642,17 +608,7 @@ def show_status():
     """).fetchall()
     print(f"\n  Per node:")
     for node, cnt, ok_n, avg_lat, tok, avg_q in rows:
-        print(
-            f"    {
-                node:10s}: {
-                cnt:4d} tasks | {
-                ok_n:4d} OK ({
-                    ok_n * 100 // max(
-                        cnt,
-                        1):2d}%) | {
-                            avg_lat:.1f}s avg | {
-                                tok or 0} tok | Q={
-                                    avg_q or 0:.2f}")
+        print(f"    {node:10s}: {cnt:4d} tasks | {ok_n:4d} OK ({ok_n * 100 // max(cnt, 1):2d}%) | {avg_lat:.1f}s avg | {tok or 0} tok | Q={avg_q or 0:.2f}")
 
     # Per category
     rows = db.execute("""
@@ -726,8 +682,7 @@ def main():
     print("=" * 60)
     print(f"  JARVIS AUTONOMOUS CLUSTER PIPELINE")
     print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(
-        f"  Cycles: {max_cycles} | Batch: {tasks_per_cycle} | Pause: {pause}s")
+    print(f"  Cycles: {max_cycles} | Batch: {tasks_per_cycle} | Pause: {pause}s")
     print("=" * 60, flush=True)
 
     # Phase 1: Health check
@@ -759,8 +714,7 @@ def main():
             # Progress report every 25 cycles
             if cycle % 25 == 0:
                 rate = total_ok * 100 // max(total_tasks, 1)
-                print(
-                    f"\n  === PROGRESS: cycle {cycle}/{max_cycles} | {total_ok}/{total_tasks} OK ({rate}%) ===\n")
+                print(f"\n  === PROGRESS: cycle {cycle}/{max_cycles} | {total_ok}/{total_tasks} OK ({rate}%) ===\n")
 
             # Telegram report every 100 cycles
             if cycle % 100 == 0:
@@ -778,9 +732,7 @@ def main():
             break
         except sqlite3.OperationalError as e:
             if "locked" in str(e):
-                print(
-                    f"\n[DB LOCKED] Cycle {cycle}: retrying in 15s...",
-                    flush=True)
+                print(f"\n[DB LOCKED] Cycle {cycle}: retrying in 15s...", flush=True)
                 try:
                     db.close()
                 except Exception:
@@ -819,3 +771,9 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         import traceback
+import argparse
+        log = TURBO / "data" / "pipeline_crash.log"
+        with open(str(log), "a", encoding="utf-8") as f:
+            f.write(f"\n{'='*60}\nCRASH {datetime.now()}\n")
+            traceback.print_exc(file=f)
+        raise

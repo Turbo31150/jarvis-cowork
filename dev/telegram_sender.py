@@ -156,10 +156,8 @@ def log_send(db_path, text, success):
         )""")
         db.execute(
             "INSERT INTO telegram_send_log (timestamp, message_hash, length, success) VALUES (?,?,?,?)",
-            (datetime.now().isoformat(),
-             _msg_hash(text),
-             len(text),
-                1 if success else 0))
+            (datetime.now().isoformat(), _msg_hash(text), len(text), 1 if success else 0)
+        )
         db.commit()
         db.close()
     except Exception:
@@ -205,8 +203,7 @@ def main():
 
     if args.test:
         ts = datetime.now().strftime("%H:%M:%S")
-        ok = send_telegram(
-            f"<b>Test</b> <code>{ts}</code>\ntelegram_sender.py OK")
+        ok = send_telegram(f"<b>Test</b> <code>{ts}</code>\ntelegram_sender.py OK")
         print(f"Test send: {'OK' if ok else 'FAIL'}")
         return
 

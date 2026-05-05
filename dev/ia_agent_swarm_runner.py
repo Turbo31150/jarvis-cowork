@@ -147,8 +147,7 @@ def run_agent(script: Path, timeout: int = 60) -> dict:
         # Keep last 500 chars of stdout/stderr for summary
         result["output"] = (proc.stdout or "")[-500:].strip()
         result["error"] = (proc.stderr or "")[-500:].strip()
-        result["status"] = "ok" if proc.returncode == 0 else f"exit({
-            proc.returncode})"
+        result["status"] = "ok" if proc.returncode == 0 else f"exit({proc.returncode})"
     except subprocess.TimeoutExpired:
         result["duration_ms"] = timeout * 1000
         result["status"] = "TIMEOUT"
@@ -195,8 +194,7 @@ def run_swarm(
     completed = 0
     start_all = time.time()
 
-    print(
-        f"\n  Swarm activation: {total} agents, {parallel} parallel, {timeout}s timeout\n")
+    print(f"\n  Swarm activation: {total} agents, {parallel} parallel, {timeout}s timeout\n")
 
     with ThreadPoolExecutor(max_workers=parallel) as executor:
         future_to_agent = {
@@ -242,7 +240,7 @@ def print_list(registry: list[dict]) -> None:
 
     print(f"\n  IA Agent Swarm — {len(registry)} agents discovered\n")
     print(f"  {'Category':<18} {'Count':>5}   Agents")
-    print(f"  {'-' * 18} {'-' * 5}   {'-' * 50}")
+    print(f"  {'-'*18} {'-'*5}   {'-'*50}")
 
     for cat in sorted(by_cat.keys()):
         agents_in_cat = by_cat[cat]
@@ -274,18 +272,16 @@ def print_summary(results: list[dict], as_json: bool = False) -> None:
     ok = sum(1 for r in results if r["success"])
     failed = sum(1 for r in results if not r["success"])
     timeouts = sum(1 for r in results if r["status"] == "TIMEOUT")
-    avg_ms = int(sum(r["duration_ms"]
-                 for r in results) / total) if total else 0
+    avg_ms = int(sum(r["duration_ms"] for r in results) / total) if total else 0
     max_ms = max((r["duration_ms"] for r in results), default=0)
-    min_ms = min((r["duration_ms"]
-                 for r in results if r["duration_ms"] > 0), default=0)
+    min_ms = min((r["duration_ms"] for r in results if r["duration_ms"] > 0), default=0)
 
     print("\n" + "=" * 72)
     print("  SWARM EXECUTION SUMMARY")
     print("=" * 72)
     print(f"  Timestamp : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Total     : {total} agents")
-    print(f"  Success   : {ok} ({ok * 100 // total if total else 0}%)")
+    print(f"  Success   : {ok} ({ok*100//total if total else 0}%)")
     print(f"  Failed    : {failed}")
     print(f"  Timeouts  : {timeouts}")
     print(f"  Avg time  : {avg_ms}ms")
@@ -303,32 +299,19 @@ def print_summary(results: list[dict], as_json: bool = False) -> None:
         else:
             by_cat[cat]["fail"] += 1
 
-    print(
-        f"\n  {
-            'Category':<18} {
-            'OK':>4} {
-                'Fail':>5} {
-                    'Total':>6} {
-                        'Avg ms':>8}")
-    print(f"  {'-' * 18} {'-' * 4} {'-' * 5} {'-' * 6} {'-' * 8}")
+    print(f"\n  {'Category':<18} {'OK':>4} {'Fail':>5} {'Total':>6} {'Avg ms':>8}")
+    print(f"  {'-'*18} {'-'*4} {'-'*5} {'-'*6} {'-'*8}")
     for cat in sorted(by_cat.keys()):
         s = by_cat[cat]
         avg = s["ms"] // s["total"] if s["total"] else 0
-        print(
-            f"  {
-                cat:<18} {
-                s['ok']:>4} {
-                s['fail']:>5} {
-                    s['total']:>6} {
-                        avg:>8}")
+        print(f"  {cat:<18} {s['ok']:>4} {s['fail']:>5} {s['total']:>6} {avg:>8}")
 
     # List failures
     failures = [r for r in results if not r["success"]]
     if failures:
         print(f"\n  FAILURES ({len(failures)}):")
         for r in failures:
-            err_line = (r["error"] or r["output"]
-                        or "no output").split("\n")[-1][:80]
+            err_line = (r["error"] or r["output"] or "no output").split("\n")[-1][:80]
             print(f"    - {r['script']:<40} [{r['status']}] {err_line}")
 
     print("=" * 72 + "\n")
@@ -363,18 +346,10 @@ def main():
                         help="Timeout per agent in seconds (default: 60)")
     parser.add_argument("--category", "-c", type=str, default=None,
                         help="Run only agents in this category")
-    parser.add_argument(
-        "--exclude",
-        "-x",
-        type=str,
-        default=None,
-        help="Comma-separated list of script filenames to exclude")
-    parser.add_argument(
-        "--include",
-        "-i",
-        type=str,
-        default=None,
-        help="Comma-separated list of script filenames to run (only these)")
+    parser.add_argument("--exclude", "-x", type=str, default=None,
+                        help="Comma-separated list of script filenames to exclude")
+    parser.add_argument("--include", "-i", type=str, default=None,
+                        help="Comma-separated list of script filenames to run (only these)")
     parser.add_argument("--json", action="store_true",
                         help="Output results as JSON")
     parser.add_argument("--verbose", "-v", action="store_true",
@@ -396,29 +371,21 @@ def main():
         registry = [r for r in registry if r["category"] == cat_lower]
         agents = [Path(r["path"]) for r in registry]
         if not agents:
-            valid = sorted(set(r["category"]
-                           for r in build_agent_registry(discover_agents())))
-            print(
-                f"  No agents in category '{
-                    args.category}'. Valid: {
-                    ', '.join(valid)}")
+            valid = sorted(set(r["category"] for r in build_agent_registry(discover_agents())))
+            print(f"  No agents in category '{args.category}'. Valid: {', '.join(valid)}")
             sys.exit(1)
 
     # Filter by --include
     if args.include:
         include_set = set(s.strip() for s in args.include.split(","))
-        agents = [
-            a for a in agents if a.name in include_set or a.stem in include_set]
-        registry = [r for r in registry if r["file"]
-                    in include_set or r["name"] in include_set]
+        agents = [a for a in agents if a.name in include_set or a.stem in include_set]
+        registry = [r for r in registry if r["file"] in include_set or r["name"] in include_set]
 
     # Filter by --exclude
     if args.exclude:
         exclude_set = set(s.strip() for s in args.exclude.split(","))
-        agents = [
-            a for a in agents if a.name not in exclude_set and a.stem not in exclude_set]
-        registry = [r for r in registry if r["file"]
-                    not in exclude_set and r["name"] not in exclude_set]
+        agents = [a for a in agents if a.name not in exclude_set and a.stem not in exclude_set]
+        registry = [r for r in registry if r["file"] not in exclude_set and r["name"] not in exclude_set]
 
     # List mode
     if args.list:
@@ -447,8 +414,7 @@ def main():
 
         # Exit code reflects failures
         failures = sum(1 for r in results if not r["success"])
-        # cap at 125 to stay in valid exit code range
-        sys.exit(min(failures, 125))
+        sys.exit(min(failures, 125))  # cap at 125 to stay in valid exit code range
 
 
 if __name__ == "__main__":

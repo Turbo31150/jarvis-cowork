@@ -46,8 +46,7 @@ def get_wsl_distros():
                 default = parts[0] == "*"
                 name = parts[1] if default else parts[0]
                 state = parts[2] if default else parts[1]
-                version = parts[3] if default and len(
-                    parts) > 3 else parts[2] if len(parts) > 2 else "?"
+                version = parts[3] if default and len(parts) > 3 else parts[2] if len(parts) > 2 else "?"
                 distros.append({
                     "name": name,
                     "state": state,
@@ -67,9 +66,7 @@ def check_docker_interop():
             ["docker", "info", "--format", "{{.OperatingSystem}}"],
             capture_output=True, text=True, timeout=10
         )
-        return {
-            "docker_available": out.returncode == 0,
-            "os": out.stdout.strip()}
+        return {"docker_available": out.returncode == 0, "os": out.stdout.strip()}
     except Exception:
         return {"docker_available": False, "os": "N/A"}
 
@@ -91,12 +88,8 @@ def do_status():
         "docker_interop": docker,
     }
 
-    db.execute(
-        "INSERT INTO wsl_snapshots (ts, distros, running, report) VALUES (?,?,?,?)",
-        (time.time(),
-         len(distros),
-         running,
-         json.dumps(report)))
+    db.execute("INSERT INTO wsl_snapshots (ts, distros, running, report) VALUES (?,?,?,?)",
+               (time.time(), len(distros), running, json.dumps(report)))
     db.commit()
     db.close()
     return report
@@ -104,11 +97,7 @@ def do_status():
 
 def main():
     parser = argparse.ArgumentParser(description="Windows WSL Manager")
-    parser.add_argument(
-        "--once",
-        "--status",
-        action="store_true",
-        help="Status")
+    parser.add_argument("--once", "--status", action="store_true", help="Status")
     parser.add_argument("--list", action="store_true", help="List distros")
     parser.add_argument("--start", metavar="DISTRO", help="Start distro")
     parser.add_argument("--stop", action="store_true", help="Stop all")
