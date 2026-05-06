@@ -4,3 +4,8 @@ analysis.json
 *.pyc
 __pycache__/
 .mcp.json
+data/cowork_test_*.json
+logs/cowork-dispatcher.log
+logs/cowork-loop.log
+*.db
+!etoile.db
