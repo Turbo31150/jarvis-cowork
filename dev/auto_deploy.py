@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Auto-deploy JARVIS: git pull + verify services."""
-from _paths import TURBO_DIR
 import argparse
 import json
 import subprocess
@@ -8,7 +7,7 @@ import socket
 import time
 import sys
 
-TURBO_DIR = str(TURBO_DIR)
+TURBO_DIR = "F:/BUREAU/turbo"
 SERVICES = {
     "WS": {"port": 9742, "host": "127.0.0.1"},
     "LMStudio": {"port": 1234, "host": "127.0.0.1"},

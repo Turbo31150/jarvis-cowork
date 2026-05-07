@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Daily health report — Disk, GPU, services, cluster, cowork stats. Save to data/reports/."""
-from _paths import TURBO_DIR
 import argparse, json, os, socket, sqlite3, subprocess, sys, time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ETOILE_DB = Path(str(TURBO_DIR / "etoile.db"))
-REPORTS_DIR = Path(str(TURBO_DIR / "data/reports"))
+ETOILE_DB = Path("F:/BUREAU/turbo/etoile.db")
+REPORTS_DIR = Path("F:/BUREAU/turbo/data/reports")
 INTERVAL_SECONDS = 86400  # 24 hours
 
 
@@ -83,7 +82,7 @@ def get_cluster_stats() -> dict:
 
 def get_cowork_stats() -> dict:
     """Count cowork scripts and recent activity."""
-    dev_dir = Path(str(TURBO_DIR / "cowork/dev"))
+    dev_dir = Path("F:/BUREAU/turbo/cowork/dev")
     scripts = list(dev_dir.glob("*.py")) if dev_dir.exists() else []
     return {"total_scripts": len(scripts), "dir": str(dev_dir)}
 

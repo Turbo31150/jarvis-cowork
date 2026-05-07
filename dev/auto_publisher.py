@@ -17,7 +17,7 @@ from pathlib import Path
 DB_PATH = Path(__file__).resolve().parent.parent.parent / "etoile.db"
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT = 2010747443
-M1_URL = "http://127.0.0.1:1234/v1/chat/completions"
+M1_URL = "http://127.0.0.1:1234/api/v1/chat"
 
 TEMPLATES = {
     "linkedin": "Write a professional LinkedIn post (150 words max) about: {topic}. "

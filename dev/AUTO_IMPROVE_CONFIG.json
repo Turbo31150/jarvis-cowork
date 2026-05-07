@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "enabled": true,
+  "interval_seconds": 300,
+  "fix_types": {
+    "syntax_errors": {
+      "misplaced_imports": true,
+      "indentation_fix": true,
+      "missing_newlines": true
+    },
+    "docstrings": {
+      "add_module_docstring": true,
+      "min_length": 30
+    },
+    "argparse": {
+      "add_if_missing": true,
+      "include_help_ext": true
+    },
+    "main_block": {
+      "add_if_missing": true
+    }
+  },
+  "script_filters": {
+    "include_patterns": [
+      "_auto_",
+      "auto_",
+      "cowork_",
+      "cluster_"
+    ],
+    "exclude_patterns": [
+      "_paths",
+      "_run_"
+    ]
+  },
+  "max_fixes_per_run": 10,
+  "backup_before_fix": true,
+  "notify_on_fix": true,
+  "thresholds": {
+    "min_score": 95,
+    "max_warnings": 5,
+    "max_failures": 0
+  }
+}

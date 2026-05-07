@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Service watcher — Check Docker, LM Studio, Ollama, direct-proxy. Restart if down."""
-from _paths import TURBO_DIR
 import argparse
 import json
 import socket
@@ -11,7 +10,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ETOILE_DB = Path(str(TURBO_DIR / "etoile.db"))
+ETOILE_DB = Path("F:/BUREAU/turbo/etoile.db")
 INTERVAL_SECONDS = 60
 
 SERVICES = {
@@ -33,7 +32,7 @@ SERVICES = {
     "direct_proxy": {
         "check": "port", "host": "127.0.0.1", "port": 18800,
         "process": "node",
-        "restart_cmd": ["node", str(TURBO_DIR / "direct-proxy.js")],
+        "restart_cmd": ["node", "F:/BUREAU/turbo/direct-proxy.js"],
     },
 }
 

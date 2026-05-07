@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Cowork wrapper: kill_phantoms — invoque le script principal."""
-from _paths import TURBO_DIR
 import subprocess, sys, json
 from pathlib import Path
 import argparse
 
-SCRIPT = Path(str(TURBO_DIR / "scripts/kill_phantoms.py"))
+SCRIPT = Path("F:/BUREAU/turbo/scripts/kill_phantoms.py")
 
 def main():
     r = subprocess.run(

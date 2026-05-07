@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Cowork wrapper: zombie_killer — invoque le script principal."""
-from _paths import TURBO_DIR
 import subprocess, sys, json
 from pathlib import Path
 import argparse
 
-SCRIPT = Path(str(TURBO_DIR / "scripts/zombie_killer.py"))
+SCRIPT = Path("F:/BUREAU/turbo/scripts/zombie_killer.py")
 
 def main():
     if not SCRIPT.exists():

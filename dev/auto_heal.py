@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Auto-heal: check critical ports and restart missing services."""
-from _paths import TURBO_DIR
 import argparse
 import json
 import socket
@@ -13,7 +12,7 @@ SERVICES = {
         "port": 9742, "host": "127.0.0.1",
         "restart_cmd": ["python", "-m", "uvicorn", "python_ws.server:app",
                         "--host", "127.0.0.1", "--port", "9742"],
-        "cwd": str(TURBO_DIR),
+        "cwd": "F:/BUREAU/turbo",
     },
     "LMStudio": {
         "port": 1234, "host": "127.0.0.1",

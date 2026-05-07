@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Docker health monitor — Check jarvis-cowork-* containers, restart if exited, log status."""
-from _paths import TURBO_DIR
 import argparse
 import json
 import sqlite3
@@ -10,7 +9,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ETOILE_DB = Path(str(TURBO_DIR / "etoile.db"))
+ETOILE_DB = Path("F:/BUREAU/turbo/etoile.db")
 CONTAINER_PREFIX = "jarvis-cowork-"
 INTERVAL_SECONDS = 120  # 2 minutes
 

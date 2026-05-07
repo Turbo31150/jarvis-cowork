@@ -8,9 +8,8 @@ import os
 from pathlib import Path
 import argparse
 
-# cowork/dev/_paths.py -> cowork/dev/ -> cowork/
-TURBO_DIR = Path(__file__).resolve().parent.parent
-
+# cowork/dev/_paths.py -> cowork/dev/ -> cowork/ -> turbo/
+TURBO_DIR = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = TURBO_DIR / "data"
 ETOILE_DB = DATA_DIR / "etoile.db"
 JARVIS_DB = DATA_DIR / "jarvis.db"

@@ -4,7 +4,7 @@
 3 navigateurs, 1 interface:
   - Chrome/Chromium via CDP (port 9222) + chrome-devtools-mcp
   - BrowserOS MCP (port 9000) — automation, snapshots, 40+ integrations
-  - Comet DevMCP (Python, C:\\\\\\\\\\\\\\Jarvis\\\\\\\\\\\\\\mcp\\\\\\\\\\\\\\servers\\\\\\\\\\\\\\cometdevmcp) — headless Chrome modifie
+  - Comet DevMCP (Python, C:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Jarvis\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\mcp\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\servers\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\cometdevmcp) — headless Chrome modifie
 
 Usage:
     python cowork/dev/browser_orchestrator.py --once          # Health check all browsers

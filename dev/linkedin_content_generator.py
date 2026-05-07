@@ -2,13 +2,12 @@
 """LinkedIn post generator via local AI cluster + BrowserOS MCP publish.
 Usage: --once (generate+publish) | --generate (no publish) | --topic TOPIC
 """
-from _paths import TURBO_DIR
 import argparse, json, sqlite3, sys, time, urllib.request
 from datetime import datetime
 
 M1_URL, M1_MODEL = "http://127.0.0.1:1234/api/v1/chat", "qwen3-8b"
 BROWSEROS_URL = "http://127.0.0.1:9000/mcp"
-ETOILE_DB, LINKEDIN_URL = str(TURBO_DIR / "etoile.db"), "https://www.linkedin.com/feed/"
+ETOILE_DB, LINKEDIN_URL = "F:/BUREAU/turbo/etoile.db", "https://www.linkedin.com/feed/"
 DEFAULT_TOPIC = "JARVIS: infrastructure IA distribuee multi-GPU, orchestration automatique de cluster local avec agents autonomes"
 PROMPT = """/nothink
 Tu es un expert LinkedIn tech/IA avec 50K followers. Genere un post LinkedIn engageant.

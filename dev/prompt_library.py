@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Cowork wrapper: prompt_library — re-index + stats."""
-from _paths import TURBO_DIR
 import subprocess, sys, json
 from pathlib import Path
 import argparse
 
-SCRIPT = Path(str(TURBO_DIR / "scripts/prompt_library.py"))
+SCRIPT = Path("F:/BUREAU/turbo/scripts/prompt_library.py")
 
 def main():
     # Re-index

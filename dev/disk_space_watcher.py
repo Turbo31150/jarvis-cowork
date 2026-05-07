@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Disk space watcher — Check C: and F: free space, alert if <5GB, log to etoile.db."""
-from _paths import TURBO_DIR
 import argparse
 import json
 import os
@@ -10,7 +9,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ETOILE_DB = Path(str(TURBO_DIR / "etoile.db"))
+ETOILE_DB = Path("F:/BUREAU/turbo/etoile.db")
 DRIVES = {"C:": "C:\\", "F:": "F:\\"}
 ALERT_THRESHOLD_GB = 5.0
 INTERVAL_SECONDS = 300  # 5 minutes

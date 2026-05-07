@@ -93,8 +93,22 @@ def _auto_migrate_db():
     if "total_calls" not in cols:
         db.execute("ALTER TABLE cowork_script_mapping ADD COLUMN total_calls INTEGER DEFAULT 0")
         db.commit()
-    # -- agent_dispatch_log: ensure classified_type and latency_ms exist
-    if "agent_dispatch_log" in tables:
+    # -- agent_dispatch_log: create if missing
+    if "agent_dispatch_log" not in tables:
+        db.execute("""
+            CREATE TABLE agent_dispatch_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+                query TEXT DEFAULT '',
+                classified_type TEXT DEFAULT '',
+                agent_id TEXT DEFAULT '',
+                success INTEGER DEFAULT 1,
+                latency_ms INTEGER DEFAULT 0,
+                error_message TEXT DEFAULT ''
+            )
+        """)
+        db.commit()
+    else:
         adl_cols = {r[1] for r in db.execute("PRAGMA table_info(agent_dispatch_log)").fetchall()}
         if "classified_type" not in adl_cols:
             db.execute("ALTER TABLE agent_dispatch_log ADD COLUMN classified_type TEXT DEFAULT ''")
@@ -105,6 +119,9 @@ def _auto_migrate_db():
                 db.execute("UPDATE agent_dispatch_log SET latency_ms = duration_ms")
             else:
                 db.execute("ALTER TABLE agent_dispatch_log ADD COLUMN latency_ms INTEGER DEFAULT 0")
+            db.commit()
+        if "error_message" not in adl_cols:
+            db.execute("ALTER TABLE agent_dispatch_log ADD COLUMN error_message TEXT DEFAULT ''")
             db.commit()
     # -- agent_patterns table: create if missing
     if "agent_patterns" not in tables:

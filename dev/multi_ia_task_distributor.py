@@ -8,7 +8,6 @@ CLI:
   --routing                Show current routing table
   --status                 Check all IAs status
 """
-from _paths import TURBO_DIR
 
 import argparse
 import json
@@ -130,7 +129,7 @@ ROUTING_RULES = [
     (["consensus"],                                                     "__ALL__"),
 ]
 
-DB_PATH = Path(str(TURBO_DIR / "data/etoile.db"))
+DB_PATH = Path("F:/BUREAU/turbo/data/etoile.db")
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -110,9 +110,9 @@ def check_disk() -> Dict[str, Any]:
     """Vérifie l'espace disque."""
     import shutil
     issues = []
-    drives = ["/"]
-    if os.path.isdir("/home"):
-        drives.append("/home")
+    drives = ["C:\\"]
+    if os.path.isdir("F:\\"):
+        drives.append("F:\\")
 
     ok = 0
     for d in drives:
@@ -132,7 +132,7 @@ def check_disk() -> Dict[str, Any]:
 def check_network() -> Dict[str, Any]:
     """Vérifie la connectivité réseau."""
     issues = []
-    out = run_cmd(["ping", "-c", "2", "-W", "2", "google.com"])
+    out = run_cmd(["ping", "-n", "2", "-w", "2000", "google.com"])
     if "TTL=" in out:
         score = 100
         details = "Internet OK"
@@ -215,9 +215,10 @@ def main():
     if args.fix:
         print("\n--- Auto-fix ---")
         for c in checks:
+            if c["name"] == "services" and c["score"] < 100:
                 print("  Tentative de restart Ollama...")
-                run_cmd(["pkill", "-f", "ollama"], timeout=5)
-                run_cmd(["ollama", "serve"], timeout=5)
+                run_cmd(["taskkill", "/F", "/IM", "ollama.exe"], timeout=5)
+                run_cmd(["cmd", "/c", "start", "", "ollama", "serve"], timeout=5)
                 print("  Ollama restart tenté.")
 
 if __name__ == "__main__":

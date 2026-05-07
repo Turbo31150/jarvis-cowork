@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Auto cleaner — When C: <2GB, clean temp/caches. Log cleaned amount to etoile.db."""
-from _paths import TURBO_DIR
 import argparse
 import json
 import os
@@ -11,7 +10,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ETOILE_DB = Path(str(TURBO_DIR / "etoile.db"))
+ETOILE_DB = Path("F:/BUREAU/turbo/etoile.db")
 CRITICAL_THRESHOLD_GB = 2.0
 INTERVAL_SECONDS = 600  # 10 minutes
 
@@ -76,7 +75,7 @@ def clean_all() -> dict:
     """Run all cleanup tasks, return results."""
     freed = {}
     # Windows temp
-    temp = os.environ.get("TEMP", r"C:\Users\franc\\\\\\\\\\\\\\AppData\\\\\\\\\\\\\\Local\\\\\\\\\\\\\\Temp")
+    temp = os.environ.get("TEMP", r"C:\Users\franc\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\AppData\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Local\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Temp")
     freed["windows_temp"] = clean_directory(temp)
     # pip cache
     pip_cache = Path.home() / "AppData" / "Local" / "pip" / "cache"
