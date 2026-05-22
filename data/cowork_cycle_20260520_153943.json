@@ -1,0 +1,1501 @@
+{
+  "cycle": "full",
+  "tests": {
+    "total": 616,
+    "ok": 598,
+    "fail": 18,
+    "missing": 0,
+    "warnings_total": 225,
+    "avg_lines": 228,
+    "avg_functions": 7,
+    "with_docstring": 598,
+    "with_argparse": 598,
+    "with_main": 598,
+    "non_stdlib": [
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: statistics",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: requests",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: functions",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: py_compile",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: sched",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: asyncio",
+      "Non-stdlib import: src.quality_gate",
+      "Non-stdlib import: src.self_improvement",
+      "Non-stdlib import: src.pattern_agents",
+      "Non-stdlib import: httpx",
+      "Non-stdlib import: src.pattern_agents",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: asyncio",
+      "Non-stdlib import: src.pattern_agents",
+      "Non-stdlib import: httpx",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: linkedin_content_generator",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: playwright.sync_api",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: zipfile",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: shlex",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: gzip",
+      "Non-stdlib import: importlib.util",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: dynamic_timeout",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: asyncio",
+      "Non-stdlib import: openclaw_watchdog",
+      "Non-stdlib import: websocket",
+      "Non-stdlib import: websocket",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: psutil",
+      "Non-stdlib import: statistics",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: shlex",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: dynamic_timeout",
+      "Non-stdlib import: smart_routing_engine",
+      "Non-stdlib import: statistics",
+      "Non-stdlib import: prompt_router",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: sniper_scanner",
+      "Non-stdlib import: data_fetcher",
+      "Non-stdlib import: strategies",
+      "Non-stdlib import: multi_strategy_scanner",
+      "Non-stdlib import: multi_strategy_scanner",
+      "Non-stdlib import: strategy_optimizer",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: importlib.util",
+      "Non-stdlib import: unittest",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: difflib",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: difflib",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: whisper",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: asyncio",
+      "Non-stdlib import: edge_tts",
+      "Non-stdlib import: pyttsx3",
+      "Non-stdlib import: __future__",
+      "Non-stdlib import: _paths",
+      "Non-stdlib import: shlex",
+      "Non-stdlib import: _paths"
+    ],
+    "elapsed_s": 43.4,
+    "timestamp": "2026-05-20T15:39:41.060786"
+  },
+  "gaps": {
+    "patterns_by_script_count": {
+      "PAT_CW_BROWSER": 2,
+      "PAT_CW_FILE_WATCH": 2,
+      "PAT_CW_ROUTING": 4,
+      "PAT_CW_TRADING": 5,
+      "PAT_CW_DEVTOOLS": 6,
+      "PAT_CW_COMMS": 7,
+      "PAT_CW_WIN_SECURITY": 7,
+      "PAT_CW_WIN_AUTOMATION": 8,
+      "PAT_CW_JARVIS_CORE": 9,
+      "PAT_CW_WIN_MAINTENANCE": 10,
+      "PAT_CW_WIN_NETWORK": 10,
+      "PAT_CW_IA_ORCHESTRATION": 11,
+      "PAT_CW_JARVIS_DEVOPS": 11,
+      "PAT_CW_CLUSTER": 12,
+      "PAT_CW_IA_ANALYSIS": 12,
+      "PAT_CW_IA_GENERATION": 12,
+      "PAT_CW_IA_LEARNING": 12,
+      "PAT_CW_IA_OPTIMIZATION": 12,
+      "PAT_CW_JARVIS_EVOLVE": 12,
+      "PAT_CW_JARVIS_INTELLIGENCE": 12,
+      "PAT_CW_JARVIS_VOICE": 12,
+      "PAT_CW_WIN_MONITORING": 12,
+      "PAT_CW_AUTONOMOUS": 13,
+      "PAT_CW_JARVIS_NLP": 14,
+      "PAT_CW_JARVIS_PIPES": 14,
+      "PAT_CW_DATA": 15,
+      "PAT_CW_JARVIS_DASHBOARD": 15,
+      "PAT_CW_WIN_MEDIA": 15,
+      "PAT_CW_WIN_DESKTOP": 21,
+      "PAT_CW_WIN_SYSTEM": 22
+    },
+    "unused_patterns": [
+      {
+        "pattern_id": "PAT_CW_WIN_MONITORING",
+        "agent_id": "cw-win-monitoring",
+        "description": "COWORK Windows Monitoring — thermal GPU, memoire, CPU, I/O disque, evenements systeme"
+      },
+      {
+        "pattern_id": "PAT_CW_WIN_NETWORK",
+        "agent_id": "cw-win-network",
+        "description": "COWORK Windows Network — firewall, WiFi, DNS, VPN, analyse reseau"
+      },
+      {
+        "pattern_id": "PAT_CW_WIN_SYSTEM",
+        "agent_id": "cw-win-system",
+        "description": "COWORK Windows System — services, processus, registre, startup, drivers, WSL"
+      },
+      {
+        "pattern_id": "PAT_CW_WIN_DESKTOP",
+        "agent_id": "cw-win-desktop",
+        "description": "COWORK Windows Desktop — fenetres, ecrans, clipboard, audio, bureaux virtuels"
+      },
+      {
+        "pattern_id": "PAT_CW_WIN_SECURITY",
+        "agent_id": "cw-win-security",
+        "description": "COWORK Windows Security — backup, Defender, privacy, certificats, protection"
+      },
+      {
+        "pattern_id": "PAT_CW_WIN_AUTOMATION",
+        "agent_id": "cw-win-automation",
+        "description": "COWORK Windows Automation — lanceurs intelligents, taches automatisees"
+      },
+      {
+        "pattern_id": "PAT_CW_WIN_MAINTENANCE",
+        "agent_id": "cw-win-maintenance",
+        "description": "COWORK Windows Maintenance — nettoyage, defrag, pagefile, updates, restauration"
+      },
+      {
+        "pattern_id": "PAT_CW_WIN_MEDIA",
+        "agent_id": "cw-win-media",
+        "description": "COWORK Windows Media — fichiers media, polices, imprimantes, peripheriques"
+      },
+      {
+        "pattern_id": "PAT_CW_JARVIS_CORE",
+        "agent_id": "cw-jarvis-core",
+        "description": "COWORK JARVIS Core — config, state machine, rules, plugins, templates, API"
+      },
+      {
+        "pattern_id": "PAT_CW_JARVIS_VOICE",
+        "agent_id": "cw-jarvis-voice",
+        "description": "COWORK JARVIS Voice — wake word, profils vocaux, dictation, TTS, pipeline audio"
+      },
+      {
+        "pattern_id": "PAT_CW_JARVIS_NLP",
+        "agent_id": "cw-jarvis-nlp",
+        "description": "COWORK JARVIS NLP — intent, sentiment, conversation, dialog, multi-langue"
+      },
+      {
+        "pattern_id": "PAT_CW_JARVIS_DEVOPS",
+        "agent_id": "cw-jarvis-devops",
+        "description": "COWORK JARVIS DevOps — backup, changelog, permissions, secrets, release"
+      },
+      {
+        "pattern_id": "PAT_CW_JARVIS_INTELLIGENCE",
+        "agent_id": "cw-jarvis-intelligence",
+        "description": "COWORK JARVIS Intelligence — patterns, cache, A/B test, prediction, brain, embedding"
+      },
+      {
+        "pattern_id": "PAT_CW_JARVIS_PIPES",
+        "agent_id": "cw-jarvis-pipes",
+        "description": "COWORK JARVIS Pipelines — crons, macros, webhooks, events, notifications"
+      },
+      {
+        "pattern_id": "PAT_CW_JARVIS_EVOLVE",
+        "agent_id": "cw-jarvis-evolve",
+        "description": "COWORK JARVIS Self-Evolution — auto-amelioration, skills generation, evolution"
+      },
+      {
+        "pattern_id": "PAT_CW_JARVIS_DASHBOARD",
+        "agent_id": "cw-jarvis-dashboard",
+        "description": "COWORK JARVIS Dashboard — meta dashboard, health, analytics, ROI, briefing"
+      },
+      {
+        "pattern_id": "PAT_CW_IA_GENERATION",
+        "agent_id": "cw-ia-generation",
+        "description": "COWORK IA Generation — code, docs, tests, stories, images, data synthesis"
+      },
+      {
+        "pattern_id": "PAT_CW_IA_OPTIMIZATION",
+        "agent_id": "cw-ia-optimization",
+        "description": "COWORK IA Optimization — prompts, couts, routing, poids, inference, benchmark"
+      },
+      {
+        "pattern_id": "PAT_CW_IA_LEARNING",
+        "agent_id": "cw-ia-learning",
+        "description": "COWORK IA Learning — auto-critique, distillation, curriculum, transfer learning"
+      },
+      {
+        "pattern_id": "PAT_CW_IA_ORCHESTRATION",
+        "agent_id": "cw-ia-orchestration",
+        "description": "COWORK IA Orchestration — swarm, agents, ensemble voting, debate, goals"
+      },
+      {
+        "pattern_id": "PAT_CW_IA_ANALYSIS",
+        "agent_id": "cw-ia-analysis",
+        "description": "COWORK IA Analysis — anomalies, fact-check, hypotheses, experiments, CoT"
+      },
+      {
+        "pattern_id": "PAT_CW_CLUSTER",
+        "agent_id": "cw-cluster",
+        "description": "COWORK Cluster Management — autotuner, benchmark, failover, load prediction, sync"
+      },
+      {
+        "pattern_id": "PAT_CW_TRADING",
+        "agent_id": "cw-trading",
+        "description": "COWORK Trading Pipeline — signaux, backtest, portfolio, risk management"
+      },
+      {
+        "pattern_id": "PAT_CW_COMMS",
+        "agent_id": "cw-comms",
+        "description": "COWORK Communications — Telegram, email, rapports, notifications"
+      },
+      {
+        "pattern_id": "PAT_CW_DEVTOOLS",
+        "agent_id": "cw-devtools",
+        "description": "COWORK DevTools — code generation, review, tests continus, MCP testing"
+      },
+      {
+        "pattern_id": "PAT_CW_AUTONOMOUS",
+        "agent_id": "cw-autonomous",
+        "description": "COWORK Autonomous Ops — scheduler, monitor, healer, deployer, auto-learning"
+      },
+      {
+        "pattern_id": "PAT_CW_DATA",
+        "agent_id": "cw-data",
+        "description": "COWORK Data Management — DB optimization, exports, knowledge graph, metrics"
+      },
+      {
+        "pattern_id": "PAT_CW_ROUTING",
+        "agent_id": "cw-routing",
+        "description": "COWORK Routing — prompt routing, node balancing, model management, orchestration"
+      },
+      {
+        "pattern_id": "PAT_CW_BROWSER",
+        "agent_id": "cw-browser",
+        "description": "COWORK Browser — automation navigateur, macros, pilotage Chrome/Edge"
+      },
+      {
+        "pattern_id": "PAT_CW_FILE_WATCH",
+        "agent_id": "cw-file-watch",
+        "description": "COWORK File Watch — surveillance fichiers, backups, organisation, rotation logs"
+      }
+    ],
+    "unmapped_scripts": [
+      "_auto_repair",
+      "_paths",
+      "_run_domino_cascade",
+      "adaptive_load_balancer",
+      "adaptive_timeout_manager",
+      "api_rate_limiter",
+      "auto_changelog",
+      "auto_cleaner",
+      "auto_deploy",
+      "auto_documentation_updater",
+      "auto_heal",
+      "auto_ops_runner",
+      "auto_publisher",
+      "auto_scale",
+      "auto_test",
+      "autonomous_cluster_pipeline",
+      "autonomous_orchestrator",
+      "autonomous_orchestrator_v3",
+      "autonomy_scorer",
+      "benchmark_trend_analyzer",
+      "browser_orchestrator",
+      "browseros_workflow_runner",
+      "calendar_sync",
+      "chatgpt_dispatcher",
+      "cleanup_zombies",
+      "cluster_auto_healer",
+      "cluster_consensus",
+      "cluster_deep_analysis_worker",
+      "cluster_deploy",
+      "cluster_health_watchdog",
+      "cluster_heartbeat",
+      "cluster_migrate",
+      "cluster_ops_runner",
+      "cluster_scale",
+      "cluster_strategy_worker",
+      "cluster_warmup",
+      "code_lint_agents",
+      "codeur_profile_manager",
+      "config_drift_detector",
+      "continuous_improver",
+      "cowork_auto_improver",
+      "cowork_cycle_runner",
+      "cowork_dependency_mapper",
+      "cowork_full_cycle",
+      "cowork_gap_analyzer",
+      "cowork_health_summary",
+      "cowork_loop_generator",
+      "cowork_openclaw_sync",
+      "cowork_scheduler",
+      "cowork_script_validator",
+      "cowork_self_test_runner",
+      "cross_script_integration_tester",
+      "crypto_price_alert",
+      "daily_audit_report",
+      "daily_cowork_report",
+      "daily_health_report",
+      "db_syncer",
+      "dependency_vulnerability_scanner",
+      "disk_space_watcher",
+      "dispatch_ab_tester",
+      "dispatch_audit",
+      "dispatch_auto_improve",
+      "dispatch_benchmark",
+      "dispatch_cache",
+      "dispatch_cost_estimator",
+      "dispatch_error_analyzer",
+      "dispatch_integration_test",
+      "dispatch_latency_optimizer",
+      "dispatch_learner",
+      "dispatch_ops_runner",
+      "dispatch_optimize",
+      "dispatch_pattern_profiler",
+      "dispatch_quality_scorer",
+      "dispatch_quality_tracker",
+      "dispatch_quick_bench",
+      "dispatch_realtime_monitor",
+      "dispatch_reliability_improver",
+      "dispatch_trend_analyzer",
+      "docker_health_monitor",
+      "drive_organizer",
+      "dynamic_timeout",
+      "email_orchestrator",
+      "failure_predictor",
+      "fast_trading_pipeline",
+      "feedback_loop",
+      "grade_optimizer",
+      "ia_agent_swarm_runner",
+      "ia_benchmark",
+      "ia_benchmark_runner",
+      "ia_context_compressor",
+      "ia_dispatch",
+      "ia_federated_learner",
+      "ia_optimize",
+      "ia_train",
+      "integrity_auditor",
+      "interaction_bot",
+      "jarvis_alert",
+      "jarvis_boot",
+      "jarvis_config",
+      "jarvis_dashboard",
+      "jarvis_deploy",
+      "jarvis_market_analyzer",
+      "jarvis_master_autonome",
+      "jarvis_mega_runner",
+      "jarvis_monitor",
+      "jarvis_portfolio_tracker",
+      "jarvis_services_runner",
+      "jarvis_signal_validator",
+      "jarvis_super_loop",
+      "jarvis_test",
+      "kill_phantoms",
+      "latency_monitor",
+      "linkedin_auto_routine",
+      "linkedin_content_generator",
+      "linkedin_growth_engine",
+      "linkedin_publisher",
+      "linkedin_scheduler",
+      "linux_accessibility_enhancer",
+      "linux_ai_copilot",
+      "linux_app_controller",
+      "linux_app_usage_tracker",
+      "linux_audio_controller",
+      "linux_autonomics_runner",
+      "linux_backup",
+      "linux_backup_manager",
+      "linux_battery_monitor",
+      "linux_bluetooth",
+      "linux_boot_optimizer",
+      "linux_certificate_checker",
+      "linux_clipboard_ai",
+      "linux_clipboard_history",
+      "linux_context_menu",
+      "linux_copilot_bridge",
+      "linux_crash_analyzer",
+      "linux_defender_monitor",
+      "linux_defrag_scheduler",
+      "linux_disk_analyzer",
+      "linux_display_manager",
+      "linux_dns_cache_manager",
+      "linux_driver_checker",
+      "linux_env_auditor",
+      "linux_event_monitor",
+      "linux_event_watcher",
+      "linux_file_watcher",
+      "linux_file_watcher_v2",
+      "linux_firewall_analyzer",
+      "linux_firewall_manager",
+      "linux_focus_timer",
+      "linux_font_manager",
+      "linux_game_mode_manager",
+      "linux_gesture_detector",
+      "linux_gpu",
+      "linux_hotkey_engine",
+      "linux_io_analyzer",
+      "linux_media_organizer",
+      "linux_memory_profiler",
+      "linux_network_analyzer",
+      "linux_network_guard",
+      "linux_notification_ai",
+      "linux_notify",
+      "linux_optimizer",
+      "linux_pagefile_optimizer",
+      "linux_performance_tuner",
+      "linux_peripheral_manager",
+      "linux_power_optimizer",
+      "linux_power_plan_manager",
+      "linux_printer_manager",
+      "linux_privacy_guard",
+      "linux_process_analyzer",
+      "linux_process_guardian",
+      "linux_quick_actions",
+      "linux_recycle_bin_manager",
+      "linux_registry_guard",
+      "linux_registry_guardian",
+      "linux_scheduled_task_auditor",
+      "linux_screen_analyzer",
+      "linux_screen_recorder",
+      "linux_service_analyzer",
+      "linux_service_monitor",
+      "linux_service_watchdog",
+      "linux_shortcut_manager",
+      "linux_smart_launcher",
+      "linux_smart_launcher_v2",
+      "linux_sound_mixer",
+      "linux_startup_optimizer",
+      "linux_startup_profiler",
+      "linux_system_restore_manager",
+      "linux_task_automator",
+      "linux_task_scheduler_pro",
+      "linux_temp_cleaner",
+      "linux_thermal_monitor",
+      "linux_tts",
+      "linux_update_tracker",
+      "linux_usb",
+      "linux_virtual_desktop",
+      "linux_vpn_monitor",
+      "linux_wifi_analyzer",
+      "linux_window_manager",
+      "linux_workspace_profiles",
+      "linux_wsl_manager",
+      "log_compressor",
+      "log_predictor",
+      "mcp_health_monitor",
+      "metric_stream",
+      "metrics_aggregator",
+      "misc_tools_runner",
+      "model_health_checker",
+      "multi_browser_dispatcher",
+      "multi_ia_task_distributor",
+      "multi_strategy_dispatcher",
+      "n8n_bridge",
+      "news_reactor",
+      "night_cluster_tasks",
+      "night_work_loop",
+      "node_failover_simulator",
+      "node_reliability_scorer",
+      "notification_dispatcher",
+      "openclaw_bridge",
+      "openclaw_prompt_generator",
+      "page_element_extractor",
+      "pattern_detector",
+      "pattern_load_balancer",
+      "performance_regression_detector",
+      "perplexity_dispatcher",
+      "perplexity_mcp_bridge",
+      "pipeline_domino_hook",
+      "pipeline_integration_test",
+      "predictive_failure_detector",
+      "proactive_alert_monitor",
+      "proactive_healer",
+      "process_gc",
+      "production_monitor",
+      "production_report",
+      "prompt_library",
+      "query_optimizer",
+      "quick_answer_cache",
+      "registry_manager",
+      "resilient_dispatcher",
+      "resource_contention_monitor",
+      "response_sanitizer",
+      "rollback_guard",
+      "scheduled_task_improver",
+      "script_deduplication",
+      "security_auditor",
+      "smart_retry_dispatcher",
+      "smart_routing_engine",
+      "sniper_deep",
+      "sniper_improve_loop",
+      "sniper_scanner",
+      "social_automation_engine",
+      "social_pipeline",
+      "strategy_evolution_loop",
+      "system_health",
+      "task_queue",
+      "telegram_command",
+      "telegram_cowork_dashboard",
+      "telegram_mcp_bridge",
+      "telegram_notify",
+      "telegram_ops_runner",
+      "telegram_quick_status",
+      "telegram_sender",
+      "test_monitoring_stack",
+      "timeout_auto_fixer",
+      "trading_live_notifier",
+      "utility_mega_runner",
+      "voice_auto_learner",
+      "voice_command_fuzzer",
+      "voice_computer_control",
+      "voice_correction_miner",
+      "voice_ops_runner",
+      "voice_stt",
+      "voice_tts",
+      "voice_wake",
+      "vram_monitor",
+      "web_router_bridge",
+      "whisperflow_guardian",
+      "win_accessibility_helper",
+      "win_autonomics_runner",
+      "win_bandwidth_monitor",
+      "win_bluetooth",
+      "win_dns_manager",
+      "win_gpu",
+      "win_screen_reader",
+      "win_usb",
+      "win_vpn_manager",
+      "workflow_chain_engine",
+      "workflow_trigger",
+      "zombie_killer"
+    ],
+    "category_distribution": {
+      "": 3,
+      "adaptive": 2,
+      "agent": 1,
+      "ai": 1,
+      "alert": 1,
+      "anomaly": 1,
+      "api": 2,
+      "audio": 1,
+      "auto": 20,
+      "autonomous": 4,
+      "autonomy": 1,
+      "benchmark": 1,
+      "bluetooth": 1,
+      "browser": 3,
+      "browseros": 1,
+      "calendar": 1,
+      "chatgpt": 1,
+      "cleanup": 1,
+      "clipboard": 1,
+      "cluster": 18,
+      "code": 3,
+      "codeur": 1,
+      "config": 2,
+      "context": 1,
+      "continuous": 4,
+      "conversation": 1,
+      "cowork": 11,
+      "cross": 2,
+      "crypto": 1,
+      "daily": 3,
+      "dashboard": 1,
+      "data": 1,
+      "db": 2,
+      "decision": 1,
+      "dependency": 1,
+      "deployment": 1,
+      "desktop": 2,
+      "disk": 1,
+      "dispatch": 19,
+      "display": 1,
+      "docker": 1,
+      "domino": 1,
+      "drive": 1,
+      "driver": 1,
+      "dynamic": 1,
+      "electron": 1,
+      "email": 2,
+      "event": 2,
+      "failure": 1,
+      "fast": 1,
+      "feedback": 1,
+      "file": 1,
+      "generate": 1,
+      "gpu": 2,
+      "grade": 1,
+      "health": 1,
+      "ia": 57,
+      "integrity": 1,
+      "intent": 1,
+      "interaction": 2,
+      "jarvis": 90,
+      "kill": 1,
+      "knowledge": 2,
+      "latency": 1,
+      "linkedin": 5,
+      "linux": 83,
+      "load": 1,
+      "log": 4,
+      "mcp": 2,
+      "memory": 1,
+      "metric": 1,
+      "metrics": 2,
+      "misc": 1,
+      "model": 4,
+      "multi": 4,
+      "n8n": 1,
+      "network": 2,
+      "news": 1,
+      "night": 2,
+      "node": 3,
+      "notification": 2,
+      "openclaw": 3,
+      "page": 1,
+      "pattern": 2,
+      "performance": 2,
+      "perplexity": 2,
+      "pipeline": 3,
+      "portfolio": 1,
+      "power": 1,
+      "prediction": 1,
+      "predictive": 1,
+      "proactive": 3,
+      "process": 2,
+      "production": 2,
+      "prompt": 3,
+      "query": 1,
+      "quick": 1,
+      "registry": 1,
+      "report": 1,
+      "resilient": 1,
+      "resource": 2,
+      "response": 2,
+      "risk": 1,
+      "rollback": 1,
+      "scheduled": 2,
+      "screenshot": 1,
+      "script": 1,
+      "security": 2,
+      "self": 2,
+      "service": 2,
+      "signal": 1,
+      "smart": 4,
+      "sniper": 3,
+      "social": 2,
+      "startup": 1,
+      "strategy": 1,
+      "system": 3,
+      "task": 3,
+      "telegram": 11,
+      "test": 2,
+      "timeout": 1,
+      "trading": 2,
+      "tts": 1,
+      "usage": 1,
+      "usb": 1,
+      "utility": 1,
+      "voice": 13,
+      "vram": 1,
+      "web": 1,
+      "whisperflow": 1,
+      "wifi": 1,
+      "win": 88,
+      "window": 1,
+      "windows": 2,
+      "workflow": 2,
+      "workspace": 2,
+      "zombie": 1
+    },
+    "potential_gaps": [],
+    "total_capabilities": 18,
+    "timestamp": "2026-05-20T15:39:41.077586"
+  },
+  "predictions": {
+    "predictions": [
+      {
+        "type": "maintenance",
+        "script": "jarvis_webhook_server",
+        "lines": 431,
+        "action": "Refactor jarvis_webhook_server (431 lines, 14 functions)"
+      },
+      {
+        "type": "maintenance",
+        "script": "sniper_scanner",
+        "lines": 1949,
+        "action": "Refactor sniper_scanner (1949 lines, 50 functions)"
+      },
+      {
+        "type": "maintenance",
+        "script": "dispatch_realtime_monitor",
+        "lines": 569,
+        "action": "Refactor dispatch_realtime_monitor (569 lines, 18 functions)"
+      },
+      {
+        "type": "maintenance",
+        "script": "ia_agent_swarm_runner",
+        "lines": 421,
+        "action": "Refactor ia_agent_swarm_runner (421 lines, 8 functions)"
+      },
+      {
+        "type": "maintenance",
+        "script": "cross_script_integration_tester",
+        "lines": 595,
+        "action": "Refactor cross_script_integration_tester (595 lines, 15 functions)"
+      }
+    ],
+    "hot_patterns": [],
+    "failing_patterns": [],
+    "slow_patterns": [],
+    "complex_scripts": [
+      {
+        "script": "jarvis_webhook_server",
+        "lines": 431,
+        "functions": 14,
+        "needs": "review"
+      },
+      {
+        "script": "sniper_scanner",
+        "lines": 1949,
+        "functions": 50,
+        "needs": "refactoring"
+      },
+      {
+        "script": "dispatch_realtime_monitor",
+        "lines": 569,
+        "functions": 18,
+        "needs": "refactoring"
+      },
+      {
+        "script": "ia_agent_swarm_runner",
+        "lines": 421,
+        "functions": 8,
+        "needs": "review"
+      },
+      {
+        "script": "cross_script_integration_tester",
+        "lines": 595,
+        "functions": 15,
+        "needs": "refactoring"
+      },
+      {
+        "script": "memory_optimizer",
+        "lines": 1068,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "linux_startup_profiler",
+        "lines": 414,
+        "functions": 10,
+        "needs": "review"
+      },
+      {
+        "script": "linux_crash_analyzer",
+        "lines": 428,
+        "functions": 9,
+        "needs": "review"
+      },
+      {
+        "script": "linux_power_plan_manager",
+        "lines": 467,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "linux_media_organizer",
+        "lines": 411,
+        "functions": 9,
+        "needs": "review"
+      },
+      {
+        "script": "decision_engine",
+        "lines": 475,
+        "functions": 12,
+        "needs": "review"
+      },
+      {
+        "script": "agent_orchestrator",
+        "lines": 922,
+        "functions": 27,
+        "needs": "refactoring"
+      },
+      {
+        "script": "cowork_scheduler",
+        "lines": 562,
+        "functions": 15,
+        "needs": "refactoring"
+      },
+      {
+        "script": "utility_mega_runner",
+        "lines": 548,
+        "functions": 11,
+        "needs": "refactoring"
+      },
+      {
+        "script": "autonomous_orchestrator",
+        "lines": 849,
+        "functions": 9,
+        "needs": "refactoring"
+      },
+      {
+        "script": "linux_process_analyzer",
+        "lines": 408,
+        "functions": 10,
+        "needs": "review"
+      },
+      {
+        "script": "dependency_vulnerability_scanner",
+        "lines": 481,
+        "functions": 4,
+        "needs": "review"
+      },
+      {
+        "script": "win_autonomics_runner",
+        "lines": 538,
+        "functions": 11,
+        "needs": "refactoring"
+      },
+      {
+        "script": "strategy_evolution_loop",
+        "lines": 922,
+        "functions": 22,
+        "needs": "refactoring"
+      },
+      {
+        "script": "ia_self_critic",
+        "lines": 407,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "dispatch_quality_tracker",
+        "lines": 416,
+        "functions": 10,
+        "needs": "review"
+      },
+      {
+        "script": "cowork_dependency_mapper",
+        "lines": 533,
+        "functions": 17,
+        "needs": "refactoring"
+      },
+      {
+        "script": "win_power_plan_manager",
+        "lines": 437,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "win_startup_profiler",
+        "lines": 412,
+        "functions": 10,
+        "needs": "review"
+      },
+      {
+        "script": "voice_browser_nav",
+        "lines": 425,
+        "functions": 4,
+        "needs": "review"
+      },
+      {
+        "script": "ia_knowledge_distiller",
+        "lines": 445,
+        "functions": 14,
+        "needs": "review"
+      },
+      {
+        "script": "code_lint_agents",
+        "lines": 501,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "model_benchmark",
+        "lines": 453,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "conversation_manager",
+        "lines": 431,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "jarvis_master_autonome",
+        "lines": 676,
+        "functions": 18,
+        "needs": "refactoring"
+      },
+      {
+        "script": "resource_contention_monitor",
+        "lines": 432,
+        "functions": 8,
+        "needs": "review"
+      },
+      {
+        "script": "linux_ai_copilot",
+        "lines": 412,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "misc_tools_runner",
+        "lines": 800,
+        "functions": 12,
+        "needs": "refactoring"
+      },
+      {
+        "script": "voice_computer_control",
+        "lines": 1405,
+        "functions": 66,
+        "needs": "refactoring"
+      },
+      {
+        "script": "voice_command_fuzzer",
+        "lines": 463,
+        "functions": 15,
+        "needs": "review"
+      },
+      {
+        "script": "jarvis_services_runner",
+        "lines": 409,
+        "functions": 8,
+        "needs": "review"
+      },
+      {
+        "script": "gpu_optimizer",
+        "lines": 935,
+        "functions": 14,
+        "needs": "refactoring"
+      },
+      {
+        "script": "interaction_predictor",
+        "lines": 414,
+        "functions": 10,
+        "needs": "review"
+      },
+      {
+        "script": "code_generator",
+        "lines": 754,
+        "functions": 12,
+        "needs": "refactoring"
+      },
+      {
+        "script": "linux_autonomics_runner",
+        "lines": 599,
+        "functions": 11,
+        "needs": "refactoring"
+      },
+      {
+        "script": "linkedin_scheduler",
+        "lines": 588,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "network_optimizer",
+        "lines": 1032,
+        "functions": 20,
+        "needs": "refactoring"
+      },
+      {
+        "script": "jarvis_super_loop",
+        "lines": 729,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "knowledge_updater",
+        "lines": 471,
+        "functions": 13,
+        "needs": "review"
+      },
+      {
+        "script": "telegram_stats",
+        "lines": 652,
+        "functions": 12,
+        "needs": "refactoring"
+      },
+      {
+        "script": "continuous_coder",
+        "lines": 433,
+        "functions": 13,
+        "needs": "review"
+      },
+      {
+        "script": "node_failover_simulator",
+        "lines": 593,
+        "functions": 12,
+        "needs": "refactoring"
+      },
+      {
+        "script": "predictive_failure_detector",
+        "lines": 483,
+        "functions": 8,
+        "needs": "review"
+      },
+      {
+        "script": "autonomous_orchestrator_v3",
+        "lines": 643,
+        "functions": 16,
+        "needs": "refactoring"
+      },
+      {
+        "script": "config_drift_detector",
+        "lines": 547,
+        "functions": 17,
+        "needs": "refactoring"
+      },
+      {
+        "script": "sniper_improve_loop",
+        "lines": 407,
+        "functions": 11,
+        "needs": "review"
+      },
+      {
+        "script": "browser_pilot",
+        "lines": 442,
+        "functions": 24,
+        "needs": "review"
+      },
+      {
+        "script": "performance_regression_detector",
+        "lines": 477,
+        "functions": 14,
+        "needs": "review"
+      },
+      {
+        "script": "linkedin_growth_engine",
+        "lines": 543,
+        "functions": 11,
+        "needs": "refactoring"
+      },
+      {
+        "script": "telegram_cowork_dashboard",
+        "lines": 964,
+        "functions": 35,
+        "needs": "refactoring"
+      },
+      {
+        "script": "jarvis_orchestrator_v3",
+        "lines": 411,
+        "functions": 12,
+        "needs": "review"
+      },
+      {
+        "script": "resilient_dispatcher",
+        "lines": 416,
+        "functions": 12,
+        "needs": "review"
+      },
+      {
+        "script": "dynamic_timeout",
+        "lines": 435,
+        "functions": 11,
+        "needs": "review"
+      }
+    ],
+    "timestamp": "2026-05-20T15:39:42.281869"
+  },
+  "improvements": {
+    "fixed": 43,
+    "skipped": 573,
+    "details": [
+      {
+        "script": "anomaly_detector",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "audio_controller",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "auto_cleaner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "browser_orchestrator",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "cluster_dashboard_api",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "code_lint_agents",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "daily_audit_report",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "display_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "ia_code_generator",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_autonomy_engine",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_conversation_memory",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_deploy",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_feature_builder",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "jarvis_mega_runner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_accessibility_enhancer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_autonomics_runner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_battery_monitor",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_certificate_checker",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_context_menu",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_game_mode_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_pagefile_optimizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_registry_guardian",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_scheduled_task_auditor",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "linux_sound_mixer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "memory_optimizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "network_optimizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "process_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "registry_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "response_sanitizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "smart_launcher",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "system_restore",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_accessibility_enhancer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_autonomics_runner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_battery_monitor",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_certificate_checker",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_context_menu",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_game_mode_manager",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_pagefile_optimizer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_registry_guardian",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_scheduled_task_auditor",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_sound_mixer",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_task_automator",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      },
+      {
+        "script": "win_temp_cleaner",
+        "fixes": [
+          "fixed_escape_sequences"
+        ]
+      }
+    ]
+  },
+  "sync": {
+    "new": 0,
+    "updated": 43,
+    "unchanged": 573,
+    "total": 616,
+    "timestamp": "2026-05-20T15:39:43.974243"
+  },
+  "timestamp": "2026-05-20T15:39:43.974264"
+}
