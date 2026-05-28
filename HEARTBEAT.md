@@ -1,5 +1,5 @@
 # JARVIS HEARTBEAT
-Last update: 2026-05-26 21:58:15 CEST
+Last update: 2026-05-28 21:57:09 CEST
 
 ## Cluster
 | Node | Status | Latency |
@@ -10,10 +10,10 @@ Last update: 2026-05-26 21:58:15 CEST
 | OL1 | DOWN | --- |
 
 ## System
-- **CPU**: 38.5%
-- **RAM**: 9.6/47.0 GB
-- **JARVIS services**: health-patrol.service, jarvis-ai-proxy.service, jarvis-gpu-monitor.service, jarvis-ia-web-mcp.service, jarvis-llm-monitor.service, jarvis-omega-dashboard.service, jarvis-openclaw.service, jarvis-orchestrator.service, jarvis-pulse.service, jarvis-score-updater.service, jarvis-watchdog.service, jarvis-webhook.service, jarvis-whisper-api.service, lumen.service, nav-recorder.service, ollama.service
-- **Docker**: 24 containers (jarvis_prod_jarvis-pipeline.1.p7rk35ig837fl3rc1b1yyoezx, jarvis_prod_jarvis-ws.1.5gm5rvatla2h35evpbbkgu9vp, jarvis_prod_domino-mcp.1.x5l735cyd55tag95cj6ffnsqv, jarvis_prod_jarvis-domino.1.iehvuayah08gwxie4ujvfbasp, jarvis_prod_vocal-engine.1.qrl7h4w2o6u1h49km5x6epluk, jarvis_prod_cowork-dispatcher.1.q11lazlqrh6r5vnnjhzp0r4hz, jarvis_prod_postgres.1.xukmssawky2itpl2ds991b83j, jarvis_prod_redis.1.a8f5sxzukka6u0o3e8hlfqfey, jarvis_prod_n8n.1.e57fv7aalbsk09l3gupr6k1kn, jarvis-omega-bridge, jarvis-redis-worker, jarvis-sre, jarvis-trading-sentinel, jarvis-linkedin-safe, jarvis-monitor, jarvis-feeder, jarvis-library-sync, jarvis-production, jarvis-integrity-watchdog, jarvis-valise-auto, jarvis-valise-dashboard, jarvis-lumen-token, jarvis-browseros, jarvis-whatsapp)
+- **CPU**: 17.5%
+- **RAM**: 17.4/47.0 GB
+- **JARVIS services**: health-patrol.service, jarvis-ai-proxy.service, jarvis-chrome-cdp.service, jarvis-gpu-monitor.service, jarvis-ia-web-mcp.service, jarvis-llm-monitor.service, jarvis-log-reactor.service, jarvis-master.service, jarvis-openclaw.service, jarvis-pulse.service, jarvis-score-updater.service, jarvis-watchdog.service, jarvis-webhook.service, jarvis-whisper-api.service, lumen.service, nav-recorder.service, ollama.service
+- **Docker**: 22 containers (jarvis_prod_jarvis-telegram.1.lwsq0zuym47e1352zau51y8lb, jarvis_prod_jarvis-ws.1.q5d5to8nluabp3kj6hc44l45a, jarvis_prod_jarvis-domino.1.fzs424p6y7fsw1ppp53qu9ilc, jarvis_prod_jarvis-pipeline.1.blws8vhtztjgfxlkuhhaafi6o, jarvis_prod_cowork-dispatcher.1.uau5ptjqumbsusy5m9avdi3hi, jarvis_prod_postgres.1.6p48j5akw9unw2ty3b9bvb6q3, jarvis_prod_redis.1.mevz3a5mf9r1a1z6t1wtb4wxr, registry.1.l8zxabvasaar712ygljg5tnge, jarvis-omega-bridge, jarvis-sre, jarvis-trading-sentinel, jarvis-linkedin-safe, jarvis-monitor, jarvis-feeder, jarvis-library-sync, jarvis-production, jarvis-integrity-watchdog, jarvis-valise-auto, jarvis-valise-dashboard, jarvis-lumen-token, jarvis-browseros, jarvis-whatsapp)
 
 ## Last Task
 - Cycle complete — 598/616 OK, 0 gaps
