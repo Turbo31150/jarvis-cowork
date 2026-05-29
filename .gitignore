@@ -9,3 +9,5 @@ logs/cowork-dispatcher.log
 logs/cowork-loop.log
 *.db
 !etoile.db
+logs/cowork-loop.log.old
+logs/cowork-dispatcher.log.old
