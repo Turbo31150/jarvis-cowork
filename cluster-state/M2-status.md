@@ -1,6 +1,6 @@
 # M2 Cluster Status
 
-**Generated:** 2026-06-04T19:26:37Z
+**Generated:** 2026-06-04T20:04:45Z
 **Host:** jarvis-m2 (192.168.1.26)
 
 ---
@@ -9,24 +9,28 @@
 
 | Unit | State | Description |
 |------|-------|-------------|
-| jarvis-cowork-dispatcher.service              | loaded   | JARVIS COWORK Dispatcher — Inbox                           |
-| jarvis-cowork-loop.service                    | loaded   | JARVIS COWORK Engine — Continuous                          |
-| jarvis-lumen.service                          | loaded   | JARVIS Lumen Token Server —                                |
-| jarvis-orchestrator.service                   | loaded   | JARVIS Orchestrator Vocal — Pilotage                       |
+| jarvis-agent-health.service                   | loaded   | JARVIS Agent Health Guardian                                 |
+| jarvis-agent-monitor.service                  | loaded   | JARVIS Agent Monitor                                         |
+| jarvis-agent-omega.service                    | loaded   | JARVIS Omega Agent Orchestrator v4                           |
+| jarvis-agent-selfimprove.service              | loaded   | JARVIS Agent Self-Improve                                    |
+| jarvis-agent-taskplanner.service              | loaded   | JARVIS Agent Task Planner                                    |
+| jarvis-domino.service                         | loaded   | JARVIS Domino Auto-Trigger Engine (v2.0                      |
+| jarvis-gpu-oc.service                         | loaded   | JARVIS GPU Memory Overclock (+500MHz                         |
 | jarvis-scheduler.service                      | loaded   | JARVIS Scheduler - Planificateur horaire                     |
-| jarvis-sql-bridge.service                     | loaded   | JARVIS SQL Bridge — REST                                   |
 | jarvis-task-executor.service                  | loaded   | JARVIS Task Executor — lit                                 |
 | jarvis-task-symbiose.service                  | loaded   | JARVIS Task Symbiose — inter-machine                       |
 | jarvis-voice-widget.service                   | loaded   | JARVIS Voice Widget (Alt+X push-to-talk                      |
 | jarvis-cluster.target                         | loaded   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                            | loaded   | JARVIS OS Full Cluster Target                                |
 | jarvis-backup.timer                           | loaded   | JARVIS database backup timer                                 |
+| jarvis-cowork-orchestrator.timer              | loaded   | JARVIS Cowork Orchestrator — toutes                        |
 | jarvis-github-push.timer                      | loaded   | JARVIS GitHub State Push Timer                               |
 | jarvis-health-check.timer                     | loaded   | JARVIS Health Check Timer —                                |
 | jarvis-log-rotate.timer                       | loaded   | JARVIS Log Rotation Timer —                                |
 | jarvis-network-map.timer                      | loaded   | JARVIS Network Map — update                                |
 | jarvis-notify-check.timer                     | loaded   | JARVIS Schedule Check — toutes                             |
 | jarvis-prompt-library.timer                   | loaded   | JARVIS Prompt Library — Timer                              |
+| jarvis-self-improve.timer                     | loaded   | JARVIS Self-Improve Timer (every 6h)                         |
 | jarvis-sync-config.timer                      | loaded   | JARVIS sync config every 5min                                |
 | jarvis-sync-repos.timer                       | loaded   | JARVIS sync repos toutes les                                 |
 
@@ -35,13 +39,13 @@
 ## Modèles LLM actifs
 
 ### Port 1234 (LM Studio principal)
-- **qwen3.5-9b**
+
 
 ### Port 8082 (LM Studio secondaire)
 - **deepseek-r1**
 
 ### Port 8083 (LM Studio tertiaire)
-- **qwen3.5-9b**
+
 
 ---
 
@@ -49,9 +53,9 @@
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 | 51 | 205 MiB | 8192 MiB |
-| 1 | 78 | 5303 MiB | 8192 MiB |
-| 2 | 43 | 5671 MiB | 8192 MiB |
+| 0 | 63 | 272 MiB | 8192 MiB |
+| 1 | 59 | 5351 MiB | 8192 MiB |
+| 2 | 60 | 108 MiB | 8192 MiB |
 
 ---
 
@@ -59,7 +63,7 @@
 
 ```json
 {
-  "generated_at": "2026-06-04T19:25:36Z",
+  "generated_at": "2026-06-04T20:00:15Z",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -77,7 +81,7 @@
         "google/gemma-4-e4b",
         "text-embedding-nomic-embed-text-v1.5"
       ],
-      "last_seen": "2026-06-04T19:25:36Z"
+      "last_seen": "2026-06-04T20:00:15Z"
     },
     "M2": {
       "ip": "192.168.1.26",
@@ -94,10 +98,8 @@
         1234,
         11434
       ],
-      "models": [
-        "qwen3.5-9b"
-      ],
-      "last_seen": "2026-06-04T19:25:36Z"
+      "models": [],
+      "last_seen": "2026-06-04T20:00:15Z"
     },
     "OL1": {
       "ip": "127.0.0.1",
@@ -109,16 +111,8 @@
       "llm_ports": [
         11434
       ],
-      "models": [
-        "nomic-embed-text:latest",
-        "llama3.2:latest",
-        "deepseek-r1:7b",
-        "qwen2.5:1.5b",
-        "qwen3:1.7b",
-        "gemma3:4b",
-        "kimi-k2.5:cloud"
-      ],
-      "last_seen": "2026-06-04T19:25:36Z"
+      "models": [],
+      "last_seen": "2026-06-04T20:00:15Z"
     },
     "M3": {
       "ip": "192.168.1.133",
