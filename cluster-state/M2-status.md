@@ -1,6 +1,6 @@
 # M2 Cluster Status
 
-**Generated:** 2026-06-04T21:06:54Z
+**Generated:** 2026-06-04T21:13:29Z
 **Host:** jarvis-m2 (192.168.1.26)
 
 ---
@@ -17,7 +17,6 @@
 | jarvis-cowork-dispatcher.service               | activating | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | activating | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
-| jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (+500MHz RTX 3080 + RTX 2060)    |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
@@ -50,7 +49,7 @@
 - **deepseek-r1**
 
 ### Port 8083 (LM Studio tertiaire)
-
+- **qwen3.5-9b**
 
 ---
 
@@ -58,9 +57,9 @@
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  73 |  1940 MiB |  8192 MiB |
-| 1 |  69 |  5351 MiB |  8192 MiB |
-| 2 |  73 |  108 MiB |  8192 MiB |
+| 0 |  73 |  1944 MiB |  8192 MiB |
+| 1 |  60 |  5351 MiB |  8192 MiB |
+| 2 |  59 |  5668 MiB |  8192 MiB |
 
 ---
 
