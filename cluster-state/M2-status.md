@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-04 23:14:43 CEST
+**Mis à jour :** 2026-06-05 00:06:58 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 26 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 28Gi/46Gi |
+| RAM | 27Gi/46Gi |
 | Disque SSD | 121G/228G (56%) |
 
 ---
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  74°C |  13% util |  1948/ 8192 MiB
-GPU1: ✅  66°C |  9% util |  5351/ 8192 MiB
-GPU2: ✅  73°C |  0% util |  5668/ 8192 MiB
+GPU0: ✅  69°C |  0% util |  1945/ 8192 MiB
+GPU1: ✅  61°C |  0% util |  5327/ 8192 MiB
+GPU2: ✅  70°C |  0% util |  5671/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  74 |  1948 MiB |  8192 MiB |
-| 1 |  66 |  5351 MiB |  8192 MiB |
-| 2 |  73 |  5668 MiB |  8192 MiB |
+| 0 |  69 |  1945 MiB |  8192 MiB |
+| 1 |  61 |  5327 MiB |  8192 MiB |
+| 2 |  70 |  5671 MiB |  8192 MiB |
 
 ---
 
@@ -60,7 +60,8 @@ _(aucun modèle chargé)_
 | jarvis-cowork-dispatcher.service               | activating | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | activating | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
-| jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (+500MHz RTX 3080 + RTX 2060)    |
+| jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
+| jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
@@ -87,7 +88,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-04T23:11:59",
+  "ts": "2026-06-05T00:02:08",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -106,4 +107,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-04T21:14:43Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-04T22:06:58Z_
