@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 11:59:43 CEST
+**Mis à jour :** 2026-06-05 12:59:45 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 22 |
+| Services actifs | 23 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 24Gi/46Gi |
+| RAM | 26Gi/46Gi |
 | Disque SSD | 123G/228G (57%) |
 
 ---
@@ -21,30 +21,30 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  72°C |  0% util |  1987/ 8192 MiB
-GPU1: ✅  64°C |  0% util |  5327/ 8192 MiB
-GPU2: ✅  63°C |  0% util |  17/ 8192 MiB
+GPU0: ✅  72°C |  38% util |  4895/ 8192 MiB
+GPU1: ✅  66°C |  15% util |  6701/ 8192 MiB
+GPU2: ✅  65°C |  23% util |  7421/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  72 |  1987 MiB |  8192 MiB |
-| 1 |  64 |  5327 MiB |  8192 MiB |
-| 2 |  63 |  17 MiB |  8192 MiB |
+| 0 |  72 |  4895 MiB |  8192 MiB |
+| 1 |  65 |  6701 MiB |  8192 MiB |
+| 2 |  64 |  7421 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-_(aucun modèle chargé)_
+- **deepseek/deepseek-r1-0528-qwen3-8b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
 
 ### :8083 — LM Studio tertiaire
-_(aucun modèle chargé)_
+- **qwen3.5-9b**
 
 ---
 
@@ -71,6 +71,7 @@ _(aucun modèle chargé)_
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
+| jarvis-backup-sql.timer                        | active   | Backup SQLite + Docker — quotidien 02h00                   |
 | jarvis-backup.timer                            | active   | JARVIS database backup timer                                 |
 | jarvis-cowork-orchestrator.timer               | active   | JARVIS Cowork Orchestrator — toutes les 2h                 |
 | jarvis-github-push.timer                       | active   | JARVIS GitHub State Push Timer — toutes les heures         |
@@ -91,7 +92,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T11:55:23",
+  "ts": "2026-06-05T12:55:33",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -110,4 +111,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T09:59:43Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T10:59:45Z_
