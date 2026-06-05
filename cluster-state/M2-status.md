@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 09:59:43 CEST
+**Mis à jour :** 2026-06-05 10:59:43 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  66°C |  1% util |  1977/ 8192 MiB
-GPU1: ✅  66°C |  2% util |  5351/ 8192 MiB
-GPU2: ✅  63°C |  0% util |  5668/ 8192 MiB
+GPU0: ✅  68°C |  0% util |  4946/ 8192 MiB
+GPU1: ✅  51°C |  0% util |  6681/ 8192 MiB
+GPU2: ✅  64°C |  0% util |  2227/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  67 |  1980 MiB |  8192 MiB |
-| 1 |  66 |  5351 MiB |  8192 MiB |
-| 2 |  63 |  5668 MiB |  8192 MiB |
+| 0 |  68 |  4946 MiB |  8192 MiB |
+| 1 |  51 |  6681 MiB |  8192 MiB |
+| 2 |  65 |  2227 MiB |  8192 MiB |
 
 ---
 
@@ -44,7 +44,7 @@ _(aucun modèle chargé)_
 - **deepseek-r1**
 
 ### :8083 — LM Studio tertiaire
-- **qwen3.5-9b**
+_(aucun modèle chargé)_
 
 ---
 
@@ -60,7 +60,6 @@ _(aucun modèle chargé)_
 | jarvis-cowork-dispatcher.service               | activating | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | activating | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
-| jarvis-failure-handler@jarvis-cowork-dispatcher.service.service | activating | start JARVIS Failure Handler for jarvis-cowork-dispatcher.service |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
@@ -92,7 +91,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T09:55:13",
+  "ts": "2026-06-05T10:55:18",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -111,4 +110,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T07:59:43Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T08:59:43Z_
