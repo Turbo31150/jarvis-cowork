@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 21:00:36 CEST
+**Mis à jour :** 2026-06-05 22:00:37 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 37 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 32Gi/46Gi |
+| RAM | 35Gi/46Gi |
 | Disque SSD | 124G/228G (58%) |
 
 ---
@@ -21,30 +21,30 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  70°C |  0% util |  2056/ 8192 MiB
-GPU1: ✅  60°C |  0% util |  5327/ 8192 MiB
-GPU2: ✅  57°C |  0% util |  17/ 8192 MiB
+GPU0: ✅  68°C |  0% util |  6826/ 8192 MiB
+GPU1: ✅  61°C |  0% util |  5421/ 8192 MiB
+GPU2: ✅  58°C |  0% util |  5765/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  70 |  2056 MiB |  8192 MiB |
-| 1 |  60 |  5327 MiB |  8192 MiB |
-| 2 |  57 |  17 MiB |  8192 MiB |
+| 0 |  68 |  6826 MiB |  8192 MiB |
+| 1 |  61 |  5421 MiB |  8192 MiB |
+| 2 |  58 |  5765 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-_(aucun modèle chargé)_
+- **qwen3.5-9b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
 
 ### :8083 — LM Studio tertiaire
-_(aucun modèle chargé)_
+- **qwen3.5-9b**
 
 ---
 
@@ -57,7 +57,6 @@ _(aucun modèle chargé)_
 | jarvis-agent-omega.service                     | active   | JARVIS Omega Agent Orchestrator v4                           |
 | jarvis-agent-selfimprove.service               | active   | JARVIS Agent Self-Improve                                    |
 | jarvis-agent-taskplanner.service               | active   | JARVIS Agent Task Planner                                    |
-| jarvis-autoheal.service                        | activating | start JARVIS self-heal tick (services, mounts, peers, registry) |
 | jarvis-cluster-mount.service                   | active   | JARVIS cluster FS — montage SSHFS homes cross-machine (rw) |
 | jarvis-cowork-dispatcher.service               | active   | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
@@ -98,7 +97,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T21:00:06",
+  "ts": "2026-06-05T21:56:40",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -117,4 +116,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T19:00:36Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T20:00:37Z_
