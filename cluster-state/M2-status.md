@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 16:59:46 CEST
+**Mis à jour :** 2026-06-05 17:59:46 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,35 +10,35 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 26 |
+| Services actifs | 35 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
 | RAM | 32Gi/46Gi |
-| Disque SSD | 123G/228G (57%) |
+| Disque SSD | 124G/228G (57%) |
 
 ---
 
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  72°C |  3% util |  2080/ 8192 MiB
-GPU1: ✅  68°C |  1% util |  5445/ 8192 MiB
-GPU2: ✅  70°C |  0% util |  5765/ 8192 MiB
+GPU0: ✅  73°C |  13% util |  2128/ 8192 MiB
+GPU1: ✅  58°C |  11% util |  5352/ 8192 MiB
+GPU2: ✅  53°C |  0% util |  5671/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  72 |  2080 MiB |  8192 MiB |
-| 1 |  68 |  5445 MiB |  8192 MiB |
-| 2 |  70 |  5765 MiB |  8192 MiB |
+| 0 |  73 |  2152 MiB |  8192 MiB |
+| 1 |  58 |  5352 MiB |  8192 MiB |
+| 2 |  53 |  5671 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-- **deepseek/deepseek-r1-0528-qwen3-8b**
+_(aucun modèle chargé)_
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
@@ -52,24 +52,24 @@ GPU2: ✅  70°C |  0% util |  5765/ 8192 MiB
 
 | Unit | State | Description |
 |------|-------|-------------|
-| jarvis-agent-health.service                    | activating | JARVIS Agent Health Guardian                                 |
-| jarvis-agent-monitor.service                   | activating | JARVIS Agent Monitor                                         |
-| jarvis-agent-omega.service                     | activating | JARVIS Omega Agent Orchestrator v4                           |
-| jarvis-agent-selfimprove.service               | activating | JARVIS Agent Self-Improve                                    |
-| jarvis-agent-taskplanner.service               | activating | JARVIS Agent Task Planner                                    |
+| jarvis-agent-health.service                    | active   | JARVIS Agent Health Guardian                                 |
+| jarvis-agent-monitor.service                   | active   | JARVIS Agent Monitor                                         |
+| jarvis-agent-omega.service                     | active   | JARVIS Omega Agent Orchestrator v4                           |
+| jarvis-agent-selfimprove.service               | active   | JARVIS Agent Self-Improve                                    |
+| jarvis-agent-taskplanner.service               | active   | JARVIS Agent Task Planner                                    |
 | jarvis-cluster-mount.service                   | active   | JARVIS cluster FS — montage SSHFS homes cross-machine (rw) |
-| jarvis-cowork-dispatcher.service               | activating | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
-| jarvis-cowork-loop.service                     | activating | JARVIS COWORK Engine — Continuous 5min Loop                |
+| jarvis-cowork-dispatcher.service               | active   | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
+| jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
-| jarvis-scheduler.service                       | activating | JARVIS Scheduler - Planificateur horaire IA                  |
+| jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
-| jarvis-task-symbiose.service                   | activating | JARVIS Task Symbiose — inter-machine task dispatcher       |
-| jarvis-voice-widget.service                    | activating | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
+| jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
+| jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
@@ -96,7 +96,7 @@ GPU2: ✅  70°C |  0% util |  5765/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-05T16:56:08",
+  "ts": "2026-06-05T17:56:14",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -115,4 +115,4 @@ GPU2: ✅  70°C |  0% util |  5765/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T14:59:46Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T15:59:46Z_
