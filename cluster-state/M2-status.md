@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 20:00:26 CEST
+**Mis à jour :** 2026-06-05 21:00:36 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 38 |
+| Services actifs | 37 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 33Gi/46Gi |
+| RAM | 32Gi/46Gi |
 | Disque SSD | 124G/228G (58%) |
 
 ---
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  74°C |  0% util |  2151/ 8192 MiB
-GPU1: ✅  62°C |  0% util |  5327/ 8192 MiB
-GPU2: ✅  62°C |  0% util |  17/ 8192 MiB
+GPU0: ✅  70°C |  0% util |  2056/ 8192 MiB
+GPU1: ✅  60°C |  0% util |  5327/ 8192 MiB
+GPU2: ✅  57°C |  0% util |  17/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  73 |  2057 MiB |  8192 MiB |
-| 1 |  62 |  5327 MiB |  8192 MiB |
-| 2 |  62 |  17 MiB |  8192 MiB |
+| 0 |  70 |  2056 MiB |  8192 MiB |
+| 1 |  60 |  5327 MiB |  8192 MiB |
+| 2 |  57 |  17 MiB |  8192 MiB |
 
 ---
 
@@ -57,6 +57,7 @@ _(aucun modèle chargé)_
 | jarvis-agent-omega.service                     | active   | JARVIS Omega Agent Orchestrator v4                           |
 | jarvis-agent-selfimprove.service               | active   | JARVIS Agent Self-Improve                                    |
 | jarvis-agent-taskplanner.service               | active   | JARVIS Agent Task Planner                                    |
+| jarvis-autoheal.service                        | activating | start JARVIS self-heal tick (services, mounts, peers, registry) |
 | jarvis-cluster-mount.service                   | active   | JARVIS cluster FS — montage SSHFS homes cross-machine (rw) |
 | jarvis-cowork-dispatcher.service               | active   | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
@@ -64,13 +65,10 @@ _(aucun modèle chargé)_
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
-| jarvis-health-check.service                    | activating | start JARVIS Health Check — Proactive monitoring every 5 min |
-| jarvis-network-map.service                     | activating | start JARVIS Network Map Updater                             |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
-| jarvis-sync-config.service                     | active   | JARVIS sync config Docker+LLM → SQLite                     |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
 | jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
@@ -92,6 +90,7 @@ _(aucun modèle chargé)_
 | jarvis-session-daily-restore-test.timer        | active   | Test restore session JARVIS — quotidien 03h00              |
 | jarvis-session-snapshot.timer                  | active   | Snapshot session JARVIS toutes les 5 minutes                 |
 | jarvis-sync-config.timer                       | active   | JARVIS sync config every 5min                                |
+| jarvis-sync-repos.timer                        | active   | JARVIS sync repos toutes les 30min                           |
 
 ---
 
@@ -99,7 +98,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T20:00:26",
+  "ts": "2026-06-05T21:00:06",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -118,4 +117,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T18:00:26Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T19:00:36Z_
