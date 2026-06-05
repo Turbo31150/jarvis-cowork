@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 07:07:06 CEST
+**Mis à jour :** 2026-06-05 08:07:07 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 26 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 33Gi/46Gi |
+| RAM | 34Gi/46Gi |
 | Disque SSD | 122G/228G (57%) |
 
 ---
@@ -21,27 +21,27 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  65°C |  0% util |  2015/ 8192 MiB
-GPU1: ✅  60°C |  0% util |  5327/ 8192 MiB
-GPU2: ✅  67°C |  0% util |  111/ 8192 MiB
+GPU0: ⚠️  81°C |  0% util |  2093/ 8192 MiB
+GPU1: ✅  79°C |  0% util |  129/ 8192 MiB
+GPU2: ⚠️  80°C |  0% util |  111/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  65 |  2015 MiB |  8192 MiB |
-| 1 |  61 |  5327 MiB |  8192 MiB |
-| 2 |  66 |  111 MiB |  8192 MiB |
+| 0 |  81 |  2092 MiB |  8192 MiB |
+| 1 |  79 |  129 MiB |  8192 MiB |
+| 2 |  80 |  111 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-_(aucun modèle chargé)_
+- **qwen/qwen3.5-9b**
 
 ### :8082 — LM Studio secondaire
-- **deepseek-r1**
+_(aucun modèle chargé)_
 
 ### :8083 — LM Studio tertiaire
 _(aucun modèle chargé)_
@@ -57,7 +57,7 @@ _(aucun modèle chargé)_
 | jarvis-agent-omega.service                     | active   | JARVIS Omega Agent Orchestrator v4                           |
 | jarvis-agent-selfimprove.service               | active   | JARVIS Agent Self-Improve                                    |
 | jarvis-agent-taskplanner.service               | active   | JARVIS Agent Task Planner                                    |
-| jarvis-cowork-dispatcher.service               | activating | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
+| jarvis-cowork-dispatcher.service               | activating | start JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | activating | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
@@ -88,7 +88,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T07:03:15",
+  "ts": "2026-06-05T08:03:20",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -107,4 +107,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T05:07:06Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T06:07:07Z_
