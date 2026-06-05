@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 05:07:02 CEST
+**Mis à jour :** 2026-06-05 06:07:04 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  69°C |  13% util |  2117/ 8192 MiB
-GPU1: ✅  62°C |  5% util |  5445/ 8192 MiB
-GPU2: ✅  63°C |  0% util |  5765/ 8192 MiB
+GPU0: ✅  70°C |  0% util |  4926/ 8192 MiB
+GPU1: ✅  67°C |  0% util |  6669/ 8192 MiB
+GPU2: ✅  67°C |  32% util |  7869/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  68 |  2117 MiB |  8192 MiB |
-| 1 |  62 |  5445 MiB |  8192 MiB |
-| 2 |  63 |  5765 MiB |  8192 MiB |
+| 0 |  70 |  4478 MiB |  8192 MiB |
+| 1 |  67 |  6399 MiB |  8192 MiB |
+| 2 |  67 |  7213 MiB |  8192 MiB |
 
 ---
 
@@ -60,7 +60,6 @@ GPU2: ✅  63°C |  0% util |  5765/ 8192 MiB
 | jarvis-cowork-dispatcher.service               | activating | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | activating | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
-| jarvis-failure-handler@jarvis-cowork-loop.service.service | activating | start JARVIS Failure Handler for jarvis-cowork-loop.service  |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
@@ -89,7 +88,7 @@ GPU2: ✅  63°C |  0% util |  5765/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-05T05:02:54",
+  "ts": "2026-06-05T06:03:02",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -108,4 +107,4 @@ GPU2: ✅  63°C |  0% util |  5765/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T03:07:02Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T04:07:04Z_
