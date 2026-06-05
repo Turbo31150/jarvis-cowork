@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 15:59:46 CEST
+**Mis à jour :** 2026-06-05 16:59:46 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 23 |
+| Services actifs | 26 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 26Gi/46Gi |
+| RAM | 32Gi/46Gi |
 | Disque SSD | 123G/228G (57%) |
 
 ---
@@ -21,24 +21,24 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  73°C |  0% util |  1966/ 8192 MiB
-GPU1: ✅  65°C |  0% util |  5327/ 8192 MiB
-GPU2: ✅  70°C |  0% util |  5671/ 8192 MiB
+GPU0: ✅  72°C |  3% util |  2080/ 8192 MiB
+GPU1: ✅  68°C |  1% util |  5445/ 8192 MiB
+GPU2: ✅  70°C |  0% util |  5765/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  73 |  1966 MiB |  8192 MiB |
-| 1 |  65 |  5327 MiB |  8192 MiB |
-| 2 |  70 |  5671 MiB |  8192 MiB |
+| 0 |  72 |  2080 MiB |  8192 MiB |
+| 1 |  68 |  5445 MiB |  8192 MiB |
+| 2 |  70 |  5765 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-_(aucun modèle chargé)_
+- **deepseek/deepseek-r1-0528-qwen3-8b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
@@ -57,6 +57,7 @@ _(aucun modèle chargé)_
 | jarvis-agent-omega.service                     | activating | JARVIS Omega Agent Orchestrator v4                           |
 | jarvis-agent-selfimprove.service               | activating | JARVIS Agent Self-Improve                                    |
 | jarvis-agent-taskplanner.service               | activating | JARVIS Agent Task Planner                                    |
+| jarvis-cluster-mount.service                   | active   | JARVIS cluster FS — montage SSHFS homes cross-machine (rw) |
 | jarvis-cowork-dispatcher.service               | activating | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | activating | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
@@ -72,8 +73,10 @@ _(aucun modèle chargé)_
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
+| jarvis-autoheal.timer                          | active   | Run JARVIS self-heal every 10 minutes                        |
 | jarvis-backup-sql.timer                        | active   | Backup SQLite + Docker — quotidien 02h00                   |
 | jarvis-backup.timer                            | active   | JARVIS database backup timer                                 |
+| jarvis-cluster-mount.timer                     | active   | JARVIS cluster FS — remontage périodique                  |
 | jarvis-cowork-orchestrator.timer               | active   | JARVIS Cowork Orchestrator — toutes les 2h                 |
 | jarvis-github-push.timer                       | active   | JARVIS GitHub State Push Timer — toutes les heures         |
 | jarvis-health-check.timer                      | active   | JARVIS Health Check Timer — Every 5 minutes                |
@@ -93,7 +96,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T15:56:00",
+  "ts": "2026-06-05T16:56:08",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -112,4 +115,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T13:59:46Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T14:59:46Z_
