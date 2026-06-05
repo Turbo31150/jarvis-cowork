@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 14:59:45 CEST
+**Mis à jour :** 2026-06-05 15:59:46 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  71°C |  12% util |  1989/ 8192 MiB
-GPU1: ✅  64°C |  10% util |  5351/ 8192 MiB
-GPU2: ✅  63°C |  0% util |  5671/ 8192 MiB
+GPU0: ✅  73°C |  0% util |  1966/ 8192 MiB
+GPU1: ✅  65°C |  0% util |  5327/ 8192 MiB
+GPU2: ✅  70°C |  0% util |  5671/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  70 |  1989 MiB |  8192 MiB |
-| 1 |  64 |  5351 MiB |  8192 MiB |
-| 2 |  63 |  5671 MiB |  8192 MiB |
+| 0 |  73 |  1966 MiB |  8192 MiB |
+| 1 |  65 |  5327 MiB |  8192 MiB |
+| 2 |  70 |  5671 MiB |  8192 MiB |
 
 ---
 
@@ -64,10 +64,11 @@ _(aucun modèle chargé)_
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | activating | JARVIS Scheduler - Planificateur horaire IA                  |
+| jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | activating | JARVIS Task Symbiose — inter-machine task dispatcher       |
-| jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
+| jarvis-voice-widget.service                    | activating | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
@@ -92,11 +93,11 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T14:55:52",
+  "ts": "2026-06-05T15:56:00",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
-      "status": "down"
+      "status": "up"
     },
     "M2": {
       "ip": "192.168.1.26",
@@ -111,4 +112,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T12:59:45Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T13:59:46Z_
