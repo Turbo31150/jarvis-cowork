@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 19:00:26 CEST
+**Mis à jour :** 2026-06-05 20:00:26 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,41 +10,41 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 37 |
+| Services actifs | 38 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
 | RAM | 33Gi/46Gi |
-| Disque SSD | 124G/228G (57%) |
+| Disque SSD | 124G/228G (58%) |
 
 ---
 
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  74°C |  0% util |  6690/ 8192 MiB
-GPU1: ✅  61°C |  0% util |  5352/ 8192 MiB
-GPU2: ✅  62°C |  0% util |  5671/ 8192 MiB
+GPU0: ✅  74°C |  0% util |  2151/ 8192 MiB
+GPU1: ✅  62°C |  0% util |  5327/ 8192 MiB
+GPU2: ✅  62°C |  0% util |  17/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  74 |  6690 MiB |  8192 MiB |
-| 1 |  61 |  5352 MiB |  8192 MiB |
-| 2 |  63 |  5671 MiB |  8192 MiB |
+| 0 |  73 |  2057 MiB |  8192 MiB |
+| 1 |  62 |  5327 MiB |  8192 MiB |
+| 2 |  62 |  17 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-- **qwen3.5-9b**
+_(aucun modèle chargé)_
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
 
 ### :8083 — LM Studio tertiaire
-- **qwen3.5-9b**
+_(aucun modèle chargé)_
 
 ---
 
@@ -64,12 +64,13 @@ GPU2: ✅  62°C |  0% util |  5671/ 8192 MiB
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
+| jarvis-health-check.service                    | activating | start JARVIS Health Check — Proactive monitoring every 5 min |
+| jarvis-network-map.service                     | activating | start JARVIS Network Map Updater                             |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
-| jarvis-prompt-library.service                  | activating | start JARVIS Prompt Library — Auto run                     |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
-| jarvis-sync-repos.service                      | activating | start JARVIS sync bidirectionnel GitHub repos                |
+| jarvis-sync-config.service                     | active   | JARVIS sync config Docker+LLM → SQLite                     |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
 | jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
@@ -91,7 +92,6 @@ GPU2: ✅  62°C |  0% util |  5671/ 8192 MiB
 | jarvis-session-daily-restore-test.timer        | active   | Test restore session JARVIS — quotidien 03h00              |
 | jarvis-session-snapshot.timer                  | active   | Snapshot session JARVIS toutes les 5 minutes                 |
 | jarvis-sync-config.timer                       | active   | JARVIS sync config every 5min                                |
-| jarvis-sync-repos.timer                        | active   | JARVIS sync repos toutes les 30min                           |
 
 ---
 
@@ -99,7 +99,7 @@ GPU2: ✅  62°C |  0% util |  5671/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-05T18:57:28",
+  "ts": "2026-06-05T20:00:26",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -118,4 +118,4 @@ GPU2: ✅  62°C |  0% util |  5671/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T17:00:26Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T18:00:26Z_
