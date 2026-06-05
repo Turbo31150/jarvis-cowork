@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-05 04:07:02 CEST
+**Mis à jour :** 2026-06-05 05:07:02 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 26 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 34Gi/46Gi |
+| RAM | 35Gi/46Gi |
 | Disque SSD | 122G/228G (57%) |
 
 ---
@@ -21,24 +21,24 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  69°C |  0% util |  2072/ 8192 MiB
-GPU1: ✅  65°C |  0% util |  5421/ 8192 MiB
-GPU2: ✅  65°C |  0% util |  5765/ 8192 MiB
+GPU0: ✅  69°C |  13% util |  2117/ 8192 MiB
+GPU1: ✅  62°C |  5% util |  5445/ 8192 MiB
+GPU2: ✅  63°C |  0% util |  5765/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  69 |  2072 MiB |  8192 MiB |
-| 1 |  65 |  5421 MiB |  8192 MiB |
-| 2 |  65 |  5765 MiB |  8192 MiB |
+| 0 |  68 |  2117 MiB |  8192 MiB |
+| 1 |  62 |  5445 MiB |  8192 MiB |
+| 2 |  63 |  5765 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-- **deepseek/deepseek-r1-0528-qwen3-8b**
+- **qwen/qwen3.5-9b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
@@ -60,6 +60,7 @@ GPU2: ✅  65°C |  0% util |  5765/ 8192 MiB
 | jarvis-cowork-dispatcher.service               | activating | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | activating | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
+| jarvis-failure-handler@jarvis-cowork-loop.service.service | activating | start JARVIS Failure Handler for jarvis-cowork-loop.service  |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
@@ -88,7 +89,7 @@ GPU2: ✅  65°C |  0% util |  5765/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-05T04:02:48",
+  "ts": "2026-06-05T05:02:54",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -107,4 +108,4 @@ GPU2: ✅  65°C |  0% util |  5765/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-05T02:07:02Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-05T03:07:02Z_
