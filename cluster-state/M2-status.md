@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-06 14:00:51 CEST
+**Mis à jour :** 2026-06-06 15:00:52 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 36 |
+| Services actifs | 37 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 35Gi/46Gi |
+| RAM | 33Gi/46Gi |
 | Disque SSD | 124G/228G (58%) |
 
 ---
@@ -23,7 +23,7 @@
 ```
 GPU0: ✅  73°C |  0% util |  4996/ 8192 MiB
 GPU1: ✅  61°C |  0% util |  6681/ 8192 MiB
-GPU2: ✅  73°C |  0% util |  2321/ 8192 MiB
+GPU2: ✅  68°C |  0% util |  2227/ 8192 MiB
 
 ```
 
@@ -31,7 +31,7 @@ GPU2: ✅  73°C |  0% util |  2321/ 8192 MiB
 |-----------|-------------|---------------|------------|
 | 0 |  73 |  4996 MiB |  8192 MiB |
 | 1 |  61 |  6681 MiB |  8192 MiB |
-| 2 |  73 |  2321 MiB |  8192 MiB |
+| 2 |  68 |  2227 MiB |  8192 MiB |
 
 ---
 
@@ -64,9 +64,12 @@ _(aucun modèle chargé)_
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
+| jarvis-health-check.service                    | activating | start JARVIS Health Check — Proactive monitoring every 5 min |
+| jarvis-network-map.service                     | activating | start JARVIS Network Map Updater                             |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
+| jarvis-sync-config.service                     | active   | JARVIS sync config Docker+LLM → SQLite                     |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
 | jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
@@ -95,24 +98,8 @@ _(aucun modèle chargé)_
 ## Carte réseau cluster
 
 ```json
-{
-  "ts": "2026-06-06T14:00:41",
-  "nodes": {
-    "M1": {
-      "ip": "192.168.1.85",
-      "status": "up"
-    },
-    "M2": {
-      "ip": "192.168.1.26",
-      "status": "up"
-    },
-    "M5": {
-      "ip": "192.168.1.113",
-      "status": "down"
-    }
-  }
-}
+
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-06T12:00:51Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-06T13:00:52Z_
