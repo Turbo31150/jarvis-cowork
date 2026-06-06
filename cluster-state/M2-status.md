@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-06 03:00:43 CEST
+**Mis à jour :** 2026-06-06 04:00:43 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  71°C |  1% util |  5002/ 8192 MiB
-GPU1: ✅  65°C |  0% util |  6681/ 8192 MiB
-GPU2: ✅  73°C |  0% util |  2227/ 8192 MiB
+GPU0: ✅  73°C |  0% util |  5001/ 8192 MiB
+GPU1: ✅  66°C |  0% util |  6681/ 8192 MiB
+GPU2: ✅  72°C |  0% util |  2321/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  71 |  5002 MiB |  8192 MiB |
-| 1 |  65 |  6681 MiB |  8192 MiB |
-| 2 |  73 |  2227 MiB |  8192 MiB |
+| 0 |  73 |  5001 MiB |  8192 MiB |
+| 1 |  66 |  6681 MiB |  8192 MiB |
+| 2 |  72 |  2321 MiB |  8192 MiB |
 
 ---
 
@@ -65,7 +65,6 @@ _(aucun modèle chargé)_
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
-| jarvis-session-daily-restore-test.service      | activating | start JARVIS Session Restore Test quotidien                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
@@ -97,7 +96,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T19:17:54",
+  "ts": "2026-06-06T03:58:30",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -116,4 +115,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-06T01:00:43Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-06T02:00:43Z_
