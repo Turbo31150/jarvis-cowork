@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-06 02:00:42 CEST
+**Mis à jour :** 2026-06-06 03:00:43 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,7 +10,7 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 37 |
+| Services actifs | 36 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
 | RAM | 33Gi/46Gi |
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  73°C |  0% util |  5090/ 8192 MiB
-GPU1: ✅  65°C |  0% util |  6775/ 8192 MiB
-GPU2: ✅  73°C |  0% util |  2321/ 8192 MiB
+GPU0: ✅  71°C |  1% util |  5002/ 8192 MiB
+GPU1: ✅  65°C |  0% util |  6681/ 8192 MiB
+GPU2: ✅  73°C |  0% util |  2227/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  72 |  5090 MiB |  8192 MiB |
-| 1 |  65 |  6775 MiB |  8192 MiB |
-| 2 |  73 |  2321 MiB |  8192 MiB |
+| 0 |  71 |  5002 MiB |  8192 MiB |
+| 1 |  65 |  6681 MiB |  8192 MiB |
+| 2 |  73 |  2227 MiB |  8192 MiB |
 
 ---
 
@@ -39,7 +39,6 @@ GPU2: ✅  73°C |  0% util |  2321/ 8192 MiB
 
 ### :1234 — LM Studio principal
 - **qwen/qwen3.5-9b**
-- **deepseek/deepseek-r1-0528-qwen3-8b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
@@ -65,8 +64,8 @@ _(aucun modèle chargé)_
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
-| jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
+| jarvis-session-daily-restore-test.service      | activating | start JARVIS Session Restore Test quotidien                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
@@ -98,7 +97,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-06T01:57:56",
+  "ts": "2026-06-05T19:17:54",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -110,11 +109,11 @@ _(aucun modèle chargé)_
     },
     "M5": {
       "ip": "192.168.1.113",
-      "status": "down"
+      "status": "up"
     }
   }
 }
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-06T00:00:42Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-06T01:00:43Z_
