@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-07 20:48:27 CEST
+**Mis à jour :** 2026-06-07 21:48:27 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -12,8 +12,8 @@
 |---|---|
 | Services actifs | 36 |
 | Services en échec | 2 |
-| GPU | NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running. × Quadro RTX 4000 |
-| RAM | 37Gi/46Gi |
+| GPU | 3 × Quadro RTX 4000 |
+| RAM | 40Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,15 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPUNVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.: ✅ °C | % util | / MiB
-GPU: ✅ °C | % util | / MiB
+GPU0: ✅  61°C |  0% util |  97/ 8192 MiB
+GPU1: ✅  60°C |  0% util |  97/ 8192 MiB
+GPU2: ✅  58°C |  0% util |  97/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running. |  |  MiB |  MiB |
-|  |  |  MiB |  MiB |
+| 0 |  61 |  97 MiB |  8192 MiB |
+| 1 |  60 |  97 MiB |  8192 MiB |
+| 2 |  58 |  97 MiB |  8192 MiB |
 
 ---
 
@@ -64,11 +66,9 @@ GPU: ✅ °C | % util | / MiB
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | ●                                            | loaded   | failed JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
-| jarvis-prompt-library.service                  | activating | start JARVIS Prompt Library — Auto run                     |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
-| jarvis-sync-repos.service                      | activating | start JARVIS sync bidirectionnel GitHub repos                |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
@@ -90,6 +90,7 @@ GPU: ✅ °C | % util | / MiB
 | jarvis-session-daily-restore-test.timer        | active   | Test restore session JARVIS — quotidien 03h00              |
 | jarvis-session-snapshot.timer                  | active   | Snapshot session JARVIS toutes les 5 minutes                 |
 | jarvis-sync-config.timer                       | active   | JARVIS sync config every 5min                                |
+| jarvis-sync-repos.timer                        | active   | JARVIS sync repos toutes les 30min                           |
 
 ---
 
@@ -97,11 +98,11 @@ GPU: ✅ °C | % util | / MiB
 
 ```json
 {
-  "ts": "2026-06-07T20:44:11",
+  "ts": "2026-06-07T21:44:29",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
-      "status": "down"
+      "status": "up"
     },
     "M2": {
       "ip": "192.168.1.26",
@@ -116,4 +117,4 @@ GPU: ✅ °C | % util | / MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-07T18:48:27Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-07T19:48:27Z_
