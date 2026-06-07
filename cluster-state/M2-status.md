@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-07 19:48:24 CEST
+**Mis à jour :** 2026-06-07 20:48:27 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 36 |
 | Services en échec | 2 |
 | GPU | NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running. × Quadro RTX 4000 |
-| RAM | 35Gi/46Gi |
+| RAM | 37Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -97,7 +97,7 @@ GPU: ✅ °C | % util | / MiB
 
 ```json
 {
-  "ts": "2026-06-07T19:43:53",
+  "ts": "2026-06-07T20:44:11",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -116,4 +116,4 @@ GPU: ✅ °C | % util | / MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-07T17:48:24Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-07T18:48:27Z_
