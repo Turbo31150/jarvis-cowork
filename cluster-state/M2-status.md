@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-07 03:00:57 CEST
+**Mis à jour :** 2026-06-07 04:00:59 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  64°C |  1% util |  5147/ 8192 MiB
-GPU1: ✅  64°C |  0% util |  6800/ 8192 MiB
-GPU2: ✅  75°C |  0% util |  2321/ 8192 MiB
+GPU0: ✅  69°C |  0% util |  4957/ 8192 MiB
+GPU1: ✅  60°C |  0% util |  6681/ 8192 MiB
+GPU2: ✅  69°C |  0% util |  7881/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  64 |  5147 MiB |  8192 MiB |
-| 1 |  64 |  6800 MiB |  8192 MiB |
-| 2 |  75 |  2321 MiB |  8192 MiB |
+| 0 |  68 |  4957 MiB |  8192 MiB |
+| 1 |  60 |  6681 MiB |  8192 MiB |
+| 2 |  69 |  7881 MiB |  8192 MiB |
 
 ---
 
@@ -39,13 +39,12 @@ GPU2: ✅  75°C |  0% util |  2321/ 8192 MiB
 
 ### :1234 — LM Studio principal
 - **qwen/qwen3.5-9b**
-- **deepseek/deepseek-r1-0528-qwen3-8b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
 
 ### :8083 — LM Studio tertiaire
-_(aucun modèle chargé)_
+- **qwen3.5-9b**
 
 ---
 
@@ -97,7 +96,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-05T19:17:54",
+  "ts": "2026-06-07T03:58:32",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -109,11 +108,11 @@ _(aucun modèle chargé)_
     },
     "M5": {
       "ip": "192.168.1.113",
-      "status": "up"
+      "status": "down"
     }
   }
 }
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-07T01:00:57Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-07T02:00:59Z_
