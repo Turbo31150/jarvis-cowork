@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-08 00:51:53 CEST
+**Mis à jour :** 2026-06-08 01:19:36 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 37 |
+| Services actifs | 36 |
 | Services en échec | 2 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 28Gi/46Gi |
+| RAM | 27Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,27 +21,27 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  44°C |  0% util |  1/ 8192 MiB
-GPU1: ✅  47°C |  0% util |  97/ 8192 MiB
-GPU2: ✅  39°C |  0% util |  1/ 8192 MiB
+GPU0: ⚠️  82°C |  26% util |  4681/ 8192 MiB
+GPU1: ✅  61°C |  0% util |  5295/ 8192 MiB
+GPU2: ✅  60°C |  0% util |  5657/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  43 |  963 MiB |  8192 MiB |
-| 1 |  43 |  97 MiB |  8192 MiB |
-| 2 |  39 |  97 MiB |  8192 MiB |
+| 0 |  83 |  4681 MiB |  8192 MiB |
+| 1 |  61 |  5295 MiB |  8192 MiB |
+| 2 |  60 |  5657 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-_(aucun modèle chargé)_
+- **qwen3.5-9b**
 
 ### :8082 — LM Studio secondaire
-_(aucun modèle chargé)_
+- **deepseek-r1**
 
 ### :8083 — LM Studio tertiaire
 - **qwen3.5-9b**
@@ -57,8 +57,6 @@ _(aucun modèle chargé)_
 | jarvis-agent-omega.service                     | active   | JARVIS Omega Agent Orchestrator v4                           |
 | jarvis-agent-selfimprove.service               | active   | JARVIS Agent Self-Improve                                    |
 | jarvis-agent-taskplanner.service               | active   | JARVIS Agent Task Planner                                    |
-| jarvis-auto-improver.service                   | activating | start JARVIS Auto-Improver — skill gap detection + generation |
-| jarvis-autoheal.service                        | activating | start JARVIS self-heal tick (services, mounts, peers, registry) |
 | jarvis-cluster-mount.service                   | active   | JARVIS cluster FS — montage SSHFS homes cross-machine (rw) |
 | jarvis-cowork-dispatcher.service               | active   | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
@@ -67,16 +65,10 @@ _(aucun modèle chargé)_
 | ●                                            | loaded   | failed JARVIS Failure Handler for jarvis-orchestrator.service |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | ●                                            | loaded   | failed JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
-| jarvis-health-check.service                    | activating | start JARVIS Health Check — Proactive monitoring every 5 min |
-| jarvis-network-map.service                     | activating | start JARVIS Network Map Updater                             |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
-| jarvis-prompt-library.service                  | activating | start JARVIS Prompt Library — Auto run                     |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
-| jarvis-session-snapshot.service                | activating | start JARVIS Session Snapshot                                |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
-| jarvis-sync-config.service                     | active   | JARVIS sync config Docker+LLM → SQLite                     |
-| jarvis-sync-repos.service                      | activating | start JARVIS sync bidirectionnel GitHub repos                |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
@@ -92,6 +84,13 @@ _(aucun modèle chargé)_
 | jarvis-health-check.timer                      | active   | JARVIS Health Check Timer — Every 5 minutes                |
 | jarvis-log-rotate.timer                        | active   | JARVIS Log Rotation Timer — Daily at 3am                   |
 | jarvis-network-map.timer                       | active   | JARVIS Network Map — update every 5 minutes                |
+| jarvis-notify-check.timer                      | active   | JARVIS Schedule Check — toutes les 15 minutes              |
+| jarvis-prompt-library.timer                    | active   | JARVIS Prompt Library — Timer 30min                        |
+| jarvis-self-improve.timer                      | active   | JARVIS Self-Improve Timer (every 6h)                         |
+| jarvis-session-daily-restore-test.timer        | active   | Test restore session JARVIS — quotidien 03h00              |
+| jarvis-session-snapshot.timer                  | active   | Snapshot session JARVIS toutes les 5 minutes                 |
+| jarvis-sync-config.timer                       | active   | JARVIS sync config every 5min                                |
+| jarvis-sync-repos.timer                        | active   | JARVIS sync repos toutes les 30min                           |
 
 ---
 
@@ -99,7 +98,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-08T00:51:53",
+  "ts": "2026-06-08T01:16:58",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -118,4 +117,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-07T22:51:53Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-07T23:19:36Z_
