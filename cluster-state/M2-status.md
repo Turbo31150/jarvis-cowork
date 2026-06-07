@@ -1,7 +1,7 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-07 14:01:04 CEST
-**Host :** jarvis-m2 · 172.17.0.1
+**Mis à jour :** 2026-06-07 19:48:24 CEST
+**Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
 ---
@@ -11,9 +11,9 @@
 | Métrique | Valeur |
 |---|---|
 | Services actifs | 36 |
-| Services en échec | 0 |
-| GPU | 3 × Quadro RTX 4000 |
-| RAM | 34Gi/46Gi |
+| Services en échec | 2 |
+| GPU | NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running. × Quadro RTX 4000 |
+| RAM | 35Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,24 +21,22 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  76°C |  9% util |  1969/ 8192 MiB
-GPU1: ✅  61°C |  7% util |  5356/ 8192 MiB
-GPU2: ✅  50°C |  0% util |  5671/ 8192 MiB
+GPUNVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.: ✅ °C | % util | / MiB
+GPU: ✅ °C | % util | / MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  76 |  1969 MiB |  8192 MiB |
-| 1 |  61 |  5356 MiB |  8192 MiB |
-| 2 |  50 |  5671 MiB |  8192 MiB |
+| NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running. |  |  MiB |  MiB |
+|  |  |  MiB |  MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-_(aucun modèle chargé)_
+- **qwen3.5-9b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
@@ -62,17 +60,21 @@ _(aucun modèle chargé)_
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-dispatch.service                        | active   | JARVIS Universal Dispatch — skills/agents HTTP API :8900   |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
+| ●                                            | loaded   | failed JARVIS Failure Handler for jarvis-orchestrator.service |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
-| jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
+| ●                                            | loaded   | failed JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
+| jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
+| jarvis-prompt-library.service                  | activating | start JARVIS Prompt Library — Auto run                     |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
-| jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
+| jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
+| jarvis-sync-repos.service                      | activating | start JARVIS sync bidirectionnel GitHub repos                |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
-| jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
+| jarvis-auto-improver.timer                     | active   | JARVIS Auto-Improver Timer (weekly)                          |
 | jarvis-autoheal.timer                          | active   | Run JARVIS self-heal every 10 minutes                        |
 | jarvis-backup-sql.timer                        | active   | Backup SQLite + Docker — quotidien 02h00                   |
 | jarvis-backup.timer                            | active   | JARVIS database backup timer                                 |
@@ -88,7 +90,6 @@ _(aucun modèle chargé)_
 | jarvis-session-daily-restore-test.timer        | active   | Test restore session JARVIS — quotidien 03h00              |
 | jarvis-session-snapshot.timer                  | active   | Snapshot session JARVIS toutes les 5 minutes                 |
 | jarvis-sync-config.timer                       | active   | JARVIS sync config every 5min                                |
-| jarvis-sync-repos.timer                        | active   | JARVIS sync repos toutes les 30min                           |
 
 ---
 
@@ -96,7 +97,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-07T14:00:26",
+  "ts": "2026-06-07T19:43:53",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -104,7 +105,7 @@ _(aucun modèle chargé)_
     },
     "M2": {
       "ip": "192.168.1.26",
-      "status": "down"
+      "status": "up"
     },
     "M5": {
       "ip": "192.168.1.113",
@@ -115,4 +116,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-07T12:01:04Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-07T17:48:24Z_
