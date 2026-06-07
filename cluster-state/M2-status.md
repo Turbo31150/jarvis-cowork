@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-07 21:48:27 CEST
+**Mis à jour :** 2026-06-07 22:52:41 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 36 |
+| Services actifs | 37 |
 | Services en échec | 2 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 40Gi/46Gi |
+| RAM | 46Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  61°C |  0% util |  97/ 8192 MiB
-GPU1: ✅  60°C |  0% util |  97/ 8192 MiB
-GPU2: ✅  58°C |  0% util |  97/ 8192 MiB
+GPU0: ✅  45°C |  0% util |  963/ 8192 MiB
+GPU1: ✅  45°C |  0% util |  97/ 8192 MiB
+GPU2: ✅  41°C |  0% util |  97/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  61 |  97 MiB |  8192 MiB |
-| 1 |  60 |  97 MiB |  8192 MiB |
-| 2 |  58 |  97 MiB |  8192 MiB |
+| 0 |  47 |  963 MiB |  8192 MiB |
+| 1 |  46 |  97 MiB |  8192 MiB |
+| 2 |  43 |  97 MiB |  8192 MiB |
 
 ---
 
@@ -57,18 +57,27 @@ GPU2: ✅  58°C |  0% util |  97/ 8192 MiB
 | jarvis-agent-omega.service                     | active   | JARVIS Omega Agent Orchestrator v4                           |
 | jarvis-agent-selfimprove.service               | active   | JARVIS Agent Self-Improve                                    |
 | jarvis-agent-taskplanner.service               | active   | JARVIS Agent Task Planner                                    |
+| jarvis-autoheal.service                        | activating | start JARVIS self-heal tick (services, mounts, peers, registry) |
 | jarvis-cluster-mount.service                   | active   | JARVIS cluster FS — montage SSHFS homes cross-machine (rw) |
 | jarvis-cowork-dispatcher.service               | active   | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
+| jarvis-cowork-orchestrator.service             | activating | start JARVIS Cowork Orchestrator                             |
 | jarvis-dispatch.service                        | active   | JARVIS Universal Dispatch — skills/agents HTTP API :8900   |
 | jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | ●                                            | loaded   | failed JARVIS Failure Handler for jarvis-orchestrator.service |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | ●                                            | loaded   | failed JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
+| jarvis-health-check.service                    | activating | start JARVIS Health Check — Proactive monitoring every 5 min |
+| jarvis-network-map.service                     | activating | start JARVIS Network Map Updater                             |
+| jarvis-notify-check.service                    | activating | start JARVIS Schedule Checker — notifications tâches dues |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
+| jarvis-prompt-library.service                  | activating | start JARVIS Prompt Library — Auto run                     |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
+| jarvis-session-snapshot.service                | activating | start JARVIS Session Snapshot                                |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
+| jarvis-sync-config.service                     | active   | JARVIS sync config Docker+LLM → SQLite                     |
+| jarvis-sync-repos.service                      | activating | start JARVIS sync bidirectionnel GitHub repos                |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
@@ -83,14 +92,6 @@ GPU2: ✅  58°C |  0% util |  97/ 8192 MiB
 | jarvis-github-push.timer                       | active   | JARVIS GitHub State Push Timer — toutes les heures         |
 | jarvis-health-check.timer                      | active   | JARVIS Health Check Timer — Every 5 minutes                |
 | jarvis-log-rotate.timer                        | active   | JARVIS Log Rotation Timer — Daily at 3am                   |
-| jarvis-network-map.timer                       | active   | JARVIS Network Map — update every 5 minutes                |
-| jarvis-notify-check.timer                      | active   | JARVIS Schedule Check — toutes les 15 minutes              |
-| jarvis-prompt-library.timer                    | active   | JARVIS Prompt Library — Timer 30min                        |
-| jarvis-self-improve.timer                      | active   | JARVIS Self-Improve Timer (every 6h)                         |
-| jarvis-session-daily-restore-test.timer        | active   | Test restore session JARVIS — quotidien 03h00              |
-| jarvis-session-snapshot.timer                  | active   | Snapshot session JARVIS toutes les 5 minutes                 |
-| jarvis-sync-config.timer                       | active   | JARVIS sync config every 5min                                |
-| jarvis-sync-repos.timer                        | active   | JARVIS sync repos toutes les 30min                           |
 
 ---
 
@@ -98,7 +99,7 @@ GPU2: ✅  58°C |  0% util |  97/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-07T21:44:29",
+  "ts": "2026-06-08T00:04:11",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -110,11 +111,11 @@ GPU2: ✅  58°C |  0% util |  97/ 8192 MiB
     },
     "M5": {
       "ip": "192.168.1.113",
-      "status": "down"
+      "status": "up"
     }
   }
 }
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-07T19:48:27Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-07T20:52:41Z_
