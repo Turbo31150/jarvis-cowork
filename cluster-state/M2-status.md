@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-08 03:19:39 CEST
+**Mis à jour :** 2026-06-08 04:19:41 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -11,7 +11,7 @@
 | Métrique | Valeur |
 |---|---|
 | Services actifs | 35 |
-| Services en échec | 5 |
+| Services en échec | 3 |
 | GPU | 3 × Quadro RTX 4000 |
 | RAM | 27Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
@@ -21,7 +21,7 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  68°C |  0% util |  4679/ 8192 MiB
+GPU0: ✅  68°C |  0% util |  4683/ 8192 MiB
 GPU1: ✅  51°C |  0% util |  5295/ 8192 MiB
 GPU2: ✅  43°C |  0% util |  5657/ 8192 MiB
 
@@ -29,7 +29,7 @@ GPU2: ✅  43°C |  0% util |  5657/ 8192 MiB
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  68 |  4679 MiB |  8192 MiB |
+| 0 |  68 |  4683 MiB |  8192 MiB |
 | 1 |  51 |  5295 MiB |  8192 MiB |
 | 2 |  43 |  5657 MiB |  8192 MiB |
 
@@ -63,9 +63,7 @@ GPU2: ✅  43°C |  0% util |  5657/ 8192 MiB
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-dispatch.service                        | active   | JARVIS Universal Dispatch — skills/agents HTTP API :8900   |
 | ●                                            | loaded   | failed JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
-| ●                                            | loaded   | failed JARVIS Failure Handler for jarvis-orchestrator.service |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
-| ●                                            | loaded   | failed JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
@@ -92,6 +90,7 @@ GPU2: ✅  43°C |  0% util |  5657/ 8192 MiB
 | jarvis-session-daily-restore-test.timer        | active   | Test restore session JARVIS — quotidien 03h00              |
 | jarvis-session-snapshot.timer                  | active   | Snapshot session JARVIS toutes les 5 minutes                 |
 | jarvis-sync-config.timer                       | active   | JARVIS sync config every 5min                                |
+| jarvis-sync-repos.timer                        | active   | JARVIS sync repos toutes les 30min                           |
 
 ---
 
@@ -99,7 +98,7 @@ GPU2: ✅  43°C |  0% util |  5657/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-08T03:17:40",
+  "ts": "2026-06-08T04:17:56",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -118,4 +117,4 @@ GPU2: ✅  43°C |  0% util |  5657/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-08T01:19:39Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-08T02:19:41Z_
