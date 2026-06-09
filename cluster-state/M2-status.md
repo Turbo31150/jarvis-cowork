@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-09 11:20:22 CEST
+**Mis à jour :** 2026-06-09 12:20:23 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 33 |
 | Services en échec | 1 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 27Gi/46Gi |
+| RAM | 28Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  58°C |  0% util |  4685/ 8192 MiB
-GPU1: ✅  56°C |  0% util |  5295/ 8192 MiB
-GPU2: ✅  50°C |  0% util |  5657/ 8192 MiB
+GPU0: ✅  60°C |  0% util |  6427/ 8192 MiB
+GPU1: ✅  58°C |  0% util |  6687/ 8192 MiB
+GPU2: ✅  52°C |  67% util |  7265/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  58 |  4685 MiB |  8192 MiB |
-| 1 |  56 |  5295 MiB |  8192 MiB |
-| 2 |  50 |  5657 MiB |  8192 MiB |
+| 0 |  60 |  6427 MiB |  8192 MiB |
+| 1 |  58 |  6687 MiB |  8192 MiB |
+| 2 |  52 |  7265 MiB |  8192 MiB |
 
 ---
 
@@ -64,6 +64,7 @@ GPU2: ✅  50°C |  0% util |  5657/ 8192 MiB
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
+| jarvis-session-snapshot.service                | activating | start JARVIS Session Snapshot                                |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
@@ -93,7 +94,7 @@ GPU2: ✅  50°C |  0% util |  5657/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-09T11:16:43",
+  "ts": "2026-06-09T12:16:58",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -112,4 +113,4 @@ GPU2: ✅  50°C |  0% util |  5657/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-09T09:20:22Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-09T10:20:23Z_
