@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-09 22:20:40 CEST
+**Mis à jour :** 2026-06-09 23:20:41 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 33 |
+| Services actifs | 35 |
 | Services en échec | 1 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 27Gi/46Gi |
+| RAM | 28Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  54°C |  0% util |  4685/ 8192 MiB
-GPU1: ✅  53°C |  0% util |  5295/ 8192 MiB
-GPU2: ✅  47°C |  0% util |  5657/ 8192 MiB
+GPU0: ✅  57°C |  35% util |  4847/ 8192 MiB
+GPU1: ✅  51°C |  23% util |  5351/ 8192 MiB
+GPU2: ✅  41°C |  0% util |  5671/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  54 |  4685 MiB |  8192 MiB |
-| 1 |  53 |  5295 MiB |  8192 MiB |
-| 2 |  47 |  5657 MiB |  8192 MiB |
+| 0 |  57 |  4847 MiB |  8192 MiB |
+| 1 |  51 |  5351 MiB |  8192 MiB |
+| 2 |  41 |  5671 MiB |  8192 MiB |
 
 ---
 
@@ -61,13 +61,18 @@ GPU2: ✅  47°C |  0% util |  5657/ 8192 MiB
 | jarvis-cowork-dispatcher.service               | active   | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-dispatch.service                        | active   | JARVIS Universal Dispatch — skills/agents HTTP API :8900   |
+| ●                                            | loaded   | failed JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
+| jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
+| jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
+| jarvis-session-snapshot.service                | activating | start JARVIS Session Snapshot                                |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
+| jarvis-voice-widget.service                    | activating | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
@@ -93,7 +98,7 @@ GPU2: ✅  47°C |  0% util |  5657/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-09T22:19:38",
+  "ts": "2026-06-09T23:19:50",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -105,11 +110,11 @@ GPU2: ✅  47°C |  0% util |  5657/ 8192 MiB
     },
     "M5": {
       "ip": "192.168.1.113",
-      "status": "down"
+      "status": "up"
     }
   }
 }
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-09T20:20:40Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-09T21:20:41Z_
