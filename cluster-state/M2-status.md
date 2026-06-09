@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-09 23:20:41 CEST
+**Mis à jour :** 2026-06-10 00:20:41 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 35 |
 | Services en échec | 1 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 28Gi/46Gi |
+| RAM | 27Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,16 +21,16 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  57°C |  35% util |  4847/ 8192 MiB
-GPU1: ✅  51°C |  23% util |  5351/ 8192 MiB
+GPU0: ✅  48°C |  0% util |  4835/ 8192 MiB
+GPU1: ✅  45°C |  0% util |  5327/ 8192 MiB
 GPU2: ✅  41°C |  0% util |  5671/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  57 |  4847 MiB |  8192 MiB |
-| 1 |  51 |  5351 MiB |  8192 MiB |
+| 0 |  48 |  4835 MiB |  8192 MiB |
+| 1 |  45 |  5327 MiB |  8192 MiB |
 | 2 |  41 |  5671 MiB |  8192 MiB |
 
 ---
@@ -67,7 +67,6 @@ GPU2: ✅  41°C |  0% util |  5671/ 8192 MiB
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
-| jarvis-session-snapshot.service                | activating | start JARVIS Session Snapshot                                |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
@@ -98,7 +97,7 @@ GPU2: ✅  41°C |  0% util |  5671/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-09T23:19:50",
+  "ts": "2026-06-10T00:20:03",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -117,4 +116,4 @@ GPU2: ✅  41°C |  0% util |  5671/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-09T21:20:41Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-09T22:20:41Z_
