@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-09 06:20:16 CEST
+**Mis à jour :** 2026-06-09 07:20:17 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  56°C |  0% util |  4685/ 8192 MiB
-GPU1: ✅  53°C |  0% util |  5295/ 8192 MiB
-GPU2: ✅  48°C |  0% util |  5657/ 8192 MiB
+GPU0: ✅  58°C |  0% util |  4685/ 8192 MiB
+GPU1: ✅  54°C |  0% util |  5295/ 8192 MiB
+GPU2: ✅  49°C |  0% util |  5657/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  56 |  4685 MiB |  8192 MiB |
-| 1 |  53 |  5295 MiB |  8192 MiB |
-| 2 |  48 |  5657 MiB |  8192 MiB |
+| 0 |  58 |  4685 MiB |  8192 MiB |
+| 1 |  54 |  5295 MiB |  8192 MiB |
+| 2 |  49 |  5657 MiB |  8192 MiB |
 
 ---
 
@@ -62,8 +62,6 @@ GPU2: ✅  48°C |  0% util |  5657/ 8192 MiB
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-dispatch.service                        | active   | JARVIS Universal Dispatch — skills/agents HTTP API :8900   |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
-| jarvis-health-check.service                    | activating | start JARVIS Health Check — Proactive monitoring every 5 min |
-| jarvis-network-map.service                     | activating | start JARVIS Network Map Updater                             |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
@@ -94,8 +92,24 @@ GPU2: ✅  48°C |  0% util |  5657/ 8192 MiB
 ## Carte réseau cluster
 
 ```json
-
+{
+  "ts": "2026-06-09T07:15:35",
+  "nodes": {
+    "M1": {
+      "ip": "192.168.1.85",
+      "status": "up"
+    },
+    "M2": {
+      "ip": "192.168.1.26",
+      "status": "up"
+    },
+    "M5": {
+      "ip": "192.168.1.113",
+      "status": "down"
+    }
+  }
+}
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-09T04:20:16Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-09T05:20:17Z_
