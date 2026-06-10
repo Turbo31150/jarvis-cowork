@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-10 07:20:49 CEST
+**Mis à jour :** 2026-06-10 08:20:49 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,10 +10,10 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 34 |
+| Services actifs | 35 |
 | Services en échec | 1 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 26Gi/46Gi |
+| RAM | 27Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  53°C |  0% util |  3377/ 8192 MiB
-GPU1: ✅  53°C |  0% util |  6567/ 8192 MiB
-GPU2: ✅  65°C |  99% util |  6979/ 8192 MiB
+GPU0: ✅  64°C |  29% util |  3383/ 8192 MiB
+GPU1: ✅  59°C |  23% util |  6591/ 8192 MiB
+GPU2: ✅  66°C |  0% util |  2083/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  53 |  3377 MiB |  8192 MiB |
-| 1 |  53 |  6567 MiB |  8192 MiB |
-| 2 |  64 |  6979 MiB |  8192 MiB |
+| 0 |  64 |  3383 MiB |  8192 MiB |
+| 1 |  59 |  6591 MiB |  8192 MiB |
+| 2 |  68 |  2073 MiB |  8192 MiB |
 
 ---
 
@@ -65,7 +65,7 @@ _(aucun modèle chargé)_
 | jarvis-failure-handler@jarvis-orchestrator.service.service | activating | start JARVIS Failure Handler for jarvis-orchestrator.service |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
-| jarvis-orchestrator.service                    | activating | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
+| jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
@@ -98,7 +98,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-10T07:16:01",
+  "ts": "2026-06-10T08:16:07",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -117,4 +117,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-10T05:20:49Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-10T06:20:49Z_
