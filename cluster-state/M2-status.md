@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-10 21:20:59 CEST
+**Mis à jour :** 2026-06-10 22:21:01 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -11,40 +11,40 @@
 | Métrique | Valeur |
 |---|---|
 | Services actifs | 36 |
-| Services en échec | 0 |
+| Services en échec | 1 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 29Gi/46Gi |
-| Disque SSD | 126G/228G (58%) |
+| RAM | 28Gi/46Gi |
+| Disque SSD | 131G/228G (61%) |
 
 ---
 
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  73°C |  2% util |  3387/ 8192 MiB
-GPU1: ✅  69°C |  0% util |  6569/ 8192 MiB
-GPU2: ✅  77°C |  0% util |  2169/ 8192 MiB
+GPU0: ✅  60°C |  0% util |  4838/ 8192 MiB
+GPU1: ✅  46°C |  0% util |  5327/ 8192 MiB
+GPU2: ✅  41°C |  0% util |  5671/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  73 |  3337 MiB |  8192 MiB |
-| 1 |  70 |  6569 MiB |  8192 MiB |
-| 2 |  76 |  2169 MiB |  8192 MiB |
+| 0 |  60 |  4838 MiB |  8192 MiB |
+| 1 |  46 |  5327 MiB |  8192 MiB |
+| 2 |  41 |  5671 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-- **qwen/qwen3.5-9b**
+- **qwen3.5-9b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
 
 ### :8083 — LM Studio tertiaire
-_(aucun modèle chargé)_
+- **qwen3.5-9b**
 
 ---
 
@@ -61,7 +61,7 @@ _(aucun modèle chargé)_
 | jarvis-cowork-dispatcher.service               | active   | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-dispatch.service                        | active   | JARVIS Universal Dispatch — skills/agents HTTP API :8900   |
-| jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
+| ●                                            | loaded   | failed JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
@@ -97,7 +97,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-10T21:17:58",
+  "ts": "2026-06-10T22:18:06",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -116,4 +116,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-10T19:20:59Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-10T20:21:01Z_
