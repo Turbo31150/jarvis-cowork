@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-11 00:21:03 CEST
+**Mis à jour :** 2026-06-11 01:21:04 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,41 +10,41 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 36 |
-| Services en échec | 1 |
+| Services actifs | 35 |
+| Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 28Gi/46Gi |
-| Disque SSD | 131G/228G (61%) |
+| RAM | 29Gi/46Gi |
+| Disque SSD | 134G/228G (62%) |
 
 ---
 
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  68°C |  10% util |  4838/ 8192 MiB
-GPU1: ✅  55°C |  0% util |  5327/ 8192 MiB
-GPU2: ✅  49°C |  0% util |  5671/ 8192 MiB
+GPU0: ✅  75°C |  2% util |  370/ 8192 MiB
+GPU1: ✅  58°C |  0% util |  129/ 8192 MiB
+GPU2: ✅  58°C |  0% util |  111/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  68 |  4838 MiB |  8192 MiB |
-| 1 |  55 |  5327 MiB |  8192 MiB |
-| 2 |  49 |  5671 MiB |  8192 MiB |
+| 0 |  75 |  370 MiB |  8192 MiB |
+| 1 |  58 |  129 MiB |  8192 MiB |
+| 2 |  58 |  111 MiB |  8192 MiB |
 
 ---
 
 ## Modèles LLM actifs
 
 ### :1234 — LM Studio principal
-- **qwen3.5-9b**
+_(aucun modèle chargé)_
 
 ### :8082 — LM Studio secondaire
-- **deepseek-r1**
+_(aucun modèle chargé)_
 
 ### :8083 — LM Studio tertiaire
-- **qwen3.5-9b**
+_(aucun modèle chargé)_
 
 ---
 
@@ -61,8 +61,6 @@ GPU2: ✅  49°C |  0% util |  5671/ 8192 MiB
 | jarvis-cowork-dispatcher.service               | active   | JARVIS COWORK Dispatcher — Inbox processor + pattern routing daemon |
 | jarvis-cowork-loop.service                     | active   | JARVIS COWORK Engine — Continuous 5min Loop                |
 | jarvis-dispatch.service                        | active   | JARVIS Universal Dispatch — skills/agents HTTP API :8900   |
-| jarvis-domino.service                          | active   | JARVIS Domino Auto-Trigger Engine (v2.0 with timeout+semaphores) |
-| ●                                            | loaded   | failed JARVIS Failure Handler for jarvis-domino.service      |
 | jarvis-github-push.service                     | activating | start JARVIS GitHub State Push — M2 cluster status         |
 | jarvis-gpu-oc.service                          | active   | JARVIS GPU Memory Overclock (Power Limit 100W Quadro RTX 4000 ×3) |
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
@@ -98,7 +96,7 @@ GPU2: ✅  49°C |  0% util |  5671/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-11T00:18:29",
+  "ts": "2026-06-11T01:18:39",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -117,4 +115,4 @@ GPU2: ✅  49°C |  0% util |  5671/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-10T22:21:03Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-10T23:21:04Z_
