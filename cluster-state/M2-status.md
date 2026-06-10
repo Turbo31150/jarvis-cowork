@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-10 11:20:52 CEST
+**Mis à jour :** 2026-06-10 12:20:52 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 35 |
 | Services en échec | 1 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 26Gi/46Gi |
+| RAM | 27Gi/46Gi |
 | Disque SSD | 126G/228G (58%) |
 
 ---
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  63°C |  53% util |  3385/ 8192 MiB
-GPU1: ✅  57°C |  23% util |  6593/ 8192 MiB
-GPU2: ✅  61°C |  0% util |  2075/ 8192 MiB
+GPU0: ✅  67°C |  10% util |  3479/ 8192 MiB
+GPU1: ✅  63°C |  5% util |  6687/ 8192 MiB
+GPU2: ✅  67°C |  0% util |  2169/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  63 |  3385 MiB |  8192 MiB |
-| 1 |  57 |  6593 MiB |  8192 MiB |
-| 2 |  61 |  2075 MiB |  8192 MiB |
+| 0 |  66 |  3479 MiB |  8192 MiB |
+| 1 |  63 |  6687 MiB |  8192 MiB |
+| 2 |  67 |  2169 MiB |  8192 MiB |
 
 ---
 
@@ -39,6 +39,7 @@ GPU2: ✅  61°C |  0% util |  2075/ 8192 MiB
 
 ### :1234 — LM Studio principal
 - **qwen/qwen3.5-9b**
+- **deepseek/deepseek-r1-0528-qwen3-8b**
 
 ### :8082 — LM Studio secondaire
 - **deepseek-r1**
@@ -71,7 +72,7 @@ _(aucun modèle chargé)_
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
-| jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
+| jarvis-voice-widget.service                    | activating | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
@@ -97,7 +98,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-10T11:16:24",
+  "ts": "2026-06-10T12:16:31",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -116,4 +117,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-10T09:20:52Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-10T10:20:52Z_
