@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-11 14:21:13 CEST
+**Mis à jour :** 2026-06-11 15:21:14 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -13,7 +13,7 @@
 | Services actifs | 35 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
-| RAM | 27Gi/46Gi |
+| RAM | 26Gi/46Gi |
 | Disque SSD | 134G/228G (62%) |
 
 ---
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  72°C |  0% util |  3381/ 8192 MiB
-GPU1: ✅  73°C |  0% util |  6563/ 8192 MiB
-GPU2: ✅  73°C |  99% util |  6975/ 8192 MiB
+GPU0: ✅  71°C |  1% util |  3381/ 8192 MiB
+GPU1: ✅  72°C |  0% util |  6563/ 8192 MiB
+GPU2: ✅  74°C |  0% util |  2069/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  72 |  3381 MiB |  8192 MiB |
-| 1 |  73 |  6563 MiB |  8192 MiB |
-| 2 |  73 |  6975 MiB |  8192 MiB |
+| 0 |  71 |  3377 MiB |  8192 MiB |
+| 1 |  72 |  6563 MiB |  8192 MiB |
+| 2 |  74 |  2069 MiB |  8192 MiB |
 
 ---
 
@@ -70,7 +70,7 @@ _(aucun modèle chargé)_
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
-| jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
+| jarvis-voice-widget.service                    | activating | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
@@ -96,7 +96,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-11T14:21:09",
+  "ts": "2026-06-11T15:16:20",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -108,11 +108,11 @@ _(aucun modèle chargé)_
     },
     "M5": {
       "ip": "192.168.1.113",
-      "status": "up"
+      "status": "down"
     }
   }
 }
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-11T12:21:13Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-11T13:21:14Z_
