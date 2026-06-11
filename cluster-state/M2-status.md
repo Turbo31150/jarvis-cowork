@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-11 05:21:07 CEST
+**Mis à jour :** 2026-06-11 06:21:07 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  62°C |  0% util |  4829/ 8192 MiB
-GPU1: ✅  45°C |  0% util |  5327/ 8192 MiB
-GPU2: ✅  44°C |  0% util |  5671/ 8192 MiB
+GPU0: ✅  59°C |  21% util |  4829/ 8192 MiB
+GPU1: ✅  48°C |  0% util |  5327/ 8192 MiB
+GPU2: ✅  42°C |  0% util |  5671/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  62 |  4829 MiB |  8192 MiB |
-| 1 |  45 |  5327 MiB |  8192 MiB |
-| 2 |  44 |  5671 MiB |  8192 MiB |
+| 0 |  59 |  6989 MiB |  8192 MiB |
+| 1 |  48 |  7057 MiB |  8192 MiB |
+| 2 |  42 |  7777 MiB |  8192 MiB |
 
 ---
 
@@ -66,11 +66,12 @@ GPU2: ✅  44°C |  0% util |  5671/ 8192 MiB
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
+| jarvis-session-snapshot.service                | activating | start JARVIS Session Snapshot                                |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
-| jarvis-voice-widget.service                    | activating | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
+| jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
@@ -96,7 +97,7 @@ GPU2: ✅  44°C |  0% util |  5671/ 8192 MiB
 
 ```json
 {
-  "ts": "2026-06-11T05:19:25",
+  "ts": "2026-06-11T06:19:43",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -115,4 +116,4 @@ GPU2: ✅  44°C |  0% util |  5671/ 8192 MiB
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-11T03:21:07Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-11T04:21:07Z_
