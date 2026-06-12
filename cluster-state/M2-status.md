@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-12 12:21:40 CEST
+**Mis à jour :** 2026-06-12 13:21:41 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -22,16 +22,16 @@
 
 ```
 GPU0: ✅  72°C |  0% util |  3387/ 8192 MiB
-GPU1: ✅  73°C |  0% util |  6569/ 8192 MiB
-GPU2: ✅  73°C |  0% util |  2075/ 8192 MiB
+GPU1: ✅  71°C |  0% util |  6569/ 8192 MiB
+GPU2: ✅  74°C |  0% util |  2075/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
 | 0 |  72 |  3387 MiB |  8192 MiB |
-| 1 |  73 |  6569 MiB |  8192 MiB |
-| 2 |  73 |  2075 MiB |  8192 MiB |
+| 1 |  72 |  6569 MiB |  8192 MiB |
+| 2 |  75 |  2075 MiB |  8192 MiB |
 
 ---
 
@@ -70,7 +70,7 @@ _(aucun modèle chargé)_
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
 | jarvis-task-symbiose.service                   | active   | JARVIS Task Symbiose — inter-machine task dispatcher       |
-| jarvis-voice-widget.service                    | active   | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
+| jarvis-voice-widget.service                    | activating | JARVIS Voice Widget (Alt+X push-to-talk → Whisper → paste) |
 | jarvis-whisper.service                         | active   | JARVIS Whisper STT Server — faster-whisper persistent :8789 |
 | jarvis-cluster.target                          | active   | JARVIS Core Cluster Target                                   |
 | jarvis-full.target                             | active   | JARVIS OS Full Cluster Target                                |
@@ -96,7 +96,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-12T12:19:48",
+  "ts": "2026-06-12T13:20:01",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -115,4 +115,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-12T10:21:40Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-12T11:21:41Z_
