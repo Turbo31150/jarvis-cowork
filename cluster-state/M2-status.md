@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-12 05:21:30 CEST
+**Mis à jour :** 2026-06-12 06:21:31 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,7 +10,7 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 36 |
+| Services actifs | 35 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
 | RAM | 27Gi/46Gi |
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  62°C |  6% util |  3381/ 8192 MiB
+GPU0: ✅  62°C |  0% util |  3377/ 8192 MiB
 GPU1: ✅  61°C |  0% util |  6563/ 8192 MiB
-GPU2: ✅  70°C |  15% util |  6975/ 8192 MiB
+GPU2: ✅  64°C |  0% util |  2069/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  62 |  3377 MiB |  8192 MiB |
+| 0 |  62 |  3381 MiB |  8192 MiB |
 | 1 |  61 |  6563 MiB |  8192 MiB |
-| 2 |  70 |  2163 MiB |  8192 MiB |
+| 2 |  64 |  2069 MiB |  8192 MiB |
 
 ---
 
@@ -96,7 +96,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-12T05:18:37",
+  "ts": "2026-06-12T06:18:47",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -115,4 +115,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-12T03:21:30Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-12T04:21:31Z_
