@@ -1,6 +1,6 @@
 # M2 Cluster Status — JARVIS
 
-**Mis à jour :** 2026-06-13 19:22:10 CEST
+**Mis à jour :** 2026-06-13 20:22:11 CEST
 **Host :** jarvis-m2 · 192.168.1.26
 **Nœud :** M2 — Quadro RTX 4000 ×3 (8GB VRAM chacune)
 
@@ -10,7 +10,7 @@
 
 | Métrique | Valeur |
 |---|---|
-| Services actifs | 36 |
+| Services actifs | 35 |
 | Services en échec | 0 |
 | GPU | 3 × Quadro RTX 4000 |
 | RAM | 28Gi/46Gi |
@@ -21,17 +21,17 @@
 ## GPU (Quadro RTX 4000 ×3)
 
 ```
-GPU0: ✅  62°C |  0% util |  3387/ 8192 MiB
-GPU1: ✅  57°C |  0% util |  6569/ 8192 MiB
-GPU2: ✅  68°C |  100% util |  6981/ 8192 MiB
+GPU0: ✅  63°C |  0% util |  3387/ 8192 MiB
+GPU1: ✅  58°C |  0% util |  6569/ 8192 MiB
+GPU2: ✅  75°C |  99% util |  6981/ 8192 MiB
 
 ```
 
 | GPU Index | Température | VRAM Utilisée | VRAM Total |
 |-----------|-------------|---------------|------------|
-| 0 |  62 |  3387 MiB |  8192 MiB |
-| 1 |  57 |  6569 MiB |  8192 MiB |
-| 2 |  68 |  6981 MiB |  8192 MiB |
+| 0 |  63 |  3387 MiB |  8192 MiB |
+| 1 |  58 |  6569 MiB |  8192 MiB |
+| 2 |  75 |  6981 MiB |  8192 MiB |
 
 ---
 
@@ -66,7 +66,6 @@ _(aucun modèle chargé)_
 | jarvis-orchestrator.service                    | active   | JARVIS Orchestrator Vocal — Pilotage OS via Telegram       |
 | jarvis-scheduler.service                       | active   | JARVIS Scheduler - Planificateur horaire IA                  |
 | jarvis-session-restore.service                 | active   | JARVIS Session Restore au boot                               |
-| jarvis-session-snapshot.service                | activating | start JARVIS Session Snapshot                                |
 | jarvis-share.service                           | active   | JARVIS cross-machine SSHFS mesh                              |
 | jarvis-sql-bridge.service                      | active   | JARVIS SQL Bridge — REST API for SQL + Pinecone semantic search |
 | jarvis-task-executor.service                   | active   | JARVIS Task Executor — lit openclaw_tasks et exécute      |
@@ -97,7 +96,7 @@ _(aucun modèle chargé)_
 
 ```json
 {
-  "ts": "2026-06-13T19:20:15",
+  "ts": "2026-06-13T20:20:33",
   "nodes": {
     "M1": {
       "ip": "192.168.1.85",
@@ -116,4 +115,4 @@ _(aucun modèle chargé)_
 ```
 
 ---
-_Généré automatiquement par jarvis-github-push.service · 2026-06-13T17:22:10Z_
+_Généré automatiquement par jarvis-github-push.service · 2026-06-13T18:22:11Z_
